@@ -213,6 +213,7 @@ def test_the_a6_body_carries_only_writable_settings():
     )
     assert body == {
         "targetTemperature_C": 22.5,
+        "climatisationMode": "economy",
         "climatizationAtUnlock": True,
         "windowHeatingEnabled": False,
         "zoneFrontLeftEnabled": True,

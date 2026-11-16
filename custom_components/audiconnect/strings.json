@@ -756,6 +756,13 @@
           "manual": "Manual",
           "timer": "Timer"
         }
+      },
+      "climatisation_mode": {
+        "name": "Climatisation mode",
+        "state": {
+          "comfort": "Comfort",
+          "economy": "Economy"
+        }
       }
     },
     "climate": {

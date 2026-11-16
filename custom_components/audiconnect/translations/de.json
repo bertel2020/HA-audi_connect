@@ -756,6 +756,13 @@
           "manual": "Manuell",
           "timer": "Zeitgesteuert"
         }
+      },
+      "climatisation_mode": {
+        "name": "Klimatisierungsmodus",
+        "state": {
+          "comfort": "Komfort",
+          "economy": "Sparmodus"
+        }
       }
     },
     "climate": {
