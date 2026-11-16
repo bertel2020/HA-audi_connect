@@ -111,3 +111,26 @@ def test_an_answer_without_limits_leaves_the_default_range():
     run(vehicle)
     assert "chargeTargetLimits" not in vehicle._vehicle.state
     assert vehicle.charge_target_min is None
+
+
+def test_the_climatisation_answers_are_kept_beside_the_charge_limits():
+    answer = {
+        "capabilities": {
+            **ANSWER["capabilities"],
+            "climatisation": {
+                "id": "climatisation",
+                "parameters": [
+                    {"key": "supportsWindowHeatingEnabled", "value": "false"},
+                    {"key": "supportsZoneFrontLeftEnabled", "value": "true"},
+                    {"key": "supportsAutomaticMode", "value": ""},
+                ],
+            },
+        }
+    }
+    vehicle, _ = make_vehicle(answer)
+    run(vehicle)
+    assert vehicle._vehicle.state["climatisationSupports"] == {
+        "supportsWindowHeatingEnabled": False,
+        "supportsZoneFrontLeftEnabled": True,
+    }
+    assert vehicle.climatisation_supports["supportsWindowHeatingEnabled"] is False

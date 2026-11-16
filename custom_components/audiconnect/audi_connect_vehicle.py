@@ -10,7 +10,7 @@ from datetime import datetime, UTC
 
 from aiohttp import ClientResponseError
 
-from .audi_models import _charge_target_limits
+from .audi_models import _charge_target_limits, _supports_flags
 from .audi_services import AudiService
 from .audi_vehicle_properties import AudiVehicleProperties
 from .util import get_attr, log_exception, parse_datetime
@@ -608,6 +608,12 @@ class AudiConnectVehicle(AudiVehicleProperties):
         )
         if limits:
             self._vehicle.state["chargeTargetLimits"] = limits
+        climatisation = capabilities.get("climatisation")
+        flags = _supports_flags(
+            climatisation.get("parameters") if isinstance(climatisation, dict) else None
+        )
+        if flags:
+            self._vehicle.state["climatisationSupports"] = flags
         self._capability_parameters_loaded = True
 
     # What is kept from a trip: the figures, not the trip id or anything else.

@@ -70,6 +70,29 @@ def _charge_target_limits(parameters: Any) -> dict[str, int]:
     return limits
 
 
+def _supports_flags(parameters: Any) -> dict[str, bool]:
+    """The "supports..." answers of one capability, as booleans.
+
+    The car sends every parameter as a string, "true" or "false", and an empty
+    string when it has no answer. Only a real answer is kept, so a missing flag
+    never reads as a "no".
+    """
+    flags: dict[str, bool] = {}
+    if not isinstance(parameters, list):
+        return flags
+    for item in parameters:
+        if not isinstance(item, dict):
+            continue
+        key, value = item.get("key"), str(item.get("value")).strip().lower()
+        if (
+            isinstance(key, str)
+            and key.startswith("supports")
+            and value in {"true", "false"}
+        ):
+            flags[key] = value == "true"
+    return flags
+
+
 def _service_end(value: Any) -> datetime | None:
     """A real end date, or None for no date / "never" (a hundred years out)."""
     if isinstance(value, str):
