@@ -376,10 +376,6 @@ class VehicleDataResponse:
         # Settings and states the car reports that nothing exposed before.
         for name, path in (
             (
-                "batteryCareMode",
-                ["charging", "chargingCareSettings", "value", "batteryCareMode"],
-            ),
-            (
                 "chargingScenario",
                 ["charging", "chargingStatus", "value", "chargingScenario"],
             ),
@@ -395,6 +391,17 @@ class VehicleDataResponse:
             ("parkingBrake", ["parkingBrake", "parkingBrakeStatus", "value", "value"]),
         ):
             self._tryAppendStateWithTs(data, name, -1, list(path))
+        # The care setting arrives without a capture time (the A6 sends just
+        # {"batteryCareMode": ...}), which _tryAppendStateWithTs would drop. It
+        # is a setting, not a reading, so it is kept with no timestamp rather
+        # than given an invented one; the last-update scan skips such states.
+        care_mode = self._getFromJson(
+            data, ["charging", "chargingCareSettings", "value", "batteryCareMode"]
+        )
+        if care_mode is not None:
+            self.states.append(
+                {"name": "batteryCareMode", "value": care_mode, "measure_time": None}
+            )
         # Audi reports online/active at the vehicle, not at the cloud gateway.
         # This readiness block may have no capture time: never assign an
         # invented timestamp or claim every other status is freshly measured.

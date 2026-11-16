@@ -39,9 +39,8 @@ PAYLOAD = {
                 "ledColor": "invalid",
             }
         },
-        "chargingCareSettings": {
-            "value": {"carCapturedTimestamp": T, "batteryCareMode": "deactivated"}
-        },
+        # No carCapturedTimestamp here: the car really sends it bare.
+        "chargingCareSettings": {"value": {"batteryCareMode": "deactivated"}},
         "chargingBidirectionalSettings": {
             "error": {"message": "Bad Gateway", "code": 4104, "retry": False}
         },
