@@ -32,7 +32,17 @@ _CLIMATISATION_SETTING_FIELDS = frozenset(
 _NOT_SENT = frozenset({"targetTemperature_F"})
 
 
-def build_climatisation_settings_update(value: dict, **changes: Any) -> dict:
+# How much of the stored settings goes back with a change. The A6 answers the
+# full object with 502 (error 2105), so the variants exist to find which part it
+# refuses: "full" is the whole writable object, "without_window_heating" leaves
+# out the one setting the car says it does not support, and "single_field"
+# sends only what changes.
+CLIMATISATION_WRITE_VARIANTS = ("full", "without_window_heating", "single_field")
+
+
+def build_climatisation_settings_update(
+    value: dict, *, variant: str = "full", **changes: Any
+) -> dict:
     """Pure read-modify-write core for the climatisation settings.
 
     `value` is climatisation.climatisationSettings.value as the car reports it.
@@ -48,18 +58,24 @@ def build_climatisation_settings_update(value: dict, **changes: Any) -> dict:
     climatisationMode and the Fahrenheit twin of the target are reports from the
     car, not settings, and echoing them back is meaningless at best.
     """
-    if not isinstance(value, dict) or not value:
+    if variant not in CLIMATISATION_WRITE_VARIANTS:
+        raise ValueError(f"Unknown write variant: {variant!r}")
+    if variant != "single_field" and (not isinstance(value, dict) or not value):
         raise ValueError("No climatisation settings to update")
 
     unknown = set(changes) - set(_CLIMATISATION_SETTING_FIELDS)
     if unknown:
         raise ValueError(f"Not climatisation settings: {sorted(unknown)}")
 
+    if variant == "single_field":
+        return dict(changes)
     body = {
         k: v
         for k, v in value.items()
         if k in _CLIMATISATION_SETTING_FIELDS and k not in _NOT_SENT
     }
+    if variant == "without_window_heating":
+        body.pop("windowHeatingEnabled", None)
     body.update(changes)
     return body
 

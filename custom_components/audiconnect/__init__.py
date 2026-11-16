@@ -45,6 +45,8 @@ from .audi_account import (
     SERVICE_START_ENGINE_SCHEMA,
     SERVICE_STOP_ENGINE,
     SERVICE_STOP_ENGINE_SCHEMA,
+    SERVICE_TEST_CLIMATISATION_WRITE,
+    SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA,
     AudiAccount,
     _single_device_id,
 )
@@ -389,6 +391,12 @@ def _async_register_services(hass: HomeAssistant) -> None:
         (SERVICE_SET_TARGET_SOC, SERVICE_SET_TARGET_SOC_SCHEMA, "set_target_soc", True),
         (SERVICE_START_ENGINE, SERVICE_START_ENGINE_SCHEMA, "start_engine", False),
         (SERVICE_STOP_ENGINE, SERVICE_STOP_ENGINE_SCHEMA, "stop_engine", False),
+        (
+            SERVICE_TEST_CLIMATISATION_WRITE,
+            SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA,
+            "test_climatisation_write",
+            True,
+        ),
     )
     for name, schema, method, pass_call in vehicle_services:
         hass.services.async_register(

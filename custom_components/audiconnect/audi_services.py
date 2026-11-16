@@ -906,7 +906,9 @@ class AudiService(AudiAuthMixin):
             data=json.dumps(data),
         )
 
-    async def set_climatisation_settings(self, vin: str, **changes: Any) -> None:
+    async def set_climatisation_settings(
+        self, vin: str, *, variant: str = "full", **changes: Any
+    ) -> None:
         """Change climatisation settings without starting climatisation.
 
         PUT {bff}/vehicle/v1/vehicles/{vin}/climatisation/settings
@@ -917,8 +919,13 @@ class AudiService(AudiAuthMixin):
         The honk-and-flash work later demonstrated the same 404-on-GET on this
         API for a path that is perfectly real for its own verb.
         """
-        current = await self.get_climatisation_settings_raw(vin)
-        body = build_climatisation_settings_update(current, **changes)
+        # A single field needs nothing from the car, so it skips the read.
+        current = (
+            {}
+            if variant == "single_field"
+            else await self.get_climatisation_settings_raw(vin)
+        )
+        body = build_climatisation_settings_update(current, variant=variant, **changes)
 
         headers = {"Authorization": "Bearer " + self._bearer_token_json["access_token"]}
         await self._api.request(

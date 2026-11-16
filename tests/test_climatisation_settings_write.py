@@ -214,3 +214,51 @@ def test_the_a6_body_carries_only_writable_settings():
         "zoneRearLeftEnabled": False,
         "zoneRearRightEnabled": False,
     }
+
+
+# --- body variants for finding what the A6 accepts ---------------------------------
+
+
+def test_without_window_heating_drops_only_that_setting():
+    body = build_climatisation_settings_update(
+        A6_SETTINGS, variant="without_window_heating", climatizationAtUnlock=True
+    )
+    assert "windowHeatingEnabled" not in body
+    assert body["climatizationAtUnlock"] is True
+    assert body["zoneFrontLeftEnabled"] is True
+
+
+def test_without_window_heating_still_sends_it_when_that_is_the_change():
+    body = build_climatisation_settings_update(
+        A6_SETTINGS, variant="without_window_heating", windowHeatingEnabled=True
+    )
+    assert body["windowHeatingEnabled"] is True
+
+
+def test_single_field_sends_only_the_change():
+    body = build_climatisation_settings_update(
+        A6_SETTINGS, variant="single_field", climatizationAtUnlock=True
+    )
+    assert body == {"climatizationAtUnlock": True}
+
+
+def test_an_unknown_variant_is_refused():
+    with pytest.raises(ValueError, match="variant"):
+        build_climatisation_settings_update(A6_SETTINGS, variant="all")
+
+
+def test_single_field_puts_without_reading_first():
+    svc = service()
+    asyncio.run(
+        svc.set_climatisation_settings(
+            "VIN1", variant="single_field", climatizationAtUnlock=True
+        )
+    )
+    assert [c[0] for c in svc._api.calls] == ["PUT"]
+    assert json.loads(svc._api.calls[0][2]) == {"climatizationAtUnlock": True}
+
+
+def test_the_default_stays_the_full_body():
+    svc = service()
+    asyncio.run(svc.set_climatisation_settings("VIN1", windowHeatingEnabled=True))
+    assert [c[0] for c in svc._api.calls] == ["GET", "PUT"]
