@@ -72,6 +72,15 @@ SERVICE_REFRESH_VEHICLE_DATA_SCHEMA = vol.Schema(
     {vol.Required(CONF_DEVICE_ID): _single_device_id}
 )
 
+SERVICE_PROBE_API = "probe_api"
+SERVICE_PROBE_API_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Optional("jobs"): vol.All(cv.ensure_list, [cv.string]),
+        vol.Optional("path"): cv.string,
+    }
+)
+
 SERVICE_EXECUTE_VEHICLE_ACTION = "execute_vehicle_action"
 SERVICE_EXECUTE_VEHICLE_ACTION_SCHEMA = vol.Schema(
     {
@@ -375,6 +384,8 @@ __all__ = [
     "SERVICE_EXECUTE_VEHICLE_ACTION",
     "SERVICE_EXECUTE_VEHICLE_ACTION_SCHEMA",
     "SERVICE_REFRESH_CLOUD_DATA",
+    "SERVICE_PROBE_API",
+    "SERVICE_PROBE_API_SCHEMA",
     "SERVICE_REFRESH_VEHICLE_DATA",
     "SERVICE_REFRESH_VEHICLE_DATA_SCHEMA",
     "SERVICE_SET_CHARGE_MODE",

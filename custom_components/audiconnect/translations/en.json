@@ -278,6 +278,24 @@
           "description": "The Audi vehicle to stop the engine on."
         }
       }
+    },
+    "probe_api": {
+      "name": "Probe API (diagnostics)",
+      "description": "Queries the Audi API read-only and returns the answer. For exploration only; counts toward the API limit.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The Audi vehicle."
+        },
+        "jobs": {
+          "name": "Jobs",
+          "description": "Selectivestatus jobs to request (default: all known ones)."
+        },
+        "path": {
+          "name": "Path",
+          "description": "Alternatively a path below the vehicle URL, e.g. capabilities."
+        }
+      }
     }
   }
 }
