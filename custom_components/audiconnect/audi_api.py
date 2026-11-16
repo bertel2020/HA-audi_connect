@@ -51,13 +51,15 @@ class AudiAPI:
         if DEBUG_VERBOSE:
             _LOGGER.debug("[set_xclient_id] X-Client-ID set: %s", xclientid)
 
-    async def _log_rejected_write(self, method: str, url: str, response: Any) -> None:
+    async def _log_rejected_write(
+        self, method: str, url: str, response: Any, sent: Any = None
+    ) -> None:
         """Say why Audi refused a write.
 
         The status line alone ("502 Bad Gateway") cannot tell a rejected body
-        from a sleeping car. The reply body usually can. Only the route and the
-        start of the reply are logged: the VIN is masked and the length capped,
-        and nothing about the request body or headers is kept.
+        from a sleeping car. The reply body usually can, and the body we sent
+        says what was asked. Settings are logged, headers never are: the VIN is
+        masked and the length capped.
         """
         try:
             text = await response.text()
@@ -68,12 +70,13 @@ class AudiAPI:
             :_ERROR_BODY_CHARS
         ]
         _LOGGER.warning(
-            "Audi rejected %s %s with %s %s: %s",
+            "Audi rejected %s %s with %s %s: %s (sent: %s)",
             method.upper(),
             route,
             response.status,
             response.reason,
             reply or "(empty reply)",
+            re.sub(r"[A-HJ-NPR-Z0-9]{17}", "<vin>", str(sent))[:_ERROR_BODY_CHARS],
         )
 
     async def request(
@@ -188,7 +191,9 @@ class AudiAPI:
                                 response.reason,
                             )
                             if method.upper() in _WRITE_METHODS:
-                                await self._log_rejected_write(method, url, response)
+                                await self._log_rejected_write(
+                                    method, url, response, data
+                                )
                             if DEBUG_VERBOSE:
                                 _LOGGER.debug(
                                     "Response url: %s, body: %s",

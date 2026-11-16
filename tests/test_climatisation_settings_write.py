@@ -186,3 +186,31 @@ def test_the_lambdas_bound_their_own_field():
         if d.key.startswith("climatisation_"):
             asyncio.run(d.turn_on_fn(Conn(), "VIN1"))
     assert len(fields) == 6, f"expected six distinct fields, got {fields}"
+
+
+A6_SETTINGS = {
+    "carCapturedTimestamp": "2026-11-15T17:36:17+00:00",
+    "targetTemperature_C": 22.5,
+    "targetTemperature_F": 73,
+    "unitInCar": "celsius",
+    "climatisationMode": "economy",
+    "climatizationAtUnlock": False,
+    "windowHeatingEnabled": False,
+    "zoneFrontLeftEnabled": True,
+    "zoneFrontRightEnabled": True,
+    "zoneRearLeftEnabled": False,
+    "zoneRearRightEnabled": False,
+}
+
+
+def test_the_a6_body_carries_only_writable_settings():
+    body = build_climatisation_settings_update(A6_SETTINGS, climatizationAtUnlock=True)
+    assert body == {
+        "targetTemperature_C": 22.5,
+        "climatizationAtUnlock": True,
+        "windowHeatingEnabled": False,
+        "zoneFrontLeftEnabled": True,
+        "zoneFrontRightEnabled": True,
+        "zoneRearLeftEnabled": False,
+        "zoneRearRightEnabled": False,
+    }
