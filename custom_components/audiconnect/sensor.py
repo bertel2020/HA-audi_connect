@@ -603,13 +603,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
     AudiSensorEntityDescription(
-        key="target_state_of_charge",
-        attr_key="target_state_of_charge",
-        translation_key="target_state_of_charge",
-        icon="mdi:ev-station",
-        native_unit_of_measurement=PERCENTAGE,
-    ),
-    AudiSensorEntityDescription(
         key="external_power",
         attr_key="external_power",
         translation_key="external_power",

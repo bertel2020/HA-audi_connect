@@ -498,9 +498,6 @@
       "charging_complete_time": {
         "name": "Ladeende"
       },
-      "target_state_of_charge": {
-        "name": "Ziel-Ladestand"
-      },
       "external_power": {
         "name": "Externe Stromversorgung"
       },
