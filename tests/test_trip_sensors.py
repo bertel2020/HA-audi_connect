@@ -143,3 +143,19 @@ def test_the_long_term_totals_are_on_by_default_like_the_last_trip():
     by_key = {d.key: d for d in SENSOR_DESCRIPTIONS}
     assert by_key["trip_totals_distance"].entity_registry_enabled_default is True
     assert by_key["last_trip_distance"].entity_registry_enabled_default is True
+
+
+def test_long_term_totals_are_total_increasing_and_last_trip_is_not():
+    from homeassistant.components.sensor import SensorStateClass
+
+    from custom_components.audiconnect.sensor import SENSOR_DESCRIPTIONS
+
+    by_key = {d.key: d for d in SENSOR_DESCRIPTIONS}
+    for suffix in ("distance", "energy"):
+        assert (
+            by_key[f"trip_totals_{suffix}"].state_class
+            == SensorStateClass.TOTAL_INCREASING
+        )
+    assert by_key["last_trip_distance"].state_class == SensorStateClass.MEASUREMENT
+    assert by_key["last_trip_energy"].state_class is None
+    assert by_key["trip_totals_speed"].state_class == SensorStateClass.MEASUREMENT
