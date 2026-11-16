@@ -907,7 +907,7 @@ class AudiService(AudiAuthMixin):
         )
 
     async def set_climatisation_settings(
-        self, vin: str, *, variant: str = "full", **changes: Any
+        self, vin: str, *, variant: str = "full", method: str = "PUT", **changes: Any
     ) -> None:
         """Change climatisation settings without starting climatisation.
 
@@ -928,8 +928,10 @@ class AudiService(AudiAuthMixin):
         body = build_climatisation_settings_update(current, variant=variant, **changes)
 
         headers = {"Authorization": "Bearer " + self._bearer_token_json["access_token"]}
+        if method not in ("PUT", "POST"):
+            raise ValueError(f"Unknown write method: {method!r}")
         await self._api.request(
-            "PUT",
+            method,
             self._get_cariad_url_for_vin(vin, "climatisation/settings"),
             headers=headers,
             data=json.dumps(body),

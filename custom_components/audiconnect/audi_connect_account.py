@@ -484,14 +484,19 @@ class AudiConnectAccount:
         )
 
     async def set_climatisation_setting(
-        self, vin: str, field: str, value, variant: str = "full"
+        self,
+        vin: str,
+        field: str,
+        value,
+        variant: str = "full",
+        method: str = "PUT",
     ) -> bool:
         """Change one climatisation setting, leaving the others as they are."""
         return await self._run_command(
             vin,
-            f"set {field}={value} for vehicle {vin} ({variant} body)",
+            f"set {field}={value} for vehicle {vin} ({variant} body, {method})",
             lambda: self._audi_service.set_climatisation_settings(
-                vin.lower(), variant=variant, **{field: value}
+                vin.lower(), variant=variant, method=method, **{field: value}
             ),
             notify_action=ACTION_CLIMATISATION,
             notify_label="a climatisation setting",

@@ -163,6 +163,7 @@ SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA = vol.Schema(
         vol.Required("variant"): vol.In(
             ["full", "without_window_heating", "single_field"]
         ),
+        vol.Optional("method", default="PUT"): vol.In(["PUT", "POST"]),
     }
 )
 
@@ -383,6 +384,7 @@ class AudiAccount(AudiConnectObserver):
             service.data["setting"],
             service.data["value"],
             service.data["variant"],
+            service.data["method"],
         )
         self._raise_on_failed_command(result, "test_climatisation_write")
 

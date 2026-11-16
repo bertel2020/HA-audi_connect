@@ -349,6 +349,10 @@
         "variant": {
           "name": "Body variant",
           "description": "full: all settings; without_window_heating: leaves out window heating; single_field: only the changed field."
+        },
+        "method": {
+          "name": "HTTP method",
+          "description": "PUT (default) or POST."
         }
       }
     }
