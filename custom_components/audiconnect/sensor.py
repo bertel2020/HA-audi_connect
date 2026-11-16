@@ -106,10 +106,21 @@ def _trip_figure(attr_key: str, field: str, *, as_time: bool = False):
 
 
 def _trip_sensors(
-    attr_key: str, prefix: str, *, enabled: bool
+    attr_key: str, prefix: str, *, enabled: bool, cumulative: bool = False
 ) -> tuple[AudiSensorEntityDescription, ...]:
-    """The distance, time, consumption, energy and speed of one kind of trip."""
+    """The distance, time, consumption, energy and speed of one kind of trip.
+
+    cumulative marks the long-term totals, which only grow (until the car's
+    counter is reset) and so get long-term statistics as total_increasing.
+    """
     base = {"attr_key": attr_key, "entity_registry_enabled_default": enabled}
+    counting = (
+        SensorStateClass.TOTAL_INCREASING
+        if cumulative
+        else SensorStateClass.MEASUREMENT
+    )
+    # One trip's energy is not a running meter, so it gets no state class.
+    energy = SensorStateClass.TOTAL_INCREASING if cumulative else None
     return (
         AudiSensorEntityDescription(
             key=f"{prefix}_distance",
@@ -118,6 +129,7 @@ def _trip_sensors(
             native_unit_of_measurement=UnitOfLength.KILOMETERS,
             device_class=SensorDeviceClass.DISTANCE,
             suggested_display_precision=0,
+            state_class=counting,
             value_fn=_trip_figure(attr_key, "mileage_km"),
             **base,
         ),
@@ -128,6 +140,7 @@ def _trip_sensors(
             native_unit_of_measurement=UnitOfTime.MINUTES,
             device_class=SensorDeviceClass.DURATION,
             suggested_display_precision=0,
+            state_class=counting,
             value_fn=_trip_figure(attr_key, "travelTime"),
             **base,
         ),
@@ -137,6 +150,7 @@ def _trip_sensors(
             icon="mdi:ev-station",
             native_unit_of_measurement="kWh/100 km",
             suggested_display_precision=1,
+            state_class=SensorStateClass.MEASUREMENT,
             value_fn=_trip_figure(attr_key, "averageElectricConsumption"),
             **base,
         ),
@@ -147,6 +161,7 @@ def _trip_sensors(
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             device_class=SensorDeviceClass.ENERGY,
             suggested_display_precision=1,
+            state_class=energy,
             value_fn=_trip_figure(attr_key, "totalElectricConsumption_kwh"),
             **base,
         ),
@@ -157,6 +172,7 @@ def _trip_sensors(
             native_unit_of_measurement=UnitOfSpeed.KILOMETERS_PER_HOUR,
             device_class=SensorDeviceClass.SPEED,
             suggested_display_precision=0,
+            state_class=SensorStateClass.MEASUREMENT,
             value_fn=_trip_figure(attr_key, "averageSpeed_kmph"),
             **base,
         ),
@@ -278,7 +294,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         value_fn=_trip_figure("last_trip", "tripEndTimestamp", as_time=True),
     ),
     *_trip_sensors("last_trip", "last_trip", enabled=True),
-    *_trip_sensors("trip_totals", "trip_totals", enabled=True),
+    *_trip_sensors("trip_totals", "trip_totals", enabled=True, cumulative=True),
     AudiSensorEntityDescription(
         key="shortterm_current",
         attr_key="shortterm_current",
