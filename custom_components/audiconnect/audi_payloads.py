@@ -64,7 +64,7 @@ _APP_DTO_FIELDS = (
 
 
 def build_climatisation_settings_update(
-    value: dict, *, variant: str = "full", **changes: Any
+    value: dict, *, variant: str = "app_dto", **changes: Any
 ) -> dict:
     """Pure read-modify-write core for the climatisation settings.
 
