@@ -169,6 +169,12 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[AudiBinarySensorEntityDescription, ...] = (
         icon="mdi:car-brake-abs",
     ),
     AudiBinarySensorEntityDescription(
+        key="parking_brake",
+        attr_key="parking_brake",
+        name="Parking brake",
+        icon="mdi:car-brake-parking",
+    ),
+    AudiBinarySensorEntityDescription(
         key="oil_level_binary",
         attr_key="oil_level_binary",
         name="Oil Level Binary",

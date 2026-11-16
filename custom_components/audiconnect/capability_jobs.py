@@ -29,6 +29,7 @@ BASE_SELECTIVE_JOBS = (
     "lvBattery",
     "measurements",
     "oilLevel",
+    "parkingBrake",
     "readiness",
     "userCapabilities",
     "vehicleHealthInspection",
