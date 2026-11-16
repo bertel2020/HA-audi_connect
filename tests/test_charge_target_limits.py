@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+from types import SimpleNamespace
 
 import pytest
 
@@ -86,3 +87,37 @@ def test_the_profile_slider_ignores_the_global_limits():
         {"chargeTargetLimits": {"min": 50, "step": 10}},
     )
     assert (entity.native_min_value, entity.native_step) == (20, 5)
+
+
+# --- the slider for the active location profile -----------------------------------
+
+
+def _profiles(*targets):
+    return SimpleNamespace(
+        charging_profiles=[
+            {"id": i, "name": f"p{i}", "targetSOC_pct": t}
+            for i, t in enumerate(targets, 1)
+        ]
+    )
+
+
+def test_no_profile_slider_when_no_profile_has_a_target():
+    """The A6 lists a profile whose target is null. The slider could never show
+    a value, so it is not offered, registry entry or not."""
+    from custom_components.audiconnect.number import profile_slider_wanted
+
+    assert profile_slider_wanted(_profiles(None)) is False
+    assert profile_slider_wanted(_profiles(None, None)) is False
+
+
+def test_the_profile_slider_stays_when_a_profile_has_a_target():
+    from custom_components.audiconnect.number import profile_slider_wanted
+
+    assert profile_slider_wanted(_profiles(None, 80)) is True
+
+
+def test_a_poll_without_profiles_does_not_decide():
+    from custom_components.audiconnect.number import profile_slider_wanted
+
+    assert profile_slider_wanted(SimpleNamespace()) is True
+    assert profile_slider_wanted(_profiles()) is True
