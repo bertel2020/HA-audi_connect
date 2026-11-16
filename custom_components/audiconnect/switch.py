@@ -93,10 +93,7 @@ _SETTING_ICONS = {
 
 
 _SETTING_SUPPORTS = {
-    # No entry for the window heating preset: the A6 reports
-    # supportsWindowHeatingEnabled=false, yet its stored preset is writable
-    # (and the body must carry windowHeatingEnabled, see audi_payloads), so the
-    # flag only gates the start/stop buttons, not this setting.
+    "climatisation_window_heating": "supportsWindowHeatingEnabled",
     "climatisation_at_unlock": "supportsClimatisationAtUnlock",
     "climatisation_zone_front_left": "supportsZoneFrontLeftEnabled",
     "climatisation_zone_front_right": "supportsZoneFrontRightEnabled",
@@ -108,7 +105,7 @@ _SETTING_SUPPORTS = {
 def _setting_switch(key, attr_key, field) -> AudiSwitchEntityDescription:
     return AudiSwitchEntityDescription(
         key=key,
-        supports_key=_SETTING_SUPPORTS.get(key),
+        supports_key=_SETTING_SUPPORTS[key],
         attr_key=attr_key,
         translation_key=key,
         icon=_SETTING_ICONS[key],
