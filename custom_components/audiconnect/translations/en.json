@@ -759,7 +759,7 @@
         "name": "Refresh vehicle data"
       },
       "flash_lights": {
-        "name": "Flash lights"
+        "name": "Flash"
       },
       "start_window_heating_modern": {
         "name": "Start window heating (experimental)"
@@ -777,7 +777,7 @@
         "name": "Stop engine"
       },
       "honk_horn": {
-        "name": "Honk horn"
+        "name": "Honk and flash"
       }
     },
     "number": {

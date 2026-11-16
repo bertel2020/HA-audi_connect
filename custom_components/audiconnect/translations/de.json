@@ -759,7 +759,7 @@
         "name": "Fahrzeugdaten aktualisieren"
       },
       "flash_lights": {
-        "name": "Lichthupe"
+        "name": "Blinken"
       },
       "start_window_heating_modern": {
         "name": "Scheibenheizung starten (experimentell)"
@@ -777,7 +777,7 @@
         "name": "Motor stoppen"
       },
       "honk_horn": {
-        "name": "Hupen"
+        "name": "Hupen und Blinken"
       }
     },
     "number": {
