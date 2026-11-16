@@ -33,6 +33,7 @@ LIVE_METHODS = {
     "set_vehicle_pre_heater",
     "set_battery_charger",
     "set_climatisation_setting",
+    "set_plug_auto_unlock",
 }
 
 

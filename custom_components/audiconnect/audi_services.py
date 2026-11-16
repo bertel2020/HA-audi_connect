@@ -906,25 +906,23 @@ class AudiService(AudiAuthMixin):
             )
         return value
 
-    async def set_target_state_of_charge(self, vin: str, target_soc: int):
-        """Set the target state of charge (battery percentage)."""
-        if not (20 <= target_soc <= 100):
-            raise ValueError(
-                "Target state of charge must be between 20 and 100 percent"
-            )
+    async def _put_charging_settings(self, vin: str, changes: dict[str, Any]) -> None:
+        """Change charging settings without dropping the ones not being changed.
 
-        # Use Cariad BFF API (requires API level 1)
+        A CARIAD PUT may replace the complete object, so the current settings are
+        read first and sent back with only the requested fields altered. Unknown
+        settings stop the write instead of being silently dropped or replayed.
+        """
         headers = {"Authorization": "Bearer " + self._bearer_token_json["access_token"]}
 
-        data = {"targetSOC_pct": target_soc}
+        data = dict(changes)
         if self._uses_auth0:
             current = await self.get_charging_settings_raw(vin)
-            # A CARIAD PUT may replace the complete object. Unknown vehicle
-            # settings must not be silently dropped or replayed blindly.
             writable = frozenset(
                 (
                     "maxChargeCurrentAC_A",
                     "maxChargeCurrentAC",
+                    "autoUnlockPlugWhenCharged",
                     "autoUnlockPlugWhenChargedAC",
                     "targetSOC_pct",
                 )
@@ -935,18 +933,42 @@ class AudiService(AudiAuthMixin):
                     "Audi reported unrecognized charging settings; refusing "
                     "a potentially destructive full-replacement PUT"
                 )
+            # "invalid" is the car's word for "no reading", not a value to send
+            # back.
             data = {
                 key: current[key]
                 for key in writable
-                if key in current and current[key] is not None
+                if key in current and current[key] not in (None, "invalid")
             }
-            data["targetSOC_pct"] = target_soc
+            data.update(changes)
 
         await self._api.request(
             "PUT",
             self._get_cariad_url_for_vin(vin, "charging/settings"),
             headers=headers,
             data=json.dumps(data),
+        )
+
+    async def set_target_state_of_charge(self, vin: str, target_soc: int):
+        """Set the target state of charge (battery percentage)."""
+        if not (20 <= target_soc <= 100):
+            raise ValueError(
+                "Target state of charge must be between 20 and 100 percent"
+            )
+        await self._put_charging_settings(vin, {"targetSOC_pct": target_soc})
+
+    async def set_plug_auto_unlock(self, vin: str, enabled: bool):
+        """Let the car release the charging plug once charging has finished.
+
+        The values are "on" and "off", the two the open-source clients (WeConnect)
+        list as settable. Only the Auth0 path can write it: the legacy endpoints
+        are gone, and a blind write there would replace the rest of the
+        settings.
+        """
+        if not self._uses_auth0:
+            raise ValueError("Plug auto-unlock needs an Auth0 session")
+        await self._put_charging_settings(
+            vin, {"autoUnlockPlugWhenChargedAC": "on" if enabled else "off"}
         )
 
     async def get_climatisation_settings_raw(self, vin: str) -> dict:

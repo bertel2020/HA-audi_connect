@@ -656,6 +656,9 @@
       "climatisation_window_heating": {
         "name": "Scheibenheizung"
       },
+      "plug_auto_unlock": {
+        "name": "Stecker nach dem Laden freigeben"
+      },
       "climatisation_at_unlock": {
         "name": "Klimatisierung beim Entsperren"
       },
