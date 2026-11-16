@@ -266,26 +266,36 @@ class AudiService(AudiAuthMixin):
             f"https://msg.volkswagen.de/fs-car/usermanagement/users/v1/{self._type}/{self._country}/vehicles"
         )
 
-    # Read-only GraphQL questions for finding out what the app's vehicle list
-    # knows (model name, pictures). Fixed texts, never built from input.
+    # The app's own read-only GraphQL questions about a vehicle (myAudi 5.9.0).
+    # Fixed texts, never built from input. The per-vehicle ones take the id the
+    # vehicle list calls csid.
+    GRAPHQL_LIST = (
+        "query vehicleList { userVehicles { vin mappingVin csid devicePlatform "
+        "mbbConnect userRole { role } vehicle { classification { driveTrain } "
+        "fleet } nickname } }"
+    )
     GRAPHQL_PROBES = {
-        "media": "query p { userVehicles { vin nickname vehicle { media { shortName longName } } } }",
-        "core": "query p { userVehicles { vin vehicle { core { modelYear } } } }",
-        "classification": (
-            "query p { userVehicles { vin vehicle { classification { driveTrain } } } }"
+        "list": GRAPHQL_LIST,
+        "details": (
+            "query vehicleDetails($vehicleCoreId: String!) { userVehicle("
+            "vehicleCoreId: $vehicleCoreId) { vehicle { core { modelYear "
+            "modelCoding } media { shortName longName } classification { "
+            "driveTrain } fleet } devicePlatform mbbConnect vin mappingVin "
+            "nickname } }"
         ),
-        "vehicle_fields": '{ __type(name: "Vehicle") { fields { name } } }',
-        "media_fields": '{ __type(name: "Media") { fields { name } } }',
+        "render_pictures": (
+            "query renderPictures($vehicleCoreId: String!) { vehicle("
+            "vehicleCoreId: $vehicleCoreId) { renderPictures { mediaType url } } }"
+        ),
+        "configuration": (
+            "query configuration($vehicleCoreId: String!) { vehicle("
+            "vehicleCoreId: $vehicleCoreId) { techSpecs { key name value unit "
+            "groupId groupName } equipments { code name categoryName standard } "
+            "media { interiorColor exteriorColor } } }"
+        ),
     }
 
-    async def probe_graphql(self, preset: str):
-        """POST one fixed, read-only GraphQL question to the app's vehicle service.
-
-        Returns the whole answer, errors included: the point is to see why the
-        model name is missing, which the normal vehicle list throws away.
-        """
-        if preset not in self.GRAPHQL_PROBES:
-            raise ValueError(f"Unknown GraphQL probe {preset!r}")
+    async def _graphql(self, query: str, variables: dict | None = None):
         headers = {
             "Accept": "application/json",
             "Accept-Charset": "utf-8",
@@ -297,17 +307,53 @@ class AudiService(AudiAuthMixin):
             "Authorization": "Bearer " + self.audiToken["access_token"],
             "Content-Type": "application/json; charset=utf-8",
         }
+        payload: dict = {"query": query}
+        if variables:
+            payload["variables"] = variables
         _, text = await self._api.request(
             "POST",
             "https://app-api.my.aoa.audi.com/vgql/v1/graphql"
             if self._country.upper() == "US"
             else "https://app-api.live-my.audi.com/vgql/v1/graphql",
-            json.dumps({"query": self.GRAPHQL_PROBES[preset]}),
+            json.dumps(payload),
             headers=headers,
             allow_redirects=False,
             rsp_wtxt=True,
         )
         return json.loads(text)
+
+    async def probe_graphql(self, preset: str, vin: str | None = None):
+        """Run one of the app's fixed read-only GraphQL questions.
+
+        "list" is the vehicle list. The others are asked about one vehicle, whose
+        id (csid) is read from that list first. The whole answer comes back,
+        errors included: the point is to see why the model name is missing,
+        which the normal vehicle list throws away.
+        """
+        if preset not in self.GRAPHQL_PROBES:
+            raise ValueError(f"Unknown GraphQL probe {preset!r}")
+        if preset == "list":
+            return await self._graphql(self.GRAPHQL_LIST)
+        listing = await self._graphql(self.GRAPHQL_LIST)
+        vehicles = (listing.get("data") or {}).get("userVehicles") or []
+        wanted = str(vin).lower()
+        match = next(
+            (
+                v
+                for v in vehicles
+                if isinstance(v, dict) and str(v.get("vin", "")).lower() == wanted
+            ),
+            None,
+        )
+        core_id = match.get("csid") if match else None
+        if not core_id:
+            return {
+                "error": "The vehicle list gave no csid for this vehicle",
+                "list": listing,
+            }
+        return await self._graphql(
+            self.GRAPHQL_PROBES[preset], {"vehicleCoreId": str(core_id)}
+        )
 
     async def get_vehicle_information(self):
         headers = {

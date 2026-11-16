@@ -88,11 +88,10 @@ probe_api:
       selector:
         select:
           options:
-            - media
-            - core
-            - classification
-            - vehicle_fields
-            - media_fields
+            - list
+            - details
+            - render_pictures
+            - configuration
 
 execute_vehicle_action:
   fields:
