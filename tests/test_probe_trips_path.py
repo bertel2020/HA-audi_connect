@@ -39,3 +39,18 @@ def test_other_paths_stay_below_the_vehicle():
     assert probe("parkingposition").endswith(
         f"/vehicle/v1/vehicles/{VIN}/parkingposition"
     )
+
+
+def test_bs_paths_use_the_myaudi_backend_service_root():
+    url = probe("bs/climatisation/v1/climatisation/settings")
+    assert url == (
+        "https://emea.bff.cariad.digital/bs/climatisation/v1/audi/BE/vehicles/"
+        f"{VIN}/climatisation/settings"
+    )
+
+
+def test_a_malformed_bs_path_is_refused_before_any_request():
+    import pytest
+
+    with pytest.raises(ValueError, match="bs path"):
+        probe("bs/climatisation")
