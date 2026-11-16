@@ -703,7 +703,7 @@
         "name": "Stop window heating (experimental)"
       },
       "wake_vehicle_modern": {
-        "name": "Wake vehicle (experimental)"
+        "name": "Wake vehicle"
       },
       "start_engine": {
         "name": "Start engine"

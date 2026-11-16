@@ -703,7 +703,7 @@
         "name": "Scheibenheizung stoppen (experimentell)"
       },
       "wake_vehicle_modern": {
-        "name": "Fahrzeug aufwecken (experimentell)"
+        "name": "Fahrzeug aufwecken"
       },
       "start_engine": {
         "name": "Motor starten"
