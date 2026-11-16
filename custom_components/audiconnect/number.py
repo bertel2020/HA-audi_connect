@@ -72,6 +72,12 @@ NUMBER_DESCRIPTIONS: tuple[AudiNumberEntityDescription, ...] = (
 )
 
 
+def _limit(vehicle: Any, name: str, default: int) -> int:
+    """A limit the car reported, else the range the API is known to accept."""
+    value = getattr(vehicle, name, None)
+    return value if isinstance(value, int) and not isinstance(value, bool) else default
+
+
 def _profiles(vehicle: Any) -> list[dict[str, Any]]:
     """Return the location charging profiles the car reports, if any."""
     profiles = getattr(vehicle, "charging_profiles", None)
@@ -122,10 +128,11 @@ class AudiChargeTargetEntity(AudiEntity, NumberEntity):
 
     _attr_device_class = NumberDeviceClass.BATTERY
     _attr_native_unit_of_measurement = PERCENTAGE
-    _attr_native_min_value = _SOC_MIN
     _attr_native_max_value = _SOC_MAX
-    _attr_native_step = _SOC_STEP
     _attr_mode = NumberMode.SLIDER
+
+    _attr_native_min_value = _SOC_MIN
+    _attr_native_step = _SOC_STEP
 
     async def _write(
         self,
@@ -155,6 +162,20 @@ class AudiNumber(AudiChargeTargetEntity):
         super().__init__(coordinator, vehicle)
         self.entity_description = description
         self._attr_unique_id = entity_unique_id(vehicle, "number", description.key)
+
+    # Only the global target has limits in the car's capabilities. The location
+    # profiles report none, so they keep the range the API is known to take.
+    @property
+    def native_min_value(self) -> float:
+        if self.entity_description.key != "target_state_of_charge":
+            return _SOC_MIN
+        return _limit(self._vehicle, "charge_target_min", _SOC_MIN)
+
+    @property
+    def native_step(self) -> float:
+        if self.entity_description.key != "target_state_of_charge":
+            return _SOC_STEP
+        return _limit(self._vehicle, "charge_target_step", _SOC_STEP)
 
     @property
     def native_value(self) -> float | None:

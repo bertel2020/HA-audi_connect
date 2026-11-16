@@ -40,6 +40,35 @@ def _count_error_objects(data: Any) -> int:
 
 _PERMANENT_YEAR = 2100
 
+# What the "charging" capability calls the limits of the global charge target.
+_CHARGE_TARGET_PARAMETERS = {
+    "targetStateOfChargeMinimumAllowedValue": "min",
+    "targetStateOfChargeStepSize": "step",
+}
+
+
+def _charge_target_limits(parameters: Any) -> dict[str, int]:
+    """The lowest charge target and the step size the car accepts.
+
+    The car sends every parameter as a string and an empty one when it has no
+    value; anything that is not a sensible whole percentage is left out so the
+    caller falls back to its defaults.
+    """
+    limits: dict[str, int] = {}
+    if not isinstance(parameters, list):
+        return limits
+    for item in parameters:
+        if not isinstance(item, dict):
+            continue
+        name = _CHARGE_TARGET_PARAMETERS.get(item.get("key"))
+        try:
+            number = int(str(item.get("value")).strip())
+        except ValueError:
+            continue
+        if name and 1 <= number <= 100:
+            limits[name] = number
+    return limits
+
 
 def _service_end(value: Any) -> datetime | None:
     """A real end date, or None for no date / "never" (a hundred years out)."""
@@ -476,6 +505,7 @@ class VehicleDataResponse:
         ids = []
         impaired = []
         expiry: dict[str, datetime] = {}
+        limits: dict[str, int] = {}
         for entry in value:
             if not isinstance(entry, dict):
                 continue
@@ -490,6 +520,8 @@ class VehicleDataResponse:
             # the same as a working one.
             if entry.get("status"):
                 impaired.append(cap_id)
+            if cap_id == "charging":
+                limits = _charge_target_limits(entry.get("parameters"))
 
         if not ids:
             return
@@ -504,6 +536,10 @@ class VehicleDataResponse:
             # are the car's way of saying "does not expire" and are left out.
             self.states.append(
                 {"name": "serviceExpiry", "value": expiry, "measure_time": None}
+            )
+        if limits:
+            self.states.append(
+                {"name": "chargeTargetLimits", "value": limits, "measure_time": None}
             )
         if impaired:
             self.states.append(
