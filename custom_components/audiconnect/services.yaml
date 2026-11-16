@@ -271,6 +271,8 @@ test_climatisation_write:
             - full
             - without_window_heating
             - single_field
+            - full_json
+            - app_dto
     method:
       selector:
         select:

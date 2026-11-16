@@ -161,7 +161,7 @@ SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA = vol.Schema(
         ),
         vol.Required("value"): cv.boolean,
         vol.Required("variant"): vol.In(
-            ["full", "without_window_heating", "single_field"]
+            ["full", "without_window_heating", "single_field", "full_json", "app_dto"]
         ),
         vol.Optional("method", default="PUT"): vol.In(["PUT", "POST"]),
     }
