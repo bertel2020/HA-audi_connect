@@ -458,14 +458,26 @@ class AudiVehicleProperties:
         return None if lights is None else len(lights)
 
     @property
+    def parking_light_sides(self) -> dict[str, str] | None:
+        """Return the status of each parking light, e.g. {"left": "off"}."""
+        check = self._vehicle.fields.get("LIGHT_STATUS")
+        if not isinstance(check, list):
+            return None
+        sides = {
+            str(item["name"]): str(item["status"])
+            for item in check
+            if isinstance(item, dict) and "name" in item and "status" in item
+        }
+        return sides or None
+
+    @property
     def parking_light(self):
-        """Return true if parking light is on"""
+        """Return true if any parking light is on"""
         if self.parking_light_supported:
-            try:
-                check = self._vehicle.fields.get("LIGHT_STATUS")
-                return check[0]["status"] != "off" or check[1]["status"] != "off"
-            except KeyError:
-                return False
+            sides = self.parking_light_sides
+            if sides is None:
+                return None
+            return any(status != "off" for status in sides.values())
 
     @property
     def parking_light_supported(self):
