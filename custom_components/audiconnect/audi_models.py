@@ -274,6 +274,12 @@ class VehicleDataResponse:
         )
         self._tryAppendStateWithTs(
             data,
+            "navigationTargetSoc",
+            -1,
+            ["charging", "batteryStatus", "value", "navigationTargetSOC_pct"],
+        )
+        self._tryAppendStateWithTs(
+            data,
             "stateOfCharge",
             -1,
             ["charging", "batteryStatus", "value", "currentSOC_pct"],
@@ -611,6 +617,17 @@ class VehicleDataResponse:
             "activeChargingProfileTargetSoc", active.get("targetSOC_pct"), ts
         )
         self._appendState("activeChargingProfileMinSoc", active.get("minSOC_pct"), ts)
+        max_current = active.get("maxChargingCurrent")
+        if isinstance(max_current, str) and max_current not in ("", "invalid"):
+            self._appendState("activeChargingProfileMaxCurrent", max_current, ts)
+        options = active.get("options")
+        if isinstance(options, dict):
+            uses_times = options.get("usePreferredChargingTimes")
+            # A bool is appended explicitly: False is a meaningful answer.
+            if isinstance(uses_times, bool):
+                self._appendState(
+                    "activeChargingProfileUsesPreferredTimes", uses_times, ts
+                )
 
         # The preferred charging window is the per-location time band; this is the
         # field a smart-tariff scheduler writes when it moves a charge.
@@ -622,10 +639,14 @@ class VehicleDataResponse:
             )
             if window is not None:
                 self._appendState(
-                    "preferredChargingTimeStart", window.get("startTimeLocal"), ts
+                    "preferredChargingTimeStart",
+                    window.get("startTimeLocal", window.get("startTime")),
+                    ts,
                 )
                 self._appendState(
-                    "preferredChargingTimeEnd", window.get("endTimeLocal"), ts
+                    "preferredChargingTimeEnd",
+                    window.get("endTimeLocal", window.get("endTime")),
+                    ts,
                 )
                 # bool is appended explicitly: _appendState drops None, and False
                 # is a meaningful value here.

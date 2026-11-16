@@ -249,6 +249,22 @@ class AudiVehicleProperties:
         parse_int,
         doc="Return the minimum SoC the profile tops up to regardless of schedule.",
     )
+    active_charging_profile_max_current = _Field(
+        _STATE,
+        "activeChargingProfileMaxCurrent",
+        _is_not_none,
+        doc='The charging current limit of the profile the car is parked in ("max" or "reduced").',
+    )
+    active_charging_profile_uses_preferred_times = _Field(
+        _STATE, "activeChargingProfileUsesPreferredTimes", _is_not_none
+    )
+    navigation_target_soc = _Field(
+        _STATE,
+        "navigationTargetSoc",
+        _int_parses,
+        parse_int,
+        doc="The charge level the navigation asks for on the way to its destination.",
+    )
     preferred_charging_time_start = _Field(
         _STATE, "preferredChargingTimeStart", _is_not_none
     )

@@ -169,6 +169,13 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[AudiBinarySensorEntityDescription, ...] = (
         icon="mdi:car-brake-abs",
     ),
     AudiBinarySensorEntityDescription(
+        key="active_charging_profile_uses_preferred_times",
+        attr_key="active_charging_profile_uses_preferred_times",
+        translation_key="active_charging_profile_uses_preferred_times",
+        icon="mdi:clock-check-outline",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    AudiBinarySensorEntityDescription(
         key="parking_brake",
         attr_key="parking_brake",
         translation_key="parking_brake",

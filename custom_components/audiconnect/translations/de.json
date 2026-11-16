@@ -333,6 +333,12 @@
   },
   "entity": {
     "sensor": {
+      "active_charging_profile_max_current": {
+        "name": "Ladestrom des aktiven Profils"
+      },
+      "navigation_target_soc": {
+        "name": "Ladeziel der Navigation"
+      },
       "last_update_time": {
         "name": "Letzte Aktualisierung"
       },
@@ -572,6 +578,9 @@
       }
     },
     "binary_sensor": {
+      "active_charging_profile_uses_preferred_times": {
+        "name": "Aktives Profil nutzt bevorzugte Ladezeiten"
+      },
       "plug_state": {
         "name": "Ladestecker"
       },

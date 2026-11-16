@@ -706,6 +706,21 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
+        key="active_charging_profile_max_current",
+        attr_key="active_charging_profile_max_current",
+        translation_key="active_charging_profile_max_current",
+        icon="mdi:current-ac",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    AudiSensorEntityDescription(
+        key="navigation_target_soc",
+        attr_key="navigation_target_soc",
+        translation_key="navigation_target_soc",
+        icon="mdi:navigation-variant",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    AudiSensorEntityDescription(
         key="preferred_charging_time_start",
         attr_key="preferred_charging_time_start",
         translation_key="preferred_charging_time_start",

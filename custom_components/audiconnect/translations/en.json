@@ -333,6 +333,12 @@
   },
   "entity": {
     "sensor": {
+      "active_charging_profile_max_current": {
+        "name": "Charging current of the active profile"
+      },
+      "navigation_target_soc": {
+        "name": "Navigation charge target"
+      },
       "last_update_time": {
         "name": "Last Update"
       },
@@ -572,6 +578,9 @@
       }
     },
     "binary_sensor": {
+      "active_charging_profile_uses_preferred_times": {
+        "name": "Active profile uses preferred charging times"
+      },
       "plug_state": {
         "name": "Plug state"
       },
