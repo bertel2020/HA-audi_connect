@@ -79,12 +79,22 @@ _CLIMATISATION_SETTINGS: tuple[tuple[str, str, str], ...] = (
 )
 
 
+_SETTING_ICONS = {
+    "climatisation_window_heating": "mdi:car-defrost-front",
+    "climatisation_at_unlock": "mdi:car-key",
+    "climatisation_zone_front_left": "mdi:car-seat-heater",
+    "climatisation_zone_front_right": "mdi:car-seat-heater",
+    "climatisation_zone_rear_left": "mdi:car-seat-heater",
+    "climatisation_zone_rear_right": "mdi:car-seat-heater",
+}
+
+
 def _setting_switch(key, attr_key, field) -> AudiSwitchEntityDescription:
     return AudiSwitchEntityDescription(
         key=key,
         attr_key=attr_key,
         translation_key=key,
-        icon="mdi:car-seat-heater" if "zone" in key else "mdi:car-defrost-front",
+        icon=_SETTING_ICONS[key],
         entity_category=EntityCategory.CONFIG,
         turn_on_fn=lambda conn, vin, f=field: conn.set_climatisation_setting(
             vin, f, True
