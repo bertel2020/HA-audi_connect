@@ -43,7 +43,7 @@ class AudiDeviceTracker(AudiEntity, TrackerEntity):
     """Representation of an Audi device tracker."""
 
     _attr_icon = "mdi:car"
-    _attr_name = "Position"
+    _attr_translation_key = "position"
     _attr_should_poll = False
     _attr_source_type = SourceType.GPS
     _backing_attr = _POSITION_ATTR_KEY

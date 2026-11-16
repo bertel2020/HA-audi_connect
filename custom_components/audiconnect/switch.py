@@ -39,51 +39,45 @@ class AudiSwitchEntityDescription(SwitchEntityDescription):
 # Climatisation settings the car stores and reports back. Writable through
 # PUT climatisation/settings without starting climatisation, unlike the myAudi
 # app, which only offers them while starting the air conditioning.
-_CLIMATISATION_SETTINGS: tuple[tuple[str, str, str, str], ...] = (
+_CLIMATISATION_SETTINGS: tuple[tuple[str, str, str], ...] = (
     (
         "climatisation_window_heating",
         "climatisation_window_heating_enabled",
         "windowHeatingEnabled",
-        "Window heating",
     ),
     (
         "climatisation_at_unlock",
         "climatisation_at_unlock",
         "climatizationAtUnlock",
-        "Climatisation at unlock",
     ),
     (
         "climatisation_zone_front_left",
         "climatisation_zone_front_left",
         "zoneFrontLeftEnabled",
-        "Climatisation zone front left",
     ),
     (
         "climatisation_zone_front_right",
         "climatisation_zone_front_right",
         "zoneFrontRightEnabled",
-        "Climatisation zone front right",
     ),
     (
         "climatisation_zone_rear_left",
         "climatisation_zone_rear_left",
         "zoneRearLeftEnabled",
-        "Climatisation zone rear left",
     ),
     (
         "climatisation_zone_rear_right",
         "climatisation_zone_rear_right",
         "zoneRearRightEnabled",
-        "Climatisation zone rear right",
     ),
 )
 
 
-def _setting_switch(key, attr_key, field, name) -> AudiSwitchEntityDescription:
+def _setting_switch(key, attr_key, field) -> AudiSwitchEntityDescription:
     return AudiSwitchEntityDescription(
         key=key,
         attr_key=attr_key,
-        name=name,
+        translation_key=key,
         icon="mdi:car-seat-heater" if "zone" in key else "mdi:car-defrost-front",
         entity_category=EntityCategory.CONFIG,
         turn_on_fn=lambda conn, vin, f=field: conn.set_climatisation_setting(
@@ -99,7 +93,7 @@ SWITCH_DESCRIPTIONS: tuple[AudiSwitchEntityDescription, ...] = (
     AudiSwitchEntityDescription(
         key="preheater_active",
         attr_key="preheater_active",
-        name="Preheater",
+        translation_key="preheater_active",
         icon="mdi:radiator",
         turn_on_fn=lambda conn, vin: conn.set_vehicle_pre_heater(vin, True),
         turn_off_fn=lambda conn, vin: conn.set_vehicle_pre_heater(vin, False),
@@ -154,7 +148,7 @@ class AudiClimateQuickSwitch(AudiEntity, SwitchEntity):
     Existing HA climate entity keeps temperature/mode controls.
     """
 
-    _attr_name = "Climatisation ON/OFF"
+    _attr_translation_key = "climate_quick_control"
     _attr_icon = "mdi:car-air-conditioner"
     _backing_attr = "climatisation_state"
 
@@ -257,7 +251,8 @@ class AudiSwitch(AudiEntity, SwitchEntity):
         connection = self.coordinator.account.connection
         if not await fn(connection, self._vehicle.vin):
             raise HomeAssistantError(
-                f"Failed to switch {self.name}; see the log for details"
+                f"Failed to switch {self.entity_id or self.unique_id}; "
+                "see the log for details"
             )
         # The car acknowledges the write before it reports the new value, so the
         # refresh below usually re-reads the old one and the switch snaps back to

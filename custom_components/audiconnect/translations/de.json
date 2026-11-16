@@ -330,5 +330,367 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "last_update_time": {
+        "name": "Letzte Aktualisierung"
+      },
+      "shortterm_current": {
+        "name": "Kurzzeit-Fahrtdaten"
+      },
+      "shortterm_reset": {
+        "name": "Kurzzeit-Fahrtdaten (Zurücksetzung)"
+      },
+      "longterm_current": {
+        "name": "Langzeit-Fahrtdaten"
+      },
+      "longterm_reset": {
+        "name": "Langzeit-Fahrtdaten (Zurücksetzung)"
+      },
+      "model": {
+        "name": "Modell"
+      },
+      "mileage": {
+        "name": "Kilometerstand"
+      },
+      "service_adblue_distance": {
+        "name": "AdBlue-Reichweite"
+      },
+      "range": {
+        "name": "Reichweite"
+      },
+      "hybrid_range": {
+        "name": "Hybrid-Reichweite"
+      },
+      "service_inspection_time": {
+        "name": "Inspektion in (Tage)"
+      },
+      "service_inspection_distance": {
+        "name": "Inspektion in (Entfernung)"
+      },
+      "oil_change_time": {
+        "name": "Ölwechsel in (Tage)"
+      },
+      "oil_change_distance": {
+        "name": "Ölwechsel in (Entfernung)"
+      },
+      "oil_level": {
+        "name": "Ölstand"
+      },
+      "charging_state": {
+        "name": "Ladezustand"
+      },
+      "charging_mode": {
+        "name": "Lademodus"
+      },
+      "charging_scenario": {
+        "name": "Ladeszenario"
+      },
+      "battery_care_mode": {
+        "name": "Batteriepflege-Modus"
+      },
+      "climatisation_mode": {
+        "name": "Klimatisierungsmodus"
+      },
+      "charging_type": {
+        "name": "Ladeart"
+      },
+      "energy_flow": {
+        "name": "Energiefluss"
+      },
+      "max_charge_current": {
+        "name": "Maximaler Ladestrom"
+      },
+      "charging_current_limit_a": {
+        "name": "AC-Strombegrenzung"
+      },
+      "charging_current_limit_mode": {
+        "name": "Modus der Strombegrenzung"
+      },
+      "charging_plug_auto_unlock": {
+        "name": "Stecker nach dem Laden entriegeln"
+      },
+      "vehicle_reported_online": {
+        "name": "Konnektivität laut Fahrzeug"
+      },
+      "vehicle_reported_active": {
+        "name": "Aktivität laut Fahrzeug"
+      },
+      "primary_engine_type": {
+        "name": "Antriebsart (primär)"
+      },
+      "secondary_engine_type": {
+        "name": "Antriebsart (sekundär)"
+      },
+      "primary_engine_range": {
+        "name": "Reichweite (primär)"
+      },
+      "secondary_engine_range": {
+        "name": "Reichweite (sekundär)"
+      },
+      "primary_engine_range_percent": {
+        "name": "Füllstand (primär)"
+      },
+      "car_type": {
+        "name": "Fahrzeugtyp"
+      },
+      "secondary_engine_range_percent": {
+        "name": "Füllstand (sekundär)"
+      },
+      "charging_power": {
+        "name": "Ladeleistung"
+      },
+      "actual_charge_rate": {
+        "name": "Laderate"
+      },
+      "tank_level": {
+        "name": "Tankfüllung"
+      },
+      "state_of_charge": {
+        "name": "Ladestand"
+      },
+      "remaining_charging_time": {
+        "name": "Verbleibende Ladezeit"
+      },
+      "charging_complete_time": {
+        "name": "Ladeende"
+      },
+      "target_state_of_charge": {
+        "name": "Ziel-Ladestand"
+      },
+      "external_power": {
+        "name": "Externe Stromversorgung"
+      },
+      "plug_led_color": {
+        "name": "LED-Farbe am Stecker"
+      },
+      "doors_trunk_status": {
+        "name": "Türen/Kofferraum"
+      },
+      "climatisation_state": {
+        "name": "Klimatisierung"
+      },
+      "outdoor_temperature": {
+        "name": "Außentemperatur"
+      },
+      "park_time": {
+        "name": "Parkzeit"
+      },
+      "position_last_updated": {
+        "name": "Position zuletzt aktualisiert"
+      },
+      "remaining_climatisation_time": {
+        "name": "Verbleibende Klimatisierungszeit"
+      },
+      "preheater_duration": {
+        "name": "Standheizung Laufzeit"
+      },
+      "preheater_remaining": {
+        "name": "Standheizung Restzeit"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Ziel-Ladestand des aktiven Ladeprofils"
+      },
+      "active_charging_profile_name": {
+        "name": "Aktives Ladeprofil"
+      },
+      "active_charging_profile_min_soc": {
+        "name": "Mindest-Ladestand des aktiven Ladeprofils"
+      },
+      "preferred_charging_time_start": {
+        "name": "Bevorzugtes Ladefenster Beginn"
+      },
+      "preferred_charging_time_end": {
+        "name": "Bevorzugtes Ladefenster Ende"
+      },
+      "climatisation_timer_enabled_count": {
+        "name": "Aktive Klimatimer"
+      },
+      "next_climatisation_timer_local": {
+        "name": "Nächster Klimatimer (Ortszeit des Fahrzeugs)"
+      },
+      "charging_timer_enabled_count": {
+        "name": "Aktive Ladetimer"
+      },
+      "vehicle_data_freshness": {
+        "name": "Aktualität der Fahrzeugdaten"
+      },
+      "vehicle_data_age": {
+        "name": "Alter der Fahrzeugdaten"
+      },
+      "cloud_last_successful_poll": {
+        "name": "Letzter erfolgreicher Cloud-Abruf"
+      },
+      "dealer_local": {
+        "name": "Händler (lokal)"
+      },
+      "service_overview": {
+        "name": "Serviceübersicht"
+      },
+      "api_requests_remaining": {
+        "name": "Verbleibende API-Abrufe"
+      }
+    },
+    "binary_sensor": {
+      "plug_state": {
+        "name": "Ladestecker"
+      },
+      "plug_lock_state": {
+        "name": "Steckerverriegelung"
+      },
+      "glass_surface_heating": {
+        "name": "Scheibenheizung"
+      },
+      "sun_roof": {
+        "name": "Schiebedach"
+      },
+      "roof_cover": {
+        "name": "Dachabdeckung"
+      },
+      "parking_light": {
+        "name": "Standlicht"
+      },
+      "any_window_open": {
+        "name": "Fenster"
+      },
+      "any_door_unlocked": {
+        "name": "Türverriegelung"
+      },
+      "any_door_open": {
+        "name": "Türen"
+      },
+      "trunk_unlocked": {
+        "name": "Kofferraumverriegelung"
+      },
+      "trunk_open": {
+        "name": "Kofferraum"
+      },
+      "hood_open": {
+        "name": "Motorhaube"
+      },
+      "left_front_door_open": {
+        "name": "Tür vorne links"
+      },
+      "right_front_door_open": {
+        "name": "Tür vorne rechts"
+      },
+      "left_rear_door_open": {
+        "name": "Tür hinten links"
+      },
+      "right_rear_door_open": {
+        "name": "Tür hinten rechts"
+      },
+      "left_front_window_open": {
+        "name": "Fenster vorne links"
+      },
+      "right_front_window_open": {
+        "name": "Fenster vorne rechts"
+      },
+      "left_rear_window_open": {
+        "name": "Fenster hinten links"
+      },
+      "right_rear_window_open": {
+        "name": "Fenster hinten rechts"
+      },
+      "braking_status": {
+        "name": "Bremsstatus"
+      },
+      "parking_brake": {
+        "name": "Parkbremse"
+      },
+      "oil_level_binary": {
+        "name": "Ölstand (Warnung)"
+      },
+      "is_moving": {
+        "name": "In Bewegung"
+      }
+    },
+    "button": {
+      "refresh_vehicle_data": {
+        "name": "Fahrzeugdaten aktualisieren"
+      },
+      "flash_lights": {
+        "name": "Lichthupe"
+      },
+      "start_charging_modern": {
+        "name": "Laden starten (experimentell)"
+      },
+      "stop_charging_modern": {
+        "name": "Laden stoppen (experimentell)"
+      },
+      "start_window_heating_modern": {
+        "name": "Scheibenheizung starten (experimentell)"
+      },
+      "stop_window_heating_modern": {
+        "name": "Scheibenheizung stoppen (experimentell)"
+      },
+      "wake_vehicle_modern": {
+        "name": "Fahrzeug aufwecken (experimentell)"
+      },
+      "start_engine": {
+        "name": "Motor starten"
+      },
+      "stop_engine": {
+        "name": "Motor stoppen"
+      }
+    },
+    "number": {
+      "target_state_of_charge": {
+        "name": "Globales Ladeziel"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Ladeziel am aktuellen Standort"
+      },
+      "charge_profile_target": {
+        "name": "Ladeziel {profile}"
+      }
+    },
+    "switch": {
+      "preheater_active": {
+        "name": "Standheizung"
+      },
+      "climatisation_window_heating": {
+        "name": "Scheibenheizung"
+      },
+      "climatisation_at_unlock": {
+        "name": "Klimatisierung beim Entsperren"
+      },
+      "climatisation_zone_front_left": {
+        "name": "Klimazone vorne links"
+      },
+      "climatisation_zone_front_right": {
+        "name": "Klimazone vorne rechts"
+      },
+      "climatisation_zone_rear_left": {
+        "name": "Klimazone hinten links"
+      },
+      "climatisation_zone_rear_right": {
+        "name": "Klimazone hinten rechts"
+      },
+      "climate_quick_control": {
+        "name": "Klimatisierung Ein/Aus"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Lademodus"
+      }
+    },
+    "climate": {
+      "climatisation": {
+        "name": "Klimatisierung"
+      }
+    },
+    "lock": {
+      "door_lock": {
+        "name": "Zentralverriegelung"
+      }
+    },
+    "device_tracker": {
+      "position": {
+        "name": "Position"
+      }
+    }
   }
 }

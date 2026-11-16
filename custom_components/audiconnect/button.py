@@ -53,14 +53,14 @@ def _wakeup_capable(vehicle: Any) -> bool:
 BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     AudiButtonEntityDescription(
         key="refresh_vehicle_data",
-        name="Refresh vehicle data",
+        translation_key="refresh_vehicle_data",
         icon="mdi:cloud-refresh",
         entity_category=EntityCategory.DIAGNOSTIC,
         press_fn=lambda account, vin: account.refresh_vehicle_data(vin),
     ),
     AudiButtonEntityDescription(
         key="flash_lights",
-        name="Flash lights",
+        translation_key="flash_lights",
         icon="mdi:car-light-high",
         # Gated on the car's own capability, not on a field being present in
         # the current poll. The horn shares this capability and is deliberately
@@ -72,7 +72,7 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     ),
     AudiButtonEntityDescription(
         key="start_charging_modern",
-        name="Start charging (experimental)",
+        translation_key="start_charging_modern",
         icon="mdi:ev-station",
         experimental=True,
         supported_fn=lambda v: _modern_capable(v, "charging"),
@@ -82,7 +82,7 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     ),
     AudiButtonEntityDescription(
         key="stop_charging_modern",
-        name="Stop charging (experimental)",
+        translation_key="stop_charging_modern",
         icon="mdi:ev-station",
         experimental=True,
         supported_fn=lambda v: _modern_capable(v, "charging"),
@@ -92,7 +92,7 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     ),
     AudiButtonEntityDescription(
         key="start_window_heating_modern",
-        name="Start window heating (experimental)",
+        translation_key="start_window_heating_modern",
         icon="mdi:car-defrost-rear",
         experimental=True,
         supported_fn=lambda v: _modern_capable(v, "climatisation"),
@@ -102,7 +102,7 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     ),
     AudiButtonEntityDescription(
         key="stop_window_heating_modern",
-        name="Stop window heating (experimental)",
+        translation_key="stop_window_heating_modern",
         icon="mdi:car-defrost-rear",
         experimental=True,
         supported_fn=lambda v: _modern_capable(v, "climatisation"),
@@ -112,7 +112,7 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     ),
     AudiButtonEntityDescription(
         key="wake_vehicle_modern",
-        name="Wake vehicle (experimental)",
+        translation_key="wake_vehicle_modern",
         icon="mdi:car-connected",
         experimental=True,
         supported_fn=_wakeup_capable,
@@ -120,14 +120,14 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     ),
     AudiButtonEntityDescription(
         key="start_engine",
-        name="Start engine",
+        translation_key="start_engine",
         icon="mdi:car-key",
         supported_fn=_engine_controls_supported,
         press_fn=lambda account, vin: account.start_engine(vin),
     ),
     AudiButtonEntityDescription(
         key="stop_engine",
-        name="Stop engine",
+        translation_key="stop_engine",
         icon="mdi:car-off",
         supported_fn=_engine_controls_supported,
         press_fn=lambda account, vin: account.stop_engine(vin),
@@ -176,7 +176,7 @@ class AudiButton(AudiEntity, ButtonEntity):
         if result is False:
             # Prevent UI from silently accepting a failed API action.
             raise HomeAssistantError(
-                f"Audi {self.entity_description.name} request failed; "
+                f"Audi {self.entity_description.key} request failed; "
                 "check the Audi Connect integration logs"
             )
 

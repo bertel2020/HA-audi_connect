@@ -74,7 +74,7 @@ class AudiChargeModeSelect(AudiEntity, SelectEntity):
 
     _backing_attr = _ATTR_KEY
 
-    _attr_name = "Charge mode"
+    _attr_translation_key = "charge_mode"
     _attr_icon = "mdi:battery-clock"
 
     def __init__(
