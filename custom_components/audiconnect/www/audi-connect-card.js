@@ -462,7 +462,7 @@ class AudiConnectCard extends HTMLElement {
 
     const items = [];
     if (this._has("door_lock") || this._has("any_door_unlocked")) {
-      items.push(`<button class="ic ${lockCls}" data-act="lock"><ha-icon icon="${lockIcon}"></ha-icon>${esc(lockTxt)}</button>`);
+      items.push(`<button class="ic ${lockCls}" data-more="${esc(this._id("door_lock") || this._id("any_door_unlocked"))}"><ha-icon icon="${lockIcon}"></ha-icon>${esc(lockTxt)}</button>`);
     }
     items.push(`<button class="ic ${doors.length ? "bad" : "ok"}" data-act="popup" data-tab="doors"><ha-icon icon="mdi:car-door"></ha-icon>${esc(doors.length ? this._t("n_open", { n: doors.length }) : this._t("doors_closed"))}</button>`);
     items.push(`<button class="ic ${wins.length ? "warn" : "ok"}" data-act="popup" data-tab="windows"><ha-icon icon="mdi:car-windshield-outline"></ha-icon>${esc(wins.length ? this._t("n_open", { n: wins.length }) : this._t("windows_closed"))}</button>`);
