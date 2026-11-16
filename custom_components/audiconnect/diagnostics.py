@@ -38,6 +38,23 @@ _OBSERVED_KEYS = (
     "userCapabilities",
     "shortterm_current",
     "longterm_current",
+    "lastTripShortTerm",
+    "lastTripLongTerm",
+    "navigationTargetSoc",
+    "accessOverallStatus",
+    "chargeTargetLimits",
+    "activeChargingProfileMaxCurrent",
+    "activeChargingProfileUsesPreferredTimes",
+)
+# Names of the trip figures the integration keeps. Only which of them are
+# present is reported, never what they are.
+_TRIP_FIELD_NAMES = (
+    "tripEndTimestamp",
+    "mileage_km",
+    "travelTime",
+    "averageElectricConsumption",
+    "averageSpeed_kmph",
+    "totalElectricConsumption_kwh",
 )
 _FEATURE_FLAGS = (
     "support_status_report",
@@ -51,6 +68,28 @@ _FEATURE_FLAGS = (
 
 def _iso(value: Any) -> str | None:
     return value.isoformat() if isinstance(value, datetime) else None
+
+
+def _trip_view(block: Any) -> dict[str, Any]:
+    """Which trip figures are held and whether the end time can be read.
+
+    Values stay out: this says "mileage_km is there", not how far the car went.
+    """
+    if not isinstance(block, dict):
+        return {"held": False}
+    end = block.get("tripEndTimestamp")
+    readable = False
+    if isinstance(end, str):
+        try:
+            readable = datetime.fromisoformat(end).tzinfo is not None
+        except ValueError:
+            readable = False
+    return {
+        "held": True,
+        "fields_present": [name for name in _TRIP_FIELD_NAMES if name in block],
+        "end_timestamp_type": type(end).__name__,
+        "end_timestamp_readable": readable,
+    }
 
 
 def _vehicle_snapshot(vehicle: Any, index: int, uses_auth0: bool) -> dict[str, Any]:
@@ -85,6 +124,10 @@ def _vehicle_snapshot(vehicle: Any, index: int, uses_auth0: bool) -> dict[str, A
         "feature_flags": features,
         "state_key_presence": {
             key: key in state and state[key] is not None for key in _OBSERVED_KEYS
+        },
+        "trips": {
+            "last_short_term": _trip_view(state.get("lastTripShortTerm")),
+            "long_term": _trip_view(state.get("lastTripLongTerm")),
         },
         "state_field_count": len(state),
         "vehicle_field_count": len(fields),
