@@ -563,7 +563,14 @@ class AudiVehicleProperties:
     def remaining_charging_time(self):
         """Return remaining charging time"""
         if self.remaining_charging_time_supported:
-            return self._vehicle.state.get("remainingChargingTime", 0)
+            reported = self._vehicle.state.get("remainingChargingTime")
+            if reported is not None:
+                return reported
+            # A car that charges without ever saying how long (the A6 e-tron
+            # does not) must not read "0 minutes left". Not charging, there is
+            # nothing left, so 0 is still right.
+            charging = str(self._vehicle.state.get("chargingState", "")).lower()
+            return None if charging == "charging" else 0
 
     @property
     def remaining_charging_time_unit(self):
