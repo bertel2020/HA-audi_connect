@@ -339,6 +339,12 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         capability="batteryChargingCare",
     ),
     AudiSensorEntityDescription(
+        key="access_overall_status",
+        attr_key="access_overall_status",
+        translation_key="access_overall_status",
+        icon="mdi:shield-car",
+    ),
+    AudiSensorEntityDescription(
         key="climatisation_mode",
         attr_key="climatisation_mode",
         translation_key="climatisation_mode",

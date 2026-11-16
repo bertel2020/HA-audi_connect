@@ -232,3 +232,18 @@ def test_a_car_that_reports_no_profiles_is_unaffected():
     from custom_components.audiconnect.number import profiles_with_a_target
 
     assert profiles_with_a_target(SimpleNamespace(charging_profiles=None)) == []
+
+
+def test_the_overall_access_status_is_read():
+    payload = copy.deepcopy(PAYLOAD)
+    payload.setdefault("access", {})["accessStatus"] = {
+        "value": {
+            "carCapturedTimestamp": "2026-11-16T12:39:16+00:00",
+            "overallStatus": "safe",
+            "doorLockStatus": "locked",
+        }
+    }
+    vehicle = vehicle_with(states_of(payload))
+
+    assert vehicle.access_overall_status == "safe"
+    assert {d.key for d in SENSOR_DESCRIPTIONS} >= {"access_overall_status"}
