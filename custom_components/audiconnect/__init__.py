@@ -48,6 +48,8 @@ from .audi_account import (
     SERVICE_CREATE_CLIMATISATION_TIMER,
     SERVICE_CREATE_CLIMATISATION_TIMER_SCHEMA,
     SERVICE_DELETE_CLIMATISATION_TIMER,
+    SERVICE_SET_CLIMATISATION_TIMER_ENABLED,
+    SERVICE_SET_CLIMATISATION_TIMER_ENABLED_SCHEMA,
     SERVICE_DELETE_CLIMATISATION_TIMER_SCHEMA,
     SERVICE_TEST_CLIMATISATION_WRITE,
     SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA,
@@ -399,6 +401,12 @@ def _async_register_services(hass: HomeAssistant) -> None:
             SERVICE_CREATE_CLIMATISATION_TIMER,
             SERVICE_CREATE_CLIMATISATION_TIMER_SCHEMA,
             "create_climatisation_timer",
+            True,
+        ),
+        (
+            SERVICE_SET_CLIMATISATION_TIMER_ENABLED,
+            SERVICE_SET_CLIMATISATION_TIMER_ENABLED_SCHEMA,
+            "set_climatisation_timer_enabled",
             True,
         ),
         (

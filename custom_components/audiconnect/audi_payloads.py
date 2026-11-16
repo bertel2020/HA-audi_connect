@@ -220,6 +220,102 @@ def build_climatisation_timer(
     return {"timer": {"enabled": enabled, **frequency}}
 
 
+def _utc_hhmm(local: str, utc_offset_minutes: int) -> str:
+    hours, minutes = _hhmm(local)
+    total = (hours * 60 + minutes - utc_offset_minutes) % (24 * 60)
+    return f"{total // 60:02d}:{total % 60:02d}"
+
+
+def _clock(value: Any) -> str | None:
+    """ "07:30" out of "07:30", "07:30:00" or "2026-11-17T07:30:00"."""
+    if not isinstance(value, str):
+        return None
+    text = value.split("T")[-1]
+    parts = text.split(":")
+    if len(parts) < 2 or not (parts[0].isdigit() and parts[1][:2].isdigit()):
+        return None
+    return f"{int(parts[0]):02d}:{int(parts[1][:2]):02d}"
+
+
+def timer_for_update(entry: dict, utc_offset_minutes: int) -> dict:
+    """One climatisation timer as the car reported it, in the shape the app writes.
+
+    The car reports timers in more than one shape (a date-time for a single
+    timer, a list or a map of days for a recurring one). The update replaces
+    the whole list, so every timer has to come back complete: anything that
+    cannot be converted raises, and nothing is sent.
+    """
+    if not isinstance(entry, dict) or not isinstance(entry.get("id"), int):
+        raise ValueError("A timer without a number cannot be sent back")
+    timer: dict[str, Any] = {
+        "id": entry["id"],
+        "enabled": bool(entry.get("enabled")),
+    }
+    if isinstance(entry.get("heaterSource"), str):
+        timer["heaterSource"] = entry["heaterSource"]
+
+    single, recurring = entry.get("singleTimer"), entry.get("recurringTimer")
+    if isinstance(recurring, dict):
+        local = _clock(
+            recurring.get("startTimeLocal")
+            or recurring.get("departureTimeLocal")
+            or recurring.get("targetTimeLocal")
+        )
+        days = recurring.get("recurringOn")
+        if not isinstance(days, dict):
+            names = recurring.get("repetitionDays")
+            if not isinstance(names, list):
+                raise ValueError(f"Timer {entry['id']} has no days to send back")
+            days = {f"{str(n).lower()}s": True for n in names}
+        if local is None:
+            raise ValueError(f"Timer {entry['id']} has no start time")
+        timer["recurringTimer"] = {
+            "recurringOn": {f"{d}s": bool(days.get(f"{d}s")) for d in WEEKDAYS},
+            "startTime": recurring.get("startTime")
+            or _utc_hhmm(local, utc_offset_minutes),
+            "startTimeLocal": local,
+        }
+    elif isinstance(single, dict):
+        local = _clock(single.get("startTimeLocal") or single.get("startDateTimeLocal"))
+        day = single.get("occurringOn")
+        if day is None and isinstance(single.get("startDateTimeLocal"), str):
+            try:
+                from datetime import datetime
+
+                day = datetime.fromisoformat(single["startDateTimeLocal"]).strftime(
+                    "%A"
+                )
+            except ValueError:
+                day = None
+        if local is None or not isinstance(day, str):
+            raise ValueError(f"Timer {entry['id']} has no day or start time")
+        timer["singleTimer"] = {
+            "occurringOn": day.capitalize(),
+            "startTime": single.get("startTime")
+            or _utc_hhmm(local, utc_offset_minutes),
+            "startTimeLocal": local,
+        }
+    else:
+        raise ValueError(f"Timer {entry['id']} is neither single nor recurring")
+    return timer
+
+
+def build_climatisation_timers_update(
+    timers: list, timer_id: int, enabled: bool, utc_offset_minutes: int
+) -> dict:
+    """The body of PUT departure/{vin}/climatisation/timers: all timers, one changed."""
+    if not isinstance(timers, list) or not timers:
+        raise ValueError("The car reports no climatisation timers")
+    converted = [timer_for_update(t, utc_offset_minutes) for t in timers]
+    target = next((t for t in converted if t["id"] == timer_id), None)
+    if target is None:
+        raise ValueError(
+            f"No climatisation timer {timer_id} (present: {[t['id'] for t in converted]})"
+        )
+    target["enabled"] = enabled
+    return {"timers": converted}
+
+
 # Fields the start body carries straight over from the car's stored settings.
 # Only those the car actually reports are sent: a vehicle with no rear zones
 # never receives zoneRear* keys, which is also the shape the myAudi app sends.

@@ -395,6 +395,24 @@
           "description": "The timer number (see the attributes of the climate timer sensors)."
         }
       }
+    },
+    "set_climatisation_timer_enabled": {
+      "name": "Switch climatisation timer on or off",
+      "description": "Switches an existing climatisation timer in the car on or off.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The Audi vehicle."
+        },
+        "timer_id": {
+          "name": "Timer number",
+          "description": "The timer number."
+        },
+        "enabled": {
+          "name": "Enabled",
+          "description": "On = switched on, off = switched off."
+        }
+      }
     }
   },
   "entity": {

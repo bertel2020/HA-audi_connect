@@ -190,6 +190,15 @@ SERVICE_CREATE_CLIMATISATION_TIMER_SCHEMA = vol.Schema(
     }
 )
 
+SERVICE_SET_CLIMATISATION_TIMER_ENABLED = "set_climatisation_timer_enabled"
+SERVICE_SET_CLIMATISATION_TIMER_ENABLED_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Required("timer_id"): cv.positive_int,
+        vol.Required("enabled"): cv.boolean,
+    }
+)
+
 SERVICE_DELETE_CLIMATISATION_TIMER = "delete_climatisation_timer"
 SERVICE_DELETE_CLIMATISATION_TIMER_SCHEMA = vol.Schema(
     {
@@ -422,6 +431,17 @@ class AudiAccount(AudiConnectObserver):
             raise HomeAssistantError(str(err)) from err
         self._raise_on_failed_command(result, "create_climatisation_timer")
 
+    async def set_climatisation_timer_enabled(
+        self, vin: str, service: ServiceCall
+    ) -> None:
+        try:
+            result = await self.connection.set_climatisation_timer_enabled(
+                vin.lower(), service.data["timer_id"], service.data["enabled"]
+            )
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
+        self._raise_on_failed_command(result, "set_climatisation_timer_enabled")
+
     async def delete_climatisation_timer(self, vin: str, service: ServiceCall) -> None:
         result = await self.connection.delete_climatisation_timer(
             vin.lower(), service.data["timer_id"]
@@ -533,6 +553,8 @@ __all__ = [
     "SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA",
     "SERVICE_CREATE_CLIMATISATION_TIMER",
     "SERVICE_CREATE_CLIMATISATION_TIMER_SCHEMA",
+    "SERVICE_SET_CLIMATISATION_TIMER_ENABLED",
+    "SERVICE_SET_CLIMATISATION_TIMER_ENABLED_SCHEMA",
     "SERVICE_DELETE_CLIMATISATION_TIMER",
     "SERVICE_DELETE_CLIMATISATION_TIMER_SCHEMA",
     "SERVICE_STOP_ENGINE",

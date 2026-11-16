@@ -496,6 +496,17 @@ class AudiConnectAccount:
             ),
         )
 
+    async def set_climatisation_timer_enabled(
+        self, vin: str, timer_id: int, enabled: bool
+    ) -> bool:
+        return await self._run_command(
+            vin,
+            f"switch climatisation timer {timer_id} of vehicle {vin}",
+            lambda: self._audi_service.set_climatisation_timer_enabled(
+                vin, timer_id, enabled
+            ),
+        )
+
     async def delete_climatisation_timer(self, vin: str, timer_id: int) -> bool:
         return await self._run_command(
             vin,

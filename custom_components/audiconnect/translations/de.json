@@ -395,6 +395,24 @@
           "description": "Die Nummer des Timers (siehe Attribute der Klimatimer-Sensoren)."
         }
       }
+    },
+    "set_climatisation_timer_enabled": {
+      "name": "Klimatimer ein- oder ausschalten",
+      "description": "Schaltet einen vorhandenen Klimatimer im Auto ein oder aus.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Audi-Fahrzeug."
+        },
+        "timer_id": {
+          "name": "Timer-Nummer",
+          "description": "Die Nummer des Timers."
+        },
+        "enabled": {
+          "name": "Aktiv",
+          "description": "An = eingeschaltet, aus = ausgeschaltet."
+        }
+      }
     }
   },
   "entity": {
