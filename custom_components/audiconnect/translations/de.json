@@ -760,7 +760,11 @@
     },
     "select": {
       "charge_mode": {
-        "name": "Lademodus"
+        "name": "Lademodus",
+        "state": {
+          "manual": "Manuell",
+          "timer": "Zeitgesteuert"
+        }
       }
     },
     "climate": {

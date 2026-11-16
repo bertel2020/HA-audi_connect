@@ -760,7 +760,11 @@
     },
     "select": {
       "charge_mode": {
-        "name": "Charge mode"
+        "name": "Charge mode",
+        "state": {
+          "manual": "Manual",
+          "timer": "Timer"
+        }
       }
     },
     "climate": {
