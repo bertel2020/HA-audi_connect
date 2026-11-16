@@ -278,7 +278,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         value_fn=_trip_figure("last_trip", "tripEndTimestamp", as_time=True),
     ),
     *_trip_sensors("last_trip", "last_trip", enabled=True),
-    *_trip_sensors("trip_totals", "trip_totals", enabled=False),
+    *_trip_sensors("trip_totals", "trip_totals", enabled=True),
     AudiSensorEntityDescription(
         key="shortterm_current",
         attr_key="shortterm_current",
