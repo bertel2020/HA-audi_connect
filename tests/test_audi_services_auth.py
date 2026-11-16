@@ -13,11 +13,8 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-from custom_components.audiconnect.audi_services import (
-    AudiAuthError,
-    AudiService,
-    DEVICE_CODE_SCOPE,
-)
+from custom_components.audiconnect.audi_auth import DEVICE_CODE_SCOPE, AudiAuthError
+from custom_components.audiconnect.audi_services import AudiService
 
 TOKEN_ENDPOINT = "https://identity.vwgroup.io/oidc/v1/token"
 AUTH0_TOKEN_ENDPOINT = "https://group.identity.vwgroup.io/oauth/token"

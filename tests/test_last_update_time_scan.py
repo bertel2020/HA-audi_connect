@@ -21,8 +21,8 @@ import copy
 from datetime import UTC, datetime
 
 
-from custom_components.audiconnect import audi_connect_account
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
+from custom_components.audiconnect import audi_connect_vehicle
+from custom_components.audiconnect.audi_connect_vehicle import AudiConnectVehicle
 from custom_components.audiconnect.audi_models import VehicleDataResponse
 from custom_components.audiconnect.util import parse_datetime as real_parse_datetime
 
@@ -81,7 +81,7 @@ def test_states_are_assigned_when_a_state_carries_no_timestamp():
 
 def test_scan_survives_a_strict_parse_datetime(monkeypatch):
     """The must-fire case: this fails if the loop hands None to parse_datetime."""
-    monkeypatch.setattr(audi_connect_account, "parse_datetime", refuses_none)
+    monkeypatch.setattr(audi_connect_vehicle, "parse_datetime", refuses_none)
     state = run_report(copy.deepcopy(PAYLOAD)).state
     assert "userCapabilities" in state
     assert "chargingState" in state
