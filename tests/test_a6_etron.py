@@ -43,6 +43,26 @@ def test_the_new_settings_are_parsed():
     assert states["parkingBrake"] is True
 
 
+def test_the_battery_care_mode_survives_having_no_timestamp():
+    """The A6 sends the setting without a capture time. Dropping it for that left
+    the sensor unavailable on a real car while a fixture with a made-up
+    timestamp passed."""
+    payload = copy.deepcopy(PAYLOAD)
+    assert "carCapturedTimestamp" not in str(
+        payload["charging"]["chargingCareSettings"]
+    )
+    vehicle = vehicle_with(states_of(payload))
+
+    assert vehicle.battery_care_mode == "deactivated"
+
+
+def test_a_state_without_a_timestamp_does_not_move_the_last_update_time():
+    response = VehicleDataResponse(copy.deepcopy(PAYLOAD))
+    care = next(s for s in response.states if s["name"] == "batteryCareMode")
+
+    assert care["measure_time"] is None
+
+
 def test_the_parking_brake_job_is_requested():
     assert "parkingBrake" in BASE_SELECTIVE_JOBS
 
