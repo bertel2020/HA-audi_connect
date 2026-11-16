@@ -17,6 +17,7 @@ from custom_components.audiconnect.sensor import (
 from tests.test_a6_etron import vehicle_with
 
 ENGINE_KEYS = (
+    "primary_engine_type",
     "hybrid_range",
     "primary_engine_range",
     "primary_engine_range_percent",
@@ -44,8 +45,8 @@ def test_engine_sensors_are_not_made_for_an_electric_car(key):
     assert is_sensor_available_for(BY_KEY[key], hybrid) is True
 
 
-def test_the_engine_type_of_an_electric_car_is_still_shown():
-    assert BY_KEY["primary_engine_type"].requires is None
+def test_the_car_type_is_not_a_sensor_but_part_of_the_device():
+    assert "car_type" not in BY_KEY
 
 
 def _created(options, **figures):
