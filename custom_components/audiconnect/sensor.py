@@ -66,6 +66,19 @@ def is_sensor_available_for(
     return bool(getattr(vehicle, description.requires, True))
 
 
+def service_figures_reported(vehicle: Any) -> int:
+    """How many of the four service figures the car itself reports."""
+    return sum(
+        getattr(vehicle, name, None) is not None
+        for name in (
+            "service_inspection_time",
+            "service_inspection_distance",
+            "oil_change_time",
+            "oil_change_distance",
+        )
+    )
+
+
 def sensor_descriptions_to_create(
     hass: HomeAssistant, vehicle: Any
 ) -> list[AudiSensorEntityDescription]:
@@ -368,6 +381,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="hybrid_range",
+        requires="has_non_electric_engine",
         attr_key="hybrid_range",
         translation_key="hybrid_range",
         icon="mdi:map-marker-distance",
@@ -536,6 +550,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="secondary_engine_type",
+        requires="has_non_electric_engine",
         attr_key="secondary_engine_type",
         translation_key="secondary_engine_type",
         icon="mdi:engine",
@@ -543,6 +558,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="primary_engine_range",
+        requires="has_non_electric_engine",
         attr_key="primary_engine_range",
         translation_key="primary_engine_range",
         icon="mdi:map-marker-distance",
@@ -552,6 +568,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="secondary_engine_range",
+        requires="has_non_electric_engine",
         attr_key="secondary_engine_range",
         translation_key="secondary_engine_range",
         icon="mdi:map-marker-distance",
@@ -561,6 +578,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="primary_engine_range_percent",
+        requires="has_non_electric_engine",
         attr_key="primary_engine_range_percent",
         translation_key="primary_engine_range_percent",
         icon="mdi:gauge",
@@ -575,6 +593,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="secondary_engine_range_percent",
+        requires="has_non_electric_engine",
         attr_key="secondary_engine_range_percent",
         translation_key="secondary_engine_range_percent",
         icon="mdi:gauge",
@@ -795,14 +814,20 @@ async def async_setup_entry(
                 AudiCloudLastPollSensor(runtime_data.coordinator, vehicle),
             )
         )
-        # Add the local dealer sensor even before the user configures it.
-        # Hiding it until data exists made this feature effectively invisible.
-        entities.append(
-            AudiLocalDealerSensor(runtime_data.coordinator, vehicle, config_entry)
-        )
-        entities.append(
-            AudiServiceOverviewSensor(runtime_data.coordinator, vehicle, config_entry)
-        )
+        # The dealer and service sensors are for what the user enters and for
+        # cars that report more than one service figure. Entering a dealer
+        # reloads the integration, which creates the dealer sensor then.
+        local_data = get_local_dealer(config_entry.options, vehicle.vin)
+        if local_data:
+            entities.append(
+                AudiLocalDealerSensor(runtime_data.coordinator, vehicle, config_entry)
+            )
+        if local_data or service_figures_reported(vehicle) > 1:
+            entities.append(
+                AudiServiceOverviewSensor(
+                    runtime_data.coordinator, vehicle, config_entry
+                )
+            )
         for description in sensor_descriptions_to_create(hass, vehicle):
             entities.append(AudiSensor(runtime_data.coordinator, description, vehicle))
 

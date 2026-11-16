@@ -229,6 +229,18 @@ class AudiVehicleProperties:
         _STATE, "secondaryEngineRangePercent", _truthy_known
     )
     hybrid_range = _Field(_STATE, "hybridRange", _truthy_known)
+
+    @property
+    def has_non_electric_engine(self) -> bool:
+        """False only when the car says it is purely electric.
+
+        A combustion or hybrid engine has a fuel range and a second engine to
+        report; a battery-electric car has neither, and its "primary engine"
+        range and level only repeat the main range and charge. An unknown car
+        type counts as "might have one", so nothing disappears on a guess.
+        """
+        return str(getattr(self, "car_type", None) or "").lower() != "electric"
+
     state_of_charge = _Field(_STATE, "stateOfCharge", _int_parses, parse_int)
     target_state_of_charge = _Field(
         _STATE, "targetstateOfCharge", _int_parses, parse_int
