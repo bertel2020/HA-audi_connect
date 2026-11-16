@@ -9,7 +9,7 @@ from collections.abc import Callable
 from datetime import datetime, timedelta, UTC
 from typing import Any
 
-from aiohttp import ClientResponseError, ClientSession
+from aiohttp import ClientConnectionError, ClientResponseError, ClientSession
 
 from .audi_api import AudiAPI
 from .audi_services import AudiAuthError, AudiService
@@ -200,6 +200,7 @@ class AudiConnectAccount:
             return False
 
     async def update(self, vinlist):
+        """Update the state of all vehicles."""
         if not self._loggedin:
             await self.login()
 
@@ -212,7 +213,6 @@ class AudiConnectAccount:
             self._logintime = time.time()
             self._sync_refresh_token()
 
-        """Update the state of all vehicles."""
         try:
             if len(self._audi_vehicles) > 0:
                 for vehicle in self._audi_vehicles:
@@ -238,7 +238,7 @@ class AudiConnectAccount:
 
             return True
 
-        except OSError:
+        except (OSError, ClientConnectionError):
             # Force a re-login in case of failure/exception
             self._loggedin = False
             _LOGGER.exception("Failed to update Audi Connect vehicle data")
@@ -873,8 +873,6 @@ class AudiConnectVehicle:
             await self.call_update(self.update_vehicle_position, 3)
             info = "climater"
             await self.call_update(self.update_vehicle_climater, 3)
-            # info = "charger"
-            # await self.call_update(self.update_vehicle_charger, 3)
             info = "preheater"
             await self.call_update(self.update_vehicle_preheater, 3)
             # Return True on success, False on error
