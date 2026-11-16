@@ -40,6 +40,9 @@ class AudiSwitchEntityDescription(SwitchEntityDescription):
     # none: the state falls back to climatisationState, so the switch would
     # only mirror the air conditioning and its command targets the wrong API.
     legacy_api_only: bool = False
+    # The "supports..." answer of the car's climatisation capability this
+    # setting depends on. Only a plain "no" hides it; no answer keeps it.
+    supports_key: str | None = None
 
 
 # Climatisation settings the car stores and reports back. Writable through
@@ -89,9 +92,20 @@ _SETTING_ICONS = {
 }
 
 
+_SETTING_SUPPORTS = {
+    "climatisation_window_heating": "supportsWindowHeatingEnabled",
+    "climatisation_at_unlock": "supportsClimatisationAtUnlock",
+    "climatisation_zone_front_left": "supportsZoneFrontLeftEnabled",
+    "climatisation_zone_front_right": "supportsZoneFrontRightEnabled",
+    "climatisation_zone_rear_left": "supportsZoneRearLeftEnabled",
+    "climatisation_zone_rear_right": "supportsZoneRearRightEnabled",
+}
+
+
 def _setting_switch(key, attr_key, field) -> AudiSwitchEntityDescription:
     return AudiSwitchEntityDescription(
         key=key,
+        supports_key=_SETTING_SUPPORTS[key],
         attr_key=attr_key,
         translation_key=key,
         icon=_SETTING_ICONS[key],
@@ -130,6 +144,16 @@ SWITCH_DESCRIPTIONS: tuple[AudiSwitchEntityDescription, ...] = (
 )
 
 
+def car_says_unsupported(
+    vehicle: Any, description: AudiSwitchEntityDescription
+) -> bool:
+    """True only when the car answered "no" to the flag this switch depends on."""
+    if description.supports_key is None:
+        return False
+    flags = getattr(vehicle, "climatisation_supports", None)
+    return isinstance(flags, dict) and flags.get(description.supports_key) is False
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -150,6 +174,7 @@ async def async_setup_entry(
                 not description.experimental
                 or config_entry.options.get("experimental_commands", False)
             )
+            and not car_says_unsupported(vehicle, description)
             and not (
                 description.legacy_api_only
                 and getattr(

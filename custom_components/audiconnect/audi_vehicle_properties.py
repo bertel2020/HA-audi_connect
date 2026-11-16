@@ -706,6 +706,12 @@ class AudiVehicleProperties:
         return value if isinstance(value, dict) else {}
 
     @property
+    def climatisation_supports(self) -> dict[str, bool]:
+        """What the car says its climatisation does ("supports..." answers)."""
+        value = self._vehicle.state.get("climatisationSupports")
+        return value if isinstance(value, dict) else {}
+
+    @property
     def charge_target_min(self) -> int | None:
         return self.charge_target_limits.get("min")
 
