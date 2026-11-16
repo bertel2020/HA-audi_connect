@@ -204,6 +204,11 @@ class AudiService(AudiAuthMixin):
             )
         elif path_and_query.startswith("bs/"):
             url = self._bs_url(vin, path_and_query)
+        elif path_and_query.startswith("bff/"):
+            # Any read-only path of the BFF itself, VIN filled in where {vin} is.
+            url = self._get_cariad_url(
+                "/" + path_and_query[len("bff/") :].replace("{vin}", vin.upper())
+            )
         else:
             url = self._get_cariad_url_for_vin(vin, path_and_query)
         return await self._api.get(url)

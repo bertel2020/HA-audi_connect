@@ -204,7 +204,7 @@ LOCAL_DEALER_SCHEMA = vol.Schema(
     }
 )
 
-_PROBE_PATH = re.compile(r"[A-Za-z0-9_/\-.?=&,]+")
+_PROBE_PATH = re.compile(r"[A-Za-z0-9_/\-.?=&,{}]+")
 
 
 def _resolve_service_call(
