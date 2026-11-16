@@ -112,6 +112,23 @@ def _warning_light_attrs(vehicle: Any) -> dict[str, Any] | None:
     }
 
 
+def _window_sensors() -> tuple[AudiSensorEntityDescription, ...]:
+    """One opening-in-percent sensor per window; a window the car does not name
+    (a two-door body) simply gets none."""
+    return tuple(
+        AudiSensorEntityDescription(
+            key=f"window_open_pct_{key}",
+            attr_key=f"window_open_pct_{key}",
+            translation_key=f"window_open_pct_{key}",
+            icon="mdi:window-open-variant",
+            native_unit_of_measurement=PERCENTAGE,
+            state_class=SensorStateClass.MEASUREMENT,
+            entity_category=EntityCategory.DIAGNOSTIC,
+        )
+        for key in ("front_left", "front_right", "rear_left", "rear_right")
+    )
+
+
 def _trip_figure(attr_key: str, field: str):
     """One figure out of the car's last-trip or trip-totals block."""
 
@@ -754,6 +771,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         icon="mdi:clock-end",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    *_window_sensors(),
     AudiSensorEntityDescription(
         key="warning_light_count",
         attr_key="warning_light_count",
