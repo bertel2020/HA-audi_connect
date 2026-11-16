@@ -19,6 +19,7 @@ from .capability_jobs import (
 )
 from .audi_models import TripDataResponse, VehicleDataResponse, VehiclesResponse
 from .audi_payloads import (
+    JSON_CONTENT_VARIANTS,
     build_climatisation_settings_update,
     build_climatisation_start_body,
     build_profile_update,
@@ -928,6 +929,8 @@ class AudiService(AudiAuthMixin):
         body = build_climatisation_settings_update(current, variant=variant, **changes)
 
         headers = {"Authorization": "Bearer " + self._bearer_token_json["access_token"]}
+        if variant in JSON_CONTENT_VARIANTS:
+            headers["Content-Type"] = "application/json"
         if method not in ("PUT", "POST"):
             raise ValueError(f"Unknown write method: {method!r}")
         await self._api.request(

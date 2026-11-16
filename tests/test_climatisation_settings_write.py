@@ -90,6 +90,7 @@ class Api:
     def __init__(self, current):
         self.current = current
         self.calls = []
+        self.headers = []
 
     def use_token(self, *_):
         pass
@@ -100,6 +101,7 @@ class Api:
 
     async def request(self, method, url, data=None, headers=None, **kw):
         self.calls.append((method, url, data))
+        self.headers.append(headers or {})
         return None
 
 
@@ -289,3 +291,41 @@ def test_an_unknown_write_method_is_refused_before_anything_is_sent():
             )
         )
     assert svc._api.calls == []
+
+
+# --- the app's own request shape ----------------------------------------------------
+
+
+def test_app_dto_uses_the_apps_field_names_and_unit():
+    body = build_climatisation_settings_update(
+        A6_SETTINGS, variant="app_dto", climatizationAtUnlock=True
+    )
+    assert body == {
+        "climatizationAtUnlock": True,
+        "windowHeatingEnabled": False,
+        "zoneFrontLeftEnabled": True,
+        "zoneFrontRightEnabled": True,
+        "zoneRearLeftEnabled": False,
+        "zoneRearRightEnabled": False,
+        "climatisationMode": "economy",
+        "targetTemperature": 22.5,
+        "targetTemperatureUnit": "celsius",
+    }
+    assert "targetTemperature_C" not in body
+
+
+def test_json_variants_send_a_json_content_type_and_the_others_do_not():
+    for variant, expected in (
+        ("app_dto", True),
+        ("full_json", True),
+        ("full", False),
+        ("single_field", False),
+    ):
+        svc = service()
+        asyncio.run(
+            svc.set_climatisation_settings(
+                "VIN1", variant=variant, windowHeatingEnabled=True
+            )
+        )
+        headers = svc._api.headers[-1]
+        assert (headers.get("Content-Type") == "application/json") is expected, variant

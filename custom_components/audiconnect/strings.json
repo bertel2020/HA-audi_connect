@@ -348,7 +348,7 @@
         },
         "variant": {
           "name": "Body variant",
-          "description": "full: all settings; without_window_heating: leaves out window heating; single_field: only the changed field."
+          "description": "full: all settings; without_window_heating: leaves out window heating; single_field: only the changed field; full_json: like full with a JSON content type; app_dto: the fields and names the myAudi app uses, with a JSON content type."
         },
         "method": {
           "name": "HTTP method",
