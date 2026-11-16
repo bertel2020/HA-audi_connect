@@ -16,12 +16,13 @@ const TEXT = {
     doors_closed: "Doors closed", windows_closed: "Windows closed",
     n_open: "{n} open", plugged: "Plugged in", unplugged: "Not plugged in",
     light_on: "Lights on", light_off: "Lights off", warning: "Warning",
-    charge_target: "Charge target", range: "Range", charging_done: "done",
+    charge_target: "Charge target", range: "Range", charging_done: "done", power: "Power", charge_waiting: "Plugged in, waiting to start", charge_error: "Charging error", charge_reached: "Charge target reached", charge_conservation: "Conservation charging", rate: "Range per hour", in: "in {t}",
     last_trip: "Last trip", long_term: "Long term",
     distance: "Distance", speed: "Avg. speed", consumption: "Consumption", energy: "Energy",
     electric_range: "Electric range", inspection: "Inspection", inspection_days: "Inspection in", inspection_distance: "Inspection in (distance)", oil_change_days: "Oil change in", oil_change_distance: "Oil change in (distance)", parked: "Parked for",
-    vehicle: "Vehicle", fuel_range: "Fuel range", tank: "Tank", outdoor: "Outside temperature", oil_change: "Oil change", oil_level: "Oil level", adblue: "AdBlue range", charge_type: "Charging type", max_current: "Max. charging current",
+    vehicle: "Vehicle", parking_brake: "Parking brake", brake_on: "Engaged", brake_off: "Released", warning_lights: "Warning lights", warning_active: "Active", warning_none: "None", security: "Security status", fuel_range: "Fuel range", tank: "Tank", outdoor: "Outside temperature", oil_change: "Oil change", oil_level: "Oil level", adblue: "AdBlue range", charge_type: "Charging type", max_current: "Max. charging current",
     climate: "Climate", climate_on: "Running", climate_off: "Off", mode: "Mode",
+    heating: "Heating", cooling: "Cooling", ventilating: "Ventilating", running: "Running", remaining: "Time left",
     driver: "Driver", passenger: "Passenger", start: "Start", stop: "Stop",
     doors: "Doors", windows: "Windows", all_closed: "All closed and locked",
     all_closed_unlocked: "All closed, not locked", n_openings: "{n} openings open",
@@ -35,19 +36,20 @@ const TEXT = {
     min: "min", h: "h", d: "d", refresh: "Refresh", refresh_data: "Refresh vehicle data", flash: "Flash lights",
     // editor
     e_device: "Vehicle", e_name: "Name", e_image: "Upload a photo (optional)", e_image_local: "…or pick one from the www folder", e_none: "none",
-    e_logo: "Show Audi logo", e_trips: "Show trips", e_climate: "Show climate", e_stats: "Show vehicle details",
+    e_icon: "Icon instead of the Audi logo (optional)", e_logo: "Show Audi logo", e_trips: "Show trips", e_climate: "Show climate", e_stats: "Show vehicle details",
   },
   de: {
     locked: "Verriegelt", unlocked: "Entriegelt", not_secured: "Nicht gesichert",
     doors_closed: "Türen zu", windows_closed: "Fenster zu",
     n_open: "{n} offen", plugged: "Angesteckt", unplugged: "Nicht verbunden",
     light_on: "Licht an", light_off: "Licht aus", warning: "Warnung",
-    charge_target: "Ladeziel", range: "Reichweite", charging_done: "fertig",
+    charge_target: "Ladeziel", range: "Reichweite", charging_done: "fertig", power: "Leistung", charge_waiting: "Angesteckt, wartet auf Freigabe", charge_error: "Ladefehler", charge_reached: "Ladeziel erreicht", charge_conservation: "Erhaltungsladen", rate: "Reichweite je Std.", in: "in {t}",
     last_trip: "Letzte Fahrt", long_term: "Langzeit",
     distance: "Strecke", speed: "Ø Tempo", consumption: "Verbrauch", energy: "Energie",
     electric_range: "Elektrische Reichweite", inspection: "Inspektion", inspection_days: "Inspektion in", inspection_distance: "Inspektion in (Strecke)", oil_change_days: "Ölwechsel in", oil_change_distance: "Ölwechsel in (Strecke)", parked: "Geparkt seit",
-    vehicle: "Fahrzeug", fuel_range: "Reichweite Kraftstoff", tank: "Tank", outdoor: "Außentemperatur", oil_change: "Ölwechsel", oil_level: "Ölstand", adblue: "AdBlue-Reichweite", charge_type: "Ladeart", max_current: "Max. Ladestrom",
+    vehicle: "Fahrzeug", parking_brake: "Parkbremse", brake_on: "Angezogen", brake_off: "Gelöst", warning_lights: "Warnleuchten", warning_active: "Aktiv", warning_none: "Keine", security: "Sicherheitsstatus", fuel_range: "Reichweite Kraftstoff", tank: "Tank", outdoor: "Außentemperatur", oil_change: "Ölwechsel", oil_level: "Ölstand", adblue: "AdBlue-Reichweite", charge_type: "Ladeart", max_current: "Max. Ladestrom",
     climate: "Klimatisierung", climate_on: "Läuft", climate_off: "Aus", mode: "Modus",
+    heating: "Heizt", cooling: "Kühlt", ventilating: "Lüftet", running: "Läuft", remaining: "Restlaufzeit",
     driver: "Fahrer", passenger: "Beifahrer", start: "Starten", stop: "Stoppen",
     doors: "Türen", windows: "Fenster", all_closed: "Alles zu und verriegelt",
     all_closed_unlocked: "Alles zu, nicht verriegelt", n_openings: "{n} Öffnungen offen",
@@ -60,9 +62,12 @@ const TEXT = {
     stale: "Daten sind veraltet", days: "Tage", ago: "vor {t}", now: "gerade eben",
     min: "Min.", h: "Std.", d: "T.", refresh: "Aktualisieren", refresh_data: "Fahrzeugdaten aktualisieren", flash: "Lichthupe",
     e_device: "Fahrzeug", e_name: "Name", e_image: "Foto hochladen (optional)", e_image_local: "…oder eines aus dem www-Ordner wählen", e_none: "keines",
-    e_logo: "Audi-Logo anzeigen", e_trips: "Fahrten anzeigen", e_climate: "Klimatisierung anzeigen", e_stats: "Fahrzeugdetails anzeigen",
+    e_icon: "Icon statt Audi-Logo (optional)", e_logo: "Audi-Logo anzeigen", e_trips: "Fahrten anzeigen", e_climate: "Klimatisierung anzeigen", e_stats: "Fahrzeugdetails anzeigen",
   },
 };
+
+// What an entity says when it has nothing to say.
+const NO_VALUE = new Set(["unavailable", "unknown", "invalid", "unsupported", ""]);
 
 const DOOR_KEYS = {
   hood: "hood_open", fl: "left_front_door_open", fr: "right_front_door_open",
@@ -83,6 +88,7 @@ ha-card{overflow:hidden;position:relative;border-radius:24px}
 *{box-sizing:border-box}
 .title{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 16px 0;font-size:22px;font-weight:600;color:var(--secondary-text-color)}
 .title svg{width:42px;height:auto}
+.title ha-icon{--mdc-icon-size:38px}
 .tap{cursor:pointer}
 .busy{opacity:.45;transition:opacity .2s}
 .photo{display:block;width:100%;max-height:220px;object-fit:contain;padding:6px 16px 0}
@@ -109,9 +115,18 @@ ha-card{overflow:hidden;position:relative;border-radius:24px}
 .eline b{font-weight:500;color:var(--primary-text-color)}
 .eline span[data-more],.barwrap[data-more]{cursor:pointer}
 input[type=range]{width:100%;margin:2px 0 0;accent-color:var(--primary-color)}
-.chg{display:flex;justify-content:center;gap:28px;font-size:14px;margin-top:6px;color:var(--primary-text-color)}
-.chg ha-icon{--mdc-icon-size:18px;vertical-align:-4px}
-.chg .pulse ha-icon{color:var(--primary-color);animation:pu 1.4s ease-in-out infinite}
+.band{display:flex;align-items:stretch;margin-top:10px;padding:10px 6px;border-radius:12px;background:color-mix(in srgb,var(--primary-color) 14%,transparent);color:var(--primary-text-color)}
+.cell{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;padding:0 4px;cursor:pointer;text-align:center}
+.cell+.cell{border-left:1px solid color-mix(in srgb,var(--primary-color) 35%,transparent)}
+.cell .v{font-size:17px;font-weight:500;line-height:1.2;white-space:nowrap}
+.cell .k,.cell .s{font-size:11px;color:var(--secondary-text-color)}
+.cell ha-icon{--mdc-icon-size:18px;vertical-align:-4px;color:var(--primary-color)}
+.note{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 14px;border-radius:12px;font-size:14px;cursor:pointer;background:var(--secondary-background-color);color:var(--primary-text-color)}
+.note ha-icon{--mdc-icon-size:22px;color:var(--secondary-text-color)}
+.note.bad{background:color-mix(in srgb,var(--error-color) 14%,transparent)}
+.note.bad ha-icon{color:var(--error-color)}
+.note .nd{margin-left:auto;font-size:12px;color:var(--secondary-text-color)}
+.pulse{animation:pu 1.4s ease-in-out infinite}
 details{border-top:1px solid var(--divider-color)}
 summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 18px;cursor:pointer;font-size:14px;color:var(--primary-text-color)}
 summary::-webkit-details-marker{display:none}
@@ -135,6 +150,12 @@ details[open] summary .ch{transform:rotate(180deg)}
 .chead{display:flex;align-items:center;gap:12px}
 .cicon{width:44px;height:44px;border-radius:50%;background:var(--secondary-background-color);display:flex;align-items:center;justify-content:center;flex:none}
 .cicon.on ha-icon{color:var(--primary-color)}
+.cstatus{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--primary-color) 14%,transparent);color:var(--primary-text-color);font-size:14px}
+.cstatus ha-icon{--mdc-icon-size:22px;color:var(--primary-color);animation:spin 2s linear infinite}
+.cstatus b{font-weight:600}
+.cstatus span{margin-left:auto;color:var(--secondary-text-color)}
+.cstatus span b{color:var(--primary-text-color);font-weight:600}
+@keyframes spin{to{transform:rotate(360deg)}}
 .ctitle{flex:1}.ctitle b{display:block;font-size:16px;font-weight:500}.ctitle span{font-size:13px;color:var(--secondary-text-color)}
 select{background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color);border-radius:999px;padding:8px 12px;font-size:13px;font-family:inherit}
 .trow{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--primary-text-color)}
@@ -163,7 +184,7 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 .c-ok{color:var(--success-color)}.c-warn{color:var(--warning-color)}.c-bad{color:var(--error-color)}.c-mute{color:var(--secondary-text-color)}
 .big{width:100%;margin-top:10px}
 .empty{padding:24px;text-align:center;color:var(--secondary-text-color)}
-@media (prefers-reduced-motion:reduce){.bar.charging::before,.chg .pulse ha-icon{animation:none}}
+@media (prefers-reduced-motion:reduce){.bar.charging::before,.pulse,.cstatus ha-icon{animation:none}}
 `;
 
 // Positions inside the 200 x 300 top view.
@@ -194,6 +215,15 @@ class AudiConnectCard extends HTMLElement {
     this._root.addEventListener("click", (e) => this._onClick(e));
     this._root.addEventListener("change", (e) => this._onChange(e));
     this._root.addEventListener("input", (e) => this._onInput(e));
+    this._root.addEventListener("pointerdown", (e) => this._pressStart(e));
+    this._root.addEventListener("pointermove", (e) => this._pressMove(e));
+    for (const type of ["pointerup", "pointercancel"]) {
+      this._root.addEventListener(type, () => this._pressEnd());
+    }
+    // A long press on a phone would otherwise open the browser's own menu.
+    this._root.addEventListener("contextmenu", (e) => {
+      if (e.target.closest?.("[data-press]")) e.preventDefault();
+    });
     this._root.addEventListener("toggle", (e) => {
       const d = e.target.closest?.("details[data-id]");
       if (d) this._ui.open[d.dataset.id] = d.open;
@@ -284,7 +314,7 @@ class AudiConnectCard extends HTMLElement {
 
   _known(tk) {
     const s = this._s(tk);
-    return !!s && s.state !== "unavailable" && s.state !== "unknown";
+    return !!s && !NO_VALUE.has(s.state);
   }
 
   _num(tk) {
@@ -390,10 +420,11 @@ class AudiConnectCard extends HTMLElement {
 
     const canRefresh = !!this._id("refresh_vehicle_data");
     const busy = this._ui.refreshing ? " busy" : "";
-    const act = canRefresh ? ' data-act="refresh"' : "";
-    parts.push(`<div class="title${canRefresh ? " tap" : ""}${busy}"${act}>${c.show_logo ? RINGS : ""}<span>${esc(name)}</span></div>`);
+    // A tap opens the integration; holding it refreshes the vehicle data.
+    const act = ` data-act="open-integration"${canRefresh ? " data-press" : ""}`;
+    parts.push(`<div class="title tap${busy}"${act}>${c.icon ? `<ha-icon icon="${esc(c.icon)}"></ha-icon>` : c.show_logo ? RINGS : ""}<span>${esc(name)}</span></div>`);
     const photo = c.image_local || c.image;
-    if (photo) parts.push(`<img class="photo${canRefresh ? " tap" : ""}${busy}"${act} src="${esc(photo)}" alt="">`);
+    if (photo) parts.push(`<img class="photo tap${busy}"${act} src="${esc(photo)}" alt="">`);
     parts.push(this._renderInfoRow());
     parts.push(this._renderIcons());
     parts.push(this._renderEnergy());
@@ -411,7 +442,7 @@ class AudiConnectCard extends HTMLElement {
     const fresh = this._s("vehicle_data_freshness")?.state;
     const stale = fresh === "stale" || fresh === "delayed";
     const mid = upd && upd.state !== "unavailable" && upd.state !== "unknown"
-      ? `<span class="mid ${stale ? "warn" : ""}" data-more="${esc(upd.entity_id)}" title="${esc(this._t("stale"))}">${stale ? '<ha-icon icon="mdi:alert-outline"></ha-icon>' : ""}${esc(this._ago(upd.state))}</span>`
+      ? `<span class="mid ${stale ? "warn" : ""}" data-more="${esc(upd.entity_id)}" ${stale ? `title="${esc(this._t("stale"))}"` : ""}>${stale ? '<ha-icon icon="mdi:alert-outline"></ha-icon>' : ""}${esc(this._ago(upd.state))}</span>`
       : "";
     return `<div class="row">
       <span class="item" ${tracker ? `data-more="${esc(tracker.entity_id)}"` : ""}><ha-icon icon="mdi:map-marker"></ha-icon>${esc(loc)}</span>
@@ -466,19 +497,18 @@ class AudiConnectCard extends HTMLElement {
       const min = tState.attributes.min ?? 20, max = tState.attributes.max ?? 100, step = tState.attributes.step ?? 5;
       slider = `<input type="range" data-slider="target" min="${min}" max="${max}" step="${step}" value="${target}" aria-label="${esc(this._t("charge_target"))}">`;
     }
-    const chargeLine = active
-      ? `<div class="chg"><span class="pulse"><ha-icon icon="mdi:flash"></ha-icon> ${esc(this._fmt("charging_power"))}</span>${this._known("charging_complete_time") ? `<span><ha-icon icon="mdi:clock-outline"></ha-icon> ${esc(this._t("charging_done"))} ${esc(this._timeOf(this._s("charging_complete_time").state))}</span>` : ""}</div>`
-      : "";
+    const band = active ? this._renderChargeBand() : this._renderChargeNotice();
     return `<div class="sep"></div><div class="energy">
       <div class="barwrap" ${this._id(key) ? `data-more="${esc(this._id(key))}"` : ""}>
         <div class="bar ${active ? "charging" : ""}" style="width:${pct}%;background-size:${(10000 / Math.max(pct, 1)).toFixed(1)}% 100%"><span>${soc === undefined ? "–" : Math.round(soc) + " %"}</span></div>
         ${target !== undefined && !useTank ? `<div class="mark" data-live="mark" style="left:calc(${target}% - 1px)"></div>` : ""}
       </div>
+      ${band}
       <div class="eline">
         <span ${tState && !useTank ? `data-more="${esc(tState.entity_id)}"` : ""}>${target !== undefined && !useTank ? `${esc(this._t("charge_target"))} <b data-live="target">${Math.round(target)} %</b>` : ""}</span>
         <span ${this._id(rangeKey) ? `data-more="${esc(this._id(rangeKey))}"` : ""}>${esc(this._t("range"))} <b>${esc(this._fmt(rangeKey, "km"))}</b></span>
       </div>
-      ${slider}${chargeLine}
+      ${slider}
     </div>`;
   }
 
@@ -486,6 +516,62 @@ class AudiConnectCard extends HTMLElement {
     const n = Number(v);
     if (!Number.isFinite(n)) return String(v);
     return `${n.toLocaleString(this._hass?.language || undefined, { minimumFractionDigits: n % 1 ? 1 : 0, maximumFractionDigits: 1 })} °C`;
+  }
+
+  // Power, range gained per hour and when it is done: only while charging, and only what the car reports.
+  _renderChargeBand() {
+    const cells = [];
+    if (this._known("charging_power")) {
+      cells.push(`<div class="cell" data-more="${esc(this._id("charging_power"))}"><span class="v"><ha-icon class="pulse" icon="mdi:flash"></ha-icon> ${esc(this._fmt("charging_power", "kW"))}</span><span class="k">${esc(this._t("power"))}</span></div>`);
+    }
+    const rate = this._num("actual_charge_rate");
+    if (this._known("actual_charge_rate") && rate !== undefined && rate >= 0) {
+      const unit = this._s("actual_charge_rate").attributes.unit_of_measurement || "km/h";
+      const shown = rate.toLocaleString(this._hass.language || undefined, { maximumFractionDigits: 0 });
+      cells.push(`<div class="cell" data-more="${esc(this._id("actual_charge_rate"))}"><span class="v">+${esc(shown)} ${esc(unit)}</span><span class="k">${esc(this._t("rate"))}</span></div>`);
+    }
+    const done = this._known("charging_complete_time") ? this._timeOf(this._s("charging_complete_time").state) : "";
+    const mins = this._known("remaining_charging_time") ? this._num("remaining_charging_time") : undefined;
+    const left = mins !== undefined && mins > 0 ? this._t("in", { t: this._dur(mins) }) : "";
+    if (done || left) {
+      const id = this._id(done ? "charging_complete_time" : "remaining_charging_time");
+      cells.push(`<div class="cell" data-more="${esc(id)}"><span class="v">${esc(done || left)}</span><span class="k">${esc(this._t("charging_done"))}</span>${done && left ? `<span class="s">${esc(left)}</span>` : ""}</div>`);
+    }
+    return cells.length ? `<div class="band">${cells.join("")}</div>` : "";
+  }
+
+  // The car's own words for what the charging is doing, shown only when it is not plain charging
+  // or plain "not plugged in", which the plug icon already says.
+  _renderChargeNotice() {
+    const s = this._s("charging_state");
+    if (!s || NO_VALUE.has(s.state)) return "";
+    const state = s.state.toLowerCase();
+    const plugged = this._on("plug_state");
+    let tone = "", icon = "mdi:ev-plug-type2", text = "";
+    if (state === "charging" || state === "notreadyforcharging" || state === "off") return "";
+    if (state === "readyforcharging") {
+      if (!plugged) return "";
+      text = this._t("charge_waiting");
+    } else if (/error|fault|fail/.test(state)) {
+      tone = "bad"; icon = "mdi:alert-circle-outline"; text = this._t("charge_error");
+    } else if (state.startsWith("chargepurposereached")) {
+      if (!plugged) return "";
+      icon = "mdi:battery-check"; text = this._t("charge_reached");
+    } else if (state.includes("conservation")) {
+      icon = "mdi:battery-heart-variant"; text = this._t("charge_conservation");
+    } else {
+      // A value this card does not know: say it plainly rather than hide it.
+      const words = s.state.replace(/([a-z])([A-Z])/g, "$1 $2");
+      text = words.charAt(0).toUpperCase() + words.slice(1);
+    }
+    const spoken = s.state.replace(/([a-z])([A-Z])/g, "$1 $2");
+    const detail = tone === "bad" && !/^error$/i.test(s.state) ? `<span class="nd">${esc(spoken.charAt(0).toUpperCase() + spoken.slice(1))}</span>` : "";
+    return `<div class="note ${tone}" data-more="${esc(s.entity_id)}"><ha-icon icon="${icon}"></ha-icon><span>${esc(text)}</span>${detail}</div>`;
+  }
+
+  _dur(minutes) {
+    const h = Math.floor(minutes / 60), m = Math.round(minutes % 60);
+    return h ? (m ? `${h} ${this._t("h")} ${m} ${this._t("min")}` : `${h} ${this._t("h")}`) : `${m} ${this._t("min")}`;
   }
 
   _timeOf(iso) {
@@ -530,12 +616,22 @@ class AudiConnectCard extends HTMLElement {
     const known = (tk) => this._known(tk);
     const withDays = (tk) => {
       const n = this._num(tk);
-      return n !== undefined && !this._s(tk).attributes.unit_of_measurement ? `${n} ${this._t("days")}` : this._fmt(tk);
+      const unit = this._s(tk).attributes.unit_of_measurement;
+      return n !== undefined && (!unit || unit === "d") ? `${n} ${this._t("days")}` : this._fmt(tk);
     };
 
     if (known("secondary_engine_range")) add("mdi:gas-station", this._t("fuel_range"), this._fmt("secondary_engine_range", "km"), "secondary_engine_range");
     if (known("tank_level") && known("state_of_charge")) add("mdi:gauge", this._t("tank"), this._fmt("tank_level"), "tank_level");
     if (known("park_time")) add("mdi:parking", this._t("parked"), this._since(this._s("park_time").state), "park_time");
+    if (this._has("parking_brake") && this._known("parking_brake")) add("mdi:car-brake-parking", this._t("parking_brake"), this._on("parking_brake") ? this._t("brake_on") : this._t("brake_off"), "parking_brake");
+    if (this._has("warning_lights") && this._known("warning_lights")) {
+      const count = this._num("warning_light_count");
+      add("mdi:car-light-alert", this._t("warning_lights"), this._on("warning_lights") ? this._t("warning_active") + (count ? ` · ${count}` : "") : this._t("warning_none"), "warning_lights");
+    }
+    if (known("access_overall_status")) {
+      const raw = this._fmt("access_overall_status");
+      add("mdi:shield-car", this._t("security"), raw.charAt(0).toUpperCase() + raw.slice(1), "access_overall_status");
+    }
     if (known("outdoor_temperature")) add("mdi:thermometer", this._t("outdoor"), this._fmt("outdoor_temperature"), "outdoor_temperature");
     if (known("service_inspection_time")) add("mdi:wrench-clock", this._t("inspection_days"), withDays("service_inspection_time"), "service_inspection_time");
     if (known("service_inspection_distance")) add("mdi:wrench", this._t("inspection_distance"), this._fmt("service_inspection_distance", "km"), "service_inspection_distance");
@@ -566,15 +662,24 @@ class AudiConnectCard extends HTMLElement {
     const temp = a.temperature;
     const mode = this._s("select.climatisation_mode");
     const modeOptions = mode?.attributes.options || [];
-    const remaining = this._known("remaining_climatisation_time") && on ? ` · ${this._fmt("remaining_climatisation_time")}` : "";
     const outdoor = this._known("outdoor_temperature") ? ` · ${this._fmt("outdoor_temperature")}` : "";
+    // What the car is doing, and how long it keeps doing it.
+    const action = { heating: "heating", cooling: "cooling", fan: "ventilating" }[a.hvac_action] || "running";
+    let left = "";
+    if (on) {
+      const n = this._known("remaining_climatisation_time") ? this._num("remaining_climatisation_time") : Number(a.remaining_climatisation_time);
+      if (Number.isFinite(n)) left = this._known("remaining_climatisation_time") ? this._fmt("remaining_climatisation_time", "min") : `${n} ${this._t("min")}`;
+    }
+    const status = on
+      ? `<div class="cstatus"><ha-icon icon="mdi:fan"></ha-icon><b>${esc(this._t(action))}</b>${left ? `<span>${esc(this._t("remaining"))} <b>${esc(left)}</b></span>` : ""}</div>`
+      : "";
     const seatBtn = (tk, label) => this._has(tk)
       ? `<button class="pill ${this._on(tk) ? "on" : ""}" data-toggle="${esc(this._id(tk))}"><ha-icon icon="mdi:car-seat-heater"></ha-icon>${esc(label)}</button>` : "";
     const seats = seatBtn("climatisation_zone_front_left", this._t("driver")) + seatBtn("climatisation_zone_front_right", this._t("passenger"));
     return `<div class="climate">
       <div class="chead">
         <div class="cicon ${on ? "on" : ""}"><ha-icon icon="mdi:air-conditioner"></ha-icon></div>
-        <div class="ctitle"><b>${esc(this._t("climate"))}</b><span>${esc((on ? this._t("climate_on") : this._t("climate_off")) + remaining + outdoor)}</span></div>
+        <div class="ctitle"><b>${esc(this._t("climate"))}</b><span>${esc(on ? this._t(action) : this._t("climate_off") + outdoor)}</span></div>
         ${mode && modeOptions.length ? `<select data-select="${esc(mode.entity_id)}" aria-label="${esc(this._t("mode"))}">${modeOptions.map((o) => `<option value="${esc(o)}" ${o === mode.state ? "selected" : ""}>${esc(this._hass.formatEntityState ? this._hass.formatEntityState(mode, o) : o)}</option>`).join("")}</select>` : ""}
       </div>
       ${temp !== undefined && temp !== null ? `<div class="trow"><ha-icon icon="mdi:thermometer"></ha-icon><input type="range" data-slider="temp" min="${a.min_temp ?? 16}" max="${a.max_temp ?? 28}" step="${a.target_temp_step ?? 0.5}" value="${temp}" aria-label="${esc(this._t("climate"))}"><b data-live="temp">${esc(this._temp(temp))}</b></div>` : ""}
@@ -583,6 +688,7 @@ class AudiConnectCard extends HTMLElement {
         <button class="pill" data-act="climate-on">${esc(this._t("start"))}</button>
         <button class="pill" data-act="climate-off">${esc(this._t("stop"))}</button>
       </div>
+      ${status}
     </div>`;
   }
 
@@ -648,7 +754,39 @@ class AudiConnectCard extends HTMLElement {
     this.dispatchEvent(new CustomEvent("hass-more-info", { bubbles: true, composed: true, detail: { entityId } }));
   }
 
+  _pressStart(e) {
+    if (!e.target.closest?.("[data-press]")) return;
+    this._pressAt = { x: e.clientX, y: e.clientY };
+    clearTimeout(this._pressTimer);
+    this._pressTimer = setTimeout(() => {
+      this._pressTimer = null;
+      this._longPressed = true;
+      if (navigator.vibrate) navigator.vibrate(30);
+      this._refresh();
+    }, 600);
+  }
+
+  _pressMove(e) {
+    // Scrolling or dragging is not a press.
+    if (this._pressTimer && this._pressAt && Math.hypot(e.clientX - this._pressAt.x, e.clientY - this._pressAt.y) > 10) {
+      this._pressEnd();
+    }
+  }
+
+  _pressEnd() {
+    clearTimeout(this._pressTimer);
+    this._pressTimer = null;
+    // The click that ends a long press must not also count as a tap.
+    if (this._longPressed) setTimeout(() => { this._longPressed = false; }, 350);
+  }
+
+  _openIntegration() {
+    history.pushState(null, "", `/config/integrations/integration/${DOMAIN}`);
+    window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
+  }
+
   _onClick(e) {
+    if (this._longPressed) { this._longPressed = false; return; }
     const t = e.target;
     const bg = t.closest?.('[data-act="close-bg"]');
     if (bg && t === bg) { this._ui.popup = null; this._sig = ""; this._update(); return; }
@@ -661,6 +799,7 @@ class AudiConnectCard extends HTMLElement {
       case "close": this._ui.popup = null; this._sig = ""; this._update(); return;
       case "lock": this._toggleLock(); return;
       case "refresh": this._refresh(); return;
+      case "open-integration": this._openIntegration(); return;
       case "climate-on": this._hass.callService("climate", "turn_on", { entity_id: this._id("climatisation") }); return;
       case "climate-off": this._hass.callService("climate", "turn_off", { entity_id: this._id("climatisation") }); return;
       default: break;
@@ -769,6 +908,7 @@ class AudiConnectCardEditor extends HTMLElement {
       { name: "name", selector: { text: {} } },
       { name: "image", selector: { image: {} } },
       { name: "image_local", selector: { select: { options, mode: "dropdown" } } },
+      { name: "icon", selector: { icon: {} } },
       { name: "show_logo", selector: { boolean: {} } },
       { name: "show_trips", selector: { boolean: {} } },
       { name: "show_climate", selector: { boolean: {} } },
@@ -776,7 +916,7 @@ class AudiConnectCardEditor extends HTMLElement {
     ];
     const labels = {
       device_id: "e_device", name: "e_name", image: "e_image", image_local: "e_image_local",
-      show_logo: "e_logo", show_trips: "e_trips", show_climate: "e_climate", show_stats: "e_stats",
+      icon: "e_icon", show_logo: "e_logo", show_trips: "e_trips", show_climate: "e_climate", show_stats: "e_stats",
     };
     this._form.computeLabel = (s) => this._t(labels[s.name]);
   }
