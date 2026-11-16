@@ -268,6 +268,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         translation_key="last_update_time",
         icon="mdi:update",
         device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="last_trip_end",
@@ -330,7 +331,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfLength.KILOMETERS,
         state_class=SensorStateClass.TOTAL_INCREASING,
         device_class=SensorDeviceClass.DISTANCE,
-        entity_category=EntityCategory.DIAGNOSTIC,
         suggested_display_precision=0,
     ),
     AudiSensorEntityDescription(
@@ -366,7 +366,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         translation_key="service_inspection_time",
         icon="mdi:room-service-outline",
         native_unit_of_measurement=UnitOfTime.DAYS,
-        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="service_inspection_distance",
@@ -375,7 +374,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         icon="mdi:room-service-outline",
         native_unit_of_measurement=UnitOfLength.KILOMETERS,
         device_class=SensorDeviceClass.DISTANCE,
-        entity_category=EntityCategory.DIAGNOSTIC,
         suggested_display_precision=0,
     ),
     AudiSensorEntityDescription(
@@ -384,7 +382,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         translation_key="oil_change_time",
         icon="mdi:oil",
         native_unit_of_measurement=UnitOfTime.DAYS,
-        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="oil_change_distance",
@@ -393,7 +390,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         icon="mdi:oil",
         native_unit_of_measurement=UnitOfLength.KILOMETERS,
         device_class=SensorDeviceClass.DISTANCE,
-        entity_category=EntityCategory.DIAGNOSTIC,
         suggested_display_precision=0,
     ),
     AudiSensorEntityDescription(
@@ -420,6 +416,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         translation_key="charging_scenario",
         icon="mdi:ev-station",
         capability="charging",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="battery_care_mode",
@@ -427,12 +424,14 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         translation_key="battery_care_mode",
         icon="mdi:battery-heart-variant",
         capability="batteryChargingCare",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="access_overall_status",
         attr_key="access_overall_status",
         translation_key="access_overall_status",
         icon="mdi:shield-car",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="climatisation_mode",
@@ -440,16 +439,19 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         translation_key="climatisation_mode",
         icon="mdi:air-conditioner",
         capability="climatisation",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="charging_type",
         attr_key="charging_type",
         translation_key="charging_type",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="energy_flow",
         attr_key="energy_flow",
         translation_key="energy_flow",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="max_charge_current",
@@ -467,6 +469,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         icon="mdi:current-ac",
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="charging_current_limit_mode",
@@ -474,6 +477,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         capability="charging",
         translation_key="charging_current_limit_mode",
         icon="mdi:ev-station",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="charging_plug_auto_unlock",
@@ -498,6 +502,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         capability="readiness",
         translation_key="vehicle_reported_online",
         icon="mdi:car-connected",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="vehicle_reported_active",
@@ -505,6 +510,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         capability="readiness",
         translation_key="vehicle_reported_active",
         icon="mdi:car-clock",
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="primary_engine_type",
@@ -643,6 +649,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         icon="mdi:car-clock",
         device_class=SensorDeviceClass.TIMESTAMP,
         extra_attrs_fn=_park_time_attrs,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="position_last_updated",
@@ -853,6 +860,7 @@ class _AudiClockAwareSensor(AudiEntity, SensorEntity):
 class AudiVehicleFreshnessSensor(_AudiClockAwareSensor):
     """Readable freshness status of the newest car telemetry timestamp."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "vehicle_data_freshness"
     _attr_icon = "mdi:clock-check-outline"
     _attr_device_class = SensorDeviceClass.ENUM
@@ -901,6 +909,7 @@ class AudiVehicleFreshnessSensor(_AudiClockAwareSensor):
 class AudiVehicleAgeSensor(_AudiClockAwareSensor):
     """Age of the newest vehicle data timestamp, independent of cloud login."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "vehicle_data_age"
     _attr_icon = "mdi:timer-sand"
     _attr_native_unit_of_measurement = UnitOfTime.MINUTES
@@ -922,6 +931,7 @@ class AudiVehicleAgeSensor(_AudiClockAwareSensor):
 class AudiCloudLastPollSensor(AudiEntity, SensorEntity):
     """Last actual successful cloud poll, never mistaken for vehicle telemetry."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "cloud_last_successful_poll"
     _attr_icon = "mdi:cloud-check-outline"
     _attr_device_class = SensorDeviceClass.TIMESTAMP

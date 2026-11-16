@@ -9,7 +9,6 @@ from typing import Any
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.const import EntityCategory
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -55,7 +54,6 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
         key="refresh_vehicle_data",
         translation_key="refresh_vehicle_data",
         icon="mdi:cloud-refresh",
-        entity_category=EntityCategory.DIAGNOSTIC,
         press_fn=lambda account, vin: account.refresh_vehicle_data(vin),
     ),
     AudiButtonEntityDescription(
