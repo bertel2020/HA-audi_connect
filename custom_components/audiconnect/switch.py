@@ -36,6 +36,10 @@ class AudiSwitchEntityDescription(SwitchEntityDescription):
     value_fn: Callable[[Any], bool] = bool
     # Writes whose exact format the car has not been seen to accept yet.
     experimental: bool = False
+    # Controls the legacy fuel-fired parking heater. An Auth0 (CARIAD) car has
+    # none: the state falls back to climatisationState, so the switch would
+    # only mirror the air conditioning and its command targets the wrong API.
+    legacy_api_only: bool = False
 
 
 # Climatisation settings the car stores and reports back. Writable through
@@ -97,6 +101,7 @@ SWITCH_DESCRIPTIONS: tuple[AudiSwitchEntityDescription, ...] = (
         attr_key="preheater_active",
         translation_key="preheater_active",
         icon="mdi:radiator",
+        legacy_api_only=True,
         turn_on_fn=lambda conn, vin: conn.set_vehicle_pre_heater(vin, True),
         turn_off_fn=lambda conn, vin: conn.set_vehicle_pre_heater(vin, False),
     ),
@@ -134,6 +139,12 @@ async def async_setup_entry(
             configured=(
                 not description.experimental
                 or config_entry.options.get("experimental_commands", False)
+            )
+            and not (
+                description.legacy_api_only
+                and getattr(
+                    getattr(vehicle, "_audi_service", None), "uses_auth0", False
+                )
             ),
         )
     ]
