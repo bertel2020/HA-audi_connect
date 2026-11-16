@@ -139,7 +139,7 @@ def test_a_car_without_trips_gets_no_values_and_no_support():
     assert by_key["last_trip_distance"].value_fn(vehicle) is None
 
 
-def test_the_long_term_totals_are_off_by_default_and_the_last_trip_on():
+def test_the_long_term_totals_are_on_by_default_like_the_last_trip():
     by_key = {d.key: d for d in SENSOR_DESCRIPTIONS}
-    assert by_key["trip_totals_distance"].entity_registry_enabled_default is False
+    assert by_key["trip_totals_distance"].entity_registry_enabled_default is True
     assert by_key["last_trip_distance"].entity_registry_enabled_default is True
