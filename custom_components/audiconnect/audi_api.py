@@ -9,7 +9,6 @@ from typing import Any
 
 from aiohttp import ClientResponseError, ClientSession
 from aiohttp.hdrs import METH_GET, METH_POST, METH_PUT
-import builtins
 
 # ===========================================
 # VERBOSE DEBUG TOGGLE
@@ -26,13 +25,10 @@ class AudiAPI:
     HDR_XAPP_VERSION = "4.31.0"
     HDR_USER_AGENT = "Android/4.31.0 (Build 800341641.root project 'myaudi_android'.ext.buildTime) Android/13"
 
-    def __init__(self, session: ClientSession, proxy: str | None = None) -> None:
+    def __init__(self, session: ClientSession) -> None:
         self.__token: dict[str, Any] | None = None
         self.__xclientid: str | None = None
         self._session = session
-        self.__proxy: dict[str, str | None] | None = (
-            {"http": proxy, "https": proxy} if proxy else None
-        )
         self.vcf_remaining_calls: int | None = None
         self.vcf_remaining_calls_last_observed: datetime | None = None
 
@@ -64,7 +60,6 @@ class AudiAPI:
             _LOGGER.debug("Data: %s", data)
             _LOGGER.debug("Headers: %s", headers)
             _LOGGER.debug("Kwargs: %s", kwargs)
-            _LOGGER.debug("Proxy: %s", self.__proxy)
 
         try:
             async with asyncio.timeout(TIMEOUT):
@@ -160,12 +155,7 @@ class AudiAPI:
                             message=response.reason,
                         )
 
-        except asyncio.CancelledError as err:
-            if DEBUG_VERBOSE:
-                _LOGGER.debug("Request cancelled (CancelledError).")
-            raise builtins.TimeoutError("Timeout error") from err
-
-        except builtins.TimeoutError:
+        except TimeoutError:
             if DEBUG_VERBOSE:
                 _LOGGER.debug("Request timed out after %s seconds.", TIMEOUT)
             raise

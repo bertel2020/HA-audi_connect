@@ -258,8 +258,12 @@ class AudiConnectAccount:
                     if await audiVehicle.update() is False:
                         self._loggedin = False
                     self._vehicles.append(audiVehicle)
-                except Exception:
-                    pass
+                except Exception as exception:  # noqa: BLE001
+                    log_exception(
+                        exception,
+                        "Unable to add vehicle "
+                        f"{'*' * (len(vehicle.vin) - 4) + vehicle.vin[-4:]}",
+                    )
 
     async def refresh_vehicle_data(self, vin: str):
         redacted_vin = "*" * (len(vin) - 4) + vin[-4:]
@@ -880,6 +884,7 @@ class AudiConnectVehicle:
                 exception,
                 f"Unable to update vehicle data {info} of {self._redacted_vin}",
             )
+            return False
 
     def log_exception_once(self, exception, message):
         self._no_error = False
