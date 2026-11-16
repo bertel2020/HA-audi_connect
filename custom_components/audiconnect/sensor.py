@@ -19,8 +19,10 @@ from homeassistant.const import (
     PERCENTAGE,
     EntityCategory,
     UnitOfElectricCurrent,
+    UnitOfEnergy,
     UnitOfLength,
     UnitOfPower,
+    UnitOfSpeed,
     UnitOfTemperature,
     UnitOfTime,
 )
@@ -81,6 +83,84 @@ def sensor_descriptions_to_create(
             configured=is_sensor_available_for(description, vehicle),
         )
     ]
+
+
+def _trip_figure(attr_key: str, field: str, *, as_time: bool = False):
+    """One figure out of the car's last-trip or trip-totals block."""
+
+    def value(vehicle: Any) -> Any:
+        block = getattr(vehicle, attr_key, None)
+        raw = block.get(field) if isinstance(block, dict) else None
+        if as_time:
+            # ISO 8601 with an offset, which parse_datetime does not read.
+            try:
+                moment = datetime.fromisoformat(raw) if isinstance(raw, str) else None
+            except ValueError:
+                return None
+            return moment if moment and moment.tzinfo else None
+        return (
+            raw if isinstance(raw, (int, float)) and not isinstance(raw, bool) else None
+        )
+
+    return value
+
+
+def _trip_sensors(
+    attr_key: str, prefix: str, *, enabled: bool
+) -> tuple[AudiSensorEntityDescription, ...]:
+    """The distance, time, consumption, energy and speed of one kind of trip."""
+    base = {"attr_key": attr_key, "entity_registry_enabled_default": enabled}
+    return (
+        AudiSensorEntityDescription(
+            key=f"{prefix}_distance",
+            translation_key=f"{prefix}_distance",
+            icon="mdi:map-marker-distance",
+            native_unit_of_measurement=UnitOfLength.KILOMETERS,
+            device_class=SensorDeviceClass.DISTANCE,
+            suggested_display_precision=0,
+            value_fn=_trip_figure(attr_key, "mileage_km"),
+            **base,
+        ),
+        AudiSensorEntityDescription(
+            key=f"{prefix}_duration",
+            translation_key=f"{prefix}_duration",
+            icon="mdi:timer-outline",
+            native_unit_of_measurement=UnitOfTime.MINUTES,
+            device_class=SensorDeviceClass.DURATION,
+            suggested_display_precision=0,
+            value_fn=_trip_figure(attr_key, "travelTime"),
+            **base,
+        ),
+        AudiSensorEntityDescription(
+            key=f"{prefix}_consumption",
+            translation_key=f"{prefix}_consumption",
+            icon="mdi:ev-station",
+            native_unit_of_measurement="kWh/100 km",
+            suggested_display_precision=1,
+            value_fn=_trip_figure(attr_key, "averageElectricConsumption"),
+            **base,
+        ),
+        AudiSensorEntityDescription(
+            key=f"{prefix}_energy",
+            translation_key=f"{prefix}_energy",
+            icon="mdi:lightning-bolt",
+            native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+            device_class=SensorDeviceClass.ENERGY,
+            suggested_display_precision=1,
+            value_fn=_trip_figure(attr_key, "totalElectricConsumption_kwh"),
+            **base,
+        ),
+        AudiSensorEntityDescription(
+            key=f"{prefix}_speed",
+            translation_key=f"{prefix}_speed",
+            icon="mdi:speedometer",
+            native_unit_of_measurement=UnitOfSpeed.KILOMETERS_PER_HOUR,
+            device_class=SensorDeviceClass.SPEED,
+            suggested_display_precision=0,
+            value_fn=_trip_figure(attr_key, "averageSpeed_kmph"),
+            **base,
+        ),
+    )
 
 
 def _trip_data_value(vehicle: Any, attr_key: str) -> Any:
@@ -189,6 +269,16 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         icon="mdi:update",
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
+    AudiSensorEntityDescription(
+        key="last_trip_end",
+        attr_key="last_trip",
+        translation_key="last_trip_end",
+        icon="mdi:flag-checkered",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=_trip_figure("last_trip", "tripEndTimestamp", as_time=True),
+    ),
+    *_trip_sensors("last_trip", "last_trip", enabled=True),
+    *_trip_sensors("trip_totals", "trip_totals", enabled=False),
     AudiSensorEntityDescription(
         key="shortterm_current",
         attr_key="shortterm_current",

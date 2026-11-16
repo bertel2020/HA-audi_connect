@@ -291,6 +291,23 @@ class AudiService(AudiAuthMixin):
             f"{await self._get_home_region(vin.upper())}/fs-car/vehicleMgmt/vehicledata/v2/{self._type}/{self._country}/vehicles/{vin.upper()}/"
         )
 
+    async def get_last_trip(self, vin: str, kind: str) -> dict[str, Any]:
+        """The car's last trip of one kind ("shortterm" or "longterm").
+
+        Served from /vehicle/v1/trips/{vin}/{kind}/last, with the figures one
+        level down under "data". A 404 means the car has no such trips.
+        """
+        if kind not in ("shortterm", "longterm"):
+            raise ValueError(f"Unknown trip kind: {kind}")
+        self._api.use_token(self._bearer_token_json)
+        response = await self._api.get(
+            self._get_cariad_url(
+                "/vehicle/v1/trips/{vin}/{kind}/last", vin=vin.upper(), kind=kind
+            )
+        )
+        data = response.get("data") if isinstance(response, dict) else None
+        return data if isinstance(data, dict) else {}
+
     async def get_tripdata(self, vin: str, kind: str):
         self._api.use_token(self.vwToken)
 
