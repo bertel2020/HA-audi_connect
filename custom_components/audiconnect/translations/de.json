@@ -815,8 +815,8 @@
       "climatisation_mode": {
         "name": "Klimatisierungsmodus",
         "state": {
-          "comfort": "Komfort",
-          "economy": "Sparmodus"
+          "comfort": "Comfort",
+          "economy": "Economy"
         }
       },
       "profile_charging_current": {
