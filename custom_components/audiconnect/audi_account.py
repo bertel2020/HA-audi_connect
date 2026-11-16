@@ -169,6 +169,35 @@ SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA = vol.Schema(
     }
 )
 
+_WEEKDAYS = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+]
+
+SERVICE_CREATE_CLIMATISATION_TIMER = "create_climatisation_timer"
+SERVICE_CREATE_CLIMATISATION_TIMER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Required("time"): cv.string,
+        vol.Required("days"): vol.All(cv.ensure_list, [vol.In(_WEEKDAYS)]),
+        vol.Optional("repeat", default=True): cv.boolean,
+        vol.Optional("enabled", default=True): cv.boolean,
+    }
+)
+
+SERVICE_DELETE_CLIMATISATION_TIMER = "delete_climatisation_timer"
+SERVICE_DELETE_CLIMATISATION_TIMER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Required("timer_id"): cv.positive_int,
+    }
+)
+
 SERVICE_START_ENGINE = "start_engine"
 SERVICE_START_ENGINE_SCHEMA = vol.Schema(
     {vol.Required(CONF_DEVICE_ID): _single_device_id}
@@ -379,6 +408,26 @@ class AudiAccount(AudiConnectObserver):
         )
         self._raise_on_failed_command(result, "set_target_soc")
 
+    async def create_climatisation_timer(self, vin: str, service: ServiceCall) -> None:
+        """Create a climatisation timer at a local time on the chosen days."""
+        try:
+            result = await self.connection.create_climatisation_timer(
+                vin.lower(),
+                service.data["time"],
+                service.data["days"],
+                service.data["repeat"],
+                service.data["enabled"],
+            )
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
+        self._raise_on_failed_command(result, "create_climatisation_timer")
+
+    async def delete_climatisation_timer(self, vin: str, service: ServiceCall) -> None:
+        result = await self.connection.delete_climatisation_timer(
+            vin.lower(), service.data["timer_id"]
+        )
+        self._raise_on_failed_command(result, "delete_climatisation_timer")
+
     async def test_climatisation_write(self, vin: str, service: ServiceCall) -> None:
         """Write one climatisation setting with a chosen body, to find what the car takes."""
         setting, value = service.data["setting"], service.data["value"]
@@ -482,6 +531,10 @@ __all__ = [
     "SERVICE_START_ENGINE_SCHEMA",
     "SERVICE_TEST_CLIMATISATION_WRITE",
     "SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA",
+    "SERVICE_CREATE_CLIMATISATION_TIMER",
+    "SERVICE_CREATE_CLIMATISATION_TIMER_SCHEMA",
+    "SERVICE_DELETE_CLIMATISATION_TIMER",
+    "SERVICE_DELETE_CLIMATISATION_TIMER_SCHEMA",
     "SERVICE_STOP_ENGINE",
     "SERVICE_STOP_ENGINE_SCHEMA",
     "AudiAccount",

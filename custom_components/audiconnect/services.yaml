@@ -280,3 +280,52 @@ test_climatisation_write:
           options:
             - PUT
             - POST
+
+create_climatisation_timer:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: audiconnect
+    time:
+      required: true
+      example: "07:30"
+      selector:
+        time:
+    days:
+      required: true
+      selector:
+        select:
+          multiple: true
+          options:
+            - monday
+            - tuesday
+            - wednesday
+            - thursday
+            - friday
+            - saturday
+            - sunday
+    repeat:
+      default: true
+      selector:
+        boolean:
+    enabled:
+      default: true
+      selector:
+        boolean:
+
+delete_climatisation_timer:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: audiconnect
+    timer_id:
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 99
+          mode: box

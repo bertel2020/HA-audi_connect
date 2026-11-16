@@ -21,6 +21,7 @@ from .audi_models import TripDataResponse, VehicleDataResponse, VehiclesResponse
 from .audi_payloads import (
     JSON_CONTENT_VARIANTS,
     build_climatisation_settings_update,
+    build_climatisation_timer,
     build_climatisation_start_body,
     build_profile_change,
     build_profile_update,
@@ -998,6 +999,74 @@ class AudiService(AudiAuthMixin):
             self._get_cariad_url_for_vin(vin, "climatisation/settings"),
             headers=headers,
             data=json.dumps(body),
+        )
+
+    def _departure_url(self, vin: str, suffix: str) -> str:
+        """The departure timers live under vehicle/v2, not vehicle/v1/vehicles."""
+        return self._get_cariad_url(
+            "/vehicle/v2/departure/{vin}/" + suffix, vin=vin.upper()
+        )
+
+    async def _car_utc_offset_minutes(self, vin: str) -> int:
+        """The car's clock offset, from the time it reports for itself."""
+        self._api.use_token(self._bearer_token_json)
+        raw = await self._api.get(
+            self._get_cariad_url_for_vin(
+                vin, "selectivestatus?jobs={jobs}", jobs="departureTimers"
+            )
+        )
+        stamp = get_attr(
+            raw, "departureTimers.climatisationTimersStatus.value.timeInCar"
+        )
+        try:
+            offset = datetime.fromisoformat(stamp).utcoffset()
+        except (TypeError, ValueError):
+            offset = None
+        if offset is None:
+            raise ValueError("The car did not report its local time; refusing to guess")
+        return int(offset.total_seconds() // 60)
+
+    async def create_climatisation_timer(
+        self,
+        vin: str,
+        time_local: str,
+        days: list[str],
+        *,
+        repeat: bool = True,
+        enabled: bool = True,
+    ) -> Any:
+        """Create a climatisation timer.
+
+        POST {bff}/vehicle/v2/departure/{vin}/climatisation/timers, body shaped
+        like the myAudi app's (see build_climatisation_timer).
+        """
+        offset = await self._car_utc_offset_minutes(vin)
+        body = build_climatisation_timer(
+            time_local,
+            days,
+            repeat=repeat,
+            enabled=enabled,
+            utc_offset_minutes=offset,
+        )
+        headers = {
+            "Authorization": "Bearer " + self._bearer_token_json["access_token"],
+            "Content-Type": "application/json",
+        }
+        return await self._api.request(
+            "POST",
+            self._departure_url(vin, "climatisation/timers"),
+            headers=headers,
+            data=json.dumps(body),
+        )
+
+    async def delete_climatisation_timer(self, vin: str, timer_id: int) -> Any:
+        """DELETE {bff}/vehicle/v2/departure/{vin}/climatisation/timers/{id}."""
+        headers = {"Authorization": "Bearer " + self._bearer_token_json["access_token"]}
+        return await self._api.request(
+            "DELETE",
+            self._departure_url(vin, f"climatisation/timers/{int(timer_id)}"),
+            headers=headers,
+            data=None,
         )
 
     async def get_charging_settings_raw(self, vin: str) -> dict[str, Any]:
