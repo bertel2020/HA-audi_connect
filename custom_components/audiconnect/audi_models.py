@@ -654,16 +654,25 @@ class VehicleDataResponse:
                 if enabled is not None:
                     self._appendState("preferredChargingTimeEnabled", bool(enabled), ts)
 
+    def _timer_block(self, data: dict[str, Any], job: str, status: str) -> Any:
+        """A timer status block from its own job, else from departureTimers.
+
+        Some cars report the same status blocks under departureTimers instead
+        of their own jobs.
+        """
+        for source in (job, "departureTimers"):
+            value = self._getFromJson(data, [source, status, "value"])
+            if isinstance(value, dict):
+                return value
+        return None
+
     def _parseChargingTimers(self, data: dict[str, Any]) -> None:
         """Parse the departure/charging timers.
 
-        Note these are the *chargingTimers* job. departureTimers/departureProfiles
-        are requested by get_stored_vehicle_data but are not returned for every
-        model (a Q8 e-tron returns neither), so nothing here may depend on them.
+        The Q8 reports them in the chargingTimers job, the A6 in departureTimers
+        (same block name). Either is read; nothing depends on both being there.
         """
-        value = self._getFromJson(
-            data, ["chargingTimers", "chargingTimersStatus", "value"]
-        )
+        value = self._timer_block(data, "chargingTimers", "chargingTimersStatus")
         if not isinstance(value, dict):
             return
 
@@ -708,8 +717,8 @@ class VehicleDataResponse:
         a HA timestamp sensor with a guessed offset. Keep the state bounded and
         strip every field except the small, documented timer subset.
         """
-        block = self._getFromJson(
-            data, ["climatisationTimers", "climatisationTimersStatus", "value"]
+        block = self._timer_block(
+            data, "climatisationTimers", "climatisationTimersStatus"
         )
         if not isinstance(block, dict):
             return

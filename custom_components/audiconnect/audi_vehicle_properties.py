@@ -100,6 +100,13 @@ def _float_or_minus_one(v: Any) -> float | int | None:
         return -1
 
 
+# A capability a car may announce under another id.
+_CAPABILITY_ALIASES: dict[str, frozenset[str]] = {
+    "climatisationTimers": frozenset({"departureTimers"}),
+    "chargingTimers": frozenset({"departureTimers"}),
+}
+
+
 class _Field:
     """One value read from the vehicle's ``state`` or ``fields`` dict.
 
@@ -746,7 +753,10 @@ class AudiVehicleProperties:
         caps = self.capabilities
         if not caps:
             return None
-        return capability in caps
+        if capability in caps:
+            return True
+        # Some cars announce one "departureTimers" capability for both kinds.
+        return bool(_CAPABILITY_ALIASES.get(capability, frozenset()) & caps)
 
     @property
     def position_last_updated(self):
