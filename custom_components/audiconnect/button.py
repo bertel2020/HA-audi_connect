@@ -43,6 +43,14 @@ def _modern_capable(vehicle: Any, capability: str) -> bool:
     )
 
 
+def _window_heating_capable(vehicle: Any) -> bool:
+    """Climatisation, and the car has not said it cannot heat the windows."""
+    flags = getattr(vehicle, "climatisation_supports", None)
+    if isinstance(flags, dict) and flags.get("supportsWindowHeatingEnabled") is False:
+        return False
+    return _modern_capable(vehicle, "climatisation")
+
+
 def _wakeup_capable(vehicle: Any) -> bool:
     return _modern_capable(vehicle, "vehicleWakeUp") or _modern_capable(
         vehicle, "vehicleWakeUpTrigger"
@@ -104,7 +112,7 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
         translation_key="start_window_heating_modern",
         icon="mdi:car-defrost-rear",
         experimental=True,
-        supported_fn=lambda v: _modern_capable(v, "climatisation"),
+        supported_fn=_window_heating_capable,
         press_fn=lambda account, vin: account.connection.set_vehicle_window_heating(
             vin, True
         ),
@@ -114,7 +122,7 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
         translation_key="stop_window_heating_modern",
         icon="mdi:car-defrost-rear",
         experimental=True,
-        supported_fn=lambda v: _modern_capable(v, "climatisation"),
+        supported_fn=_window_heating_capable,
         press_fn=lambda account, vin: account.connection.set_vehicle_window_heating(
             vin, False
         ),
