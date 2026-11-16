@@ -85,6 +85,20 @@ def sensor_descriptions_to_create(
     ]
 
 
+def _warning_light_attrs(vehicle: Any) -> dict[str, Any] | None:
+    """The lit warnings, reduced to plain values and capped."""
+    lights = getattr(vehicle, "warning_lights", None)
+    if lights is None:
+        return None
+    keep = (str, int, float, bool)
+    return {
+        "warnings": [
+            {k: v for k, v in item.items() if isinstance(v, keep)}
+            for item in lights[:20]
+        ]
+    }
+
+
 def _trip_figure(attr_key: str, field: str, *, as_time: bool = False):
     """One figure out of the car's last-trip or trip-totals block."""
 
@@ -749,6 +763,14 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         translation_key="preferred_charging_time_end",
         icon="mdi:clock-end",
         entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    AudiSensorEntityDescription(
+        key="warning_light_count",
+        attr_key="warning_light_count",
+        translation_key="warning_light_count",
+        icon="mdi:alert-circle-outline",
+        state_class=SensorStateClass.MEASUREMENT,
+        extra_attrs_fn=_warning_light_attrs,
     ),
     AudiSensorEntityDescription(
         key="climatisation_timer_enabled_count",

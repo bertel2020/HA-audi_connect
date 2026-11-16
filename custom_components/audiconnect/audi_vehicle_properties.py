@@ -411,6 +411,19 @@ class AudiVehicleProperties:
             return parse_int(res)
 
     @property
+    def warning_lights(self) -> list[dict[str, Any]] | None:
+        """The warning lights the car reports as lit, or None when it says nothing."""
+        value = self._vehicle.state.get("warningLights")
+        if not isinstance(value, list):
+            return None
+        return [item for item in value if isinstance(item, dict)]
+
+    @property
+    def warning_light_count(self) -> int | None:
+        lights = self.warning_lights
+        return None if lights is None else len(lights)
+
+    @property
     def parking_light(self):
         """Return true if parking light is on"""
         if self.parking_light_supported:

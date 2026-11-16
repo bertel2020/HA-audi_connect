@@ -604,6 +604,9 @@
       },
       "service_expiry_date": {
         "name": "Online-Dienste laufen ab"
+      },
+      "warning_light_count": {
+        "name": "Warnleuchten"
       }
     },
     "binary_sensor": {
@@ -681,6 +684,9 @@
       },
       "is_moving": {
         "name": "In Bewegung"
+      },
+      "warning_lights": {
+        "name": "Warnleuchte aktiv"
       }
     },
     "button": {

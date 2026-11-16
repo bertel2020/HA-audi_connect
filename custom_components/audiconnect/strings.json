@@ -604,6 +604,9 @@
       },
       "service_expiry_date": {
         "name": "Online services end"
+      },
+      "warning_light_count": {
+        "name": "Warning lights"
       }
     },
     "binary_sensor": {
@@ -681,6 +684,9 @@
       },
       "is_moving": {
         "name": "Is moving"
+      },
+      "warning_lights": {
+        "name": "Warning light active"
       }
     },
     "button": {

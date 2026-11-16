@@ -200,6 +200,21 @@ class VehicleDataResponse:
             ],
         )
 
+        # The warning list has no capture timestamp of its own, and an empty
+        # object is the car's way of saying there is none, so it cannot go
+        # through the timestamped fields.
+        warnings = (data.get("vehicleHealthWarnings") or {}).get("warningLights")
+        warning_value = warnings.get("value") if isinstance(warnings, dict) else None
+        if isinstance(warning_value, dict):
+            lights = warning_value.get("warningLights")
+            self.states.append(
+                {
+                    "name": "warningLights",
+                    "value": lights if isinstance(lights, list) else [],
+                    "measure_time": None,
+                }
+            )
+
         self._tryAppendFieldWithTs(
             data,
             "OIL_LEVEL_DIPSTICKS_PERCENTAGE",
