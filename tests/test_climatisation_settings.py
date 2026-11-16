@@ -32,17 +32,15 @@ def test_the_target_temperature_is_reported_by_the_car(states):
     assert states["climatisationTargetTemperatureF"] == 59
 
 
-def test_the_car_stores_a_half_degree_the_write_cannot_send(states):
-    """The readback is finer than the api_level 1 write, which truncates with
-    int(temp_c). Worth pinning so the two are not confused again."""
-    import inspect
-
-    from custom_components.audiconnect import audi_services
+def test_the_car_stores_a_half_degree_and_the_write_keeps_it(states):
+    """The car stores half degrees; the start request keeps them too."""
+    from custom_components.audiconnect.audi_payloads import (
+        build_climatisation_start_body,
+    )
 
     assert states["climatisationTargetTemperatureC"] % 1 != 0
-    assert "int(temp_c)" in inspect.getsource(
-        audi_services.build_climatisation_start_body
-    )
+    body = build_climatisation_start_body({}, temp_c=15.5)
+    assert body["targetTemperature"] == 15.5
 
 
 def test_the_settings_flags_are_parsed(states):

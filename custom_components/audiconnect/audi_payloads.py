@@ -391,7 +391,9 @@ def build_climatisation_start_body(settings: dict, **params: Any) -> dict:
     if temp_f is not None:
         target: Any = int((temp_f - 32) * (5 / 9))
     elif temp_c is not None:
-        target = int(temp_c)
+        # Half degrees are what the car stores and what its request takes
+        # (the temperature is a decimal number there), so keep them.
+        target = round(float(temp_c) * 2) / 2
     else:
         # Unchanged, so pass the car's own value through rather than rounding
         # it: the car stores half degrees and we were not asked to touch this.
