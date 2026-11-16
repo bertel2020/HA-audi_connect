@@ -80,6 +80,44 @@ class AudiConnectAccount:
 
         self._observers: list[AudiConnectObserver] = []
 
+        # Per-vehicle, in-memory diagnostic probe results; no raw response data.
+        self._readonly_probe_reports: dict[str, dict[str, Any]] = {}
+        self._readonly_probe_attempted: dict[str, float] = {}
+        self._readonly_probe_lock = asyncio.Lock()
+
+    async def probe_read_only_api(
+        self, vin: str, *, extended: bool = False
+    ) -> dict[str, Any]:
+        """Explicit, rate-limited diagnostic GET probes; never a vehicle action."""
+        vin_key = vin.lower()
+        if not self._loggedin:
+            raise RuntimeError("Audi connection is not authenticated")
+        if not any(vehicle.vin.lower() == vin_key for vehicle in self._vehicles):
+            raise ValueError("Vehicle is not present in this Audi account")
+
+        async with self._readonly_probe_lock:
+            now = time.monotonic()
+            last_attempt = self._readonly_probe_attempted.get(vin_key)
+            if last_attempt is not None and now - last_attempt < 900:
+                report = self._readonly_probe_reports.get(vin_key)
+                expected_mode = "extended" if extended else "core"
+                if report is not None and report.get("mode") == expected_mode:
+                    return report
+                raise RuntimeError(
+                    "API diagnostic probe cooldown is active; retry later"
+                )
+            # Record before dispatch so repeated failed scans cannot hammer Audi.
+            self._readonly_probe_attempted[vin_key] = now
+            report = await self._audi_service.probe_known_read_only_paths(
+                vin, extended=extended
+            )
+            self._readonly_probe_reports[vin_key] = report
+            return report
+
+    def get_read_only_probe_report(self, vin: str) -> dict[str, Any] | None:
+        """Return only the sanitized previous report, never start new traffic."""
+        return self._readonly_probe_reports.get(vin.lower())
+
     @property
     def refresh_token(self) -> str | None:
         """Return the current IDK refresh token."""
@@ -400,15 +438,31 @@ class AudiConnectAccount:
                         ex,
                     )
 
-    async def set_vehicle_lock(self, vin: str, lock: bool):
+    async def set_vehicle_lock(self, vin: str, lock: bool, *, refresh: bool = True):
         action = "lock" if lock else "unlock"
+        masked_vin = "*" * max(0, len(vin) - 4) + vin[-4:]
         return await self._run_command(
             vin,
-            f"{action} vehicle {vin}",
+            f"{action} vehicle {masked_vin}",
             lambda: self._audi_service.set_vehicle_lock(vin, lock),
-            notify_action=ACTION_LOCK,
+            notify_action=ACTION_LOCK if refresh else None,
             notify_label="lock/unlock",
         )
+
+    async def trigger_vehicle_wakeup(self, vin: str) -> bool:
+        """User-initiated wake request, not background polling or confirmation."""
+        if not self._loggedin:
+            await self.login()
+        if not self._loggedin:
+            return False
+        try:
+            await self._audi_service.trigger_vehicle_wakeup(vin)
+            return True
+        except Exception:
+            _LOGGER.warning(
+                "Audi wake-up request failed (no VIN or authentication details logged)"
+            )
+            return False
 
     async def set_location_charge_target(self, vin: str, profile_id, target_soc: int):
         """Set a location charging profile's target SoC (the governing value)."""
