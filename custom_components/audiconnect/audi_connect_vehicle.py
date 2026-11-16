@@ -39,6 +39,8 @@ class AudiConnectVehicle(AudiVehicleProperties):
         self.support_preheater = not uses_auth0
         self.support_charger = not uses_auth0
         self.support_trip_data = not uses_auth0
+        # The Auth0 session reads trips from the CARIAD backend instead.
+        self.support_trip_summary = uses_auth0
 
         self.charging_complete_time_frozen = None
         # Last selectivestatus payload as received; only read by diagnostics.
@@ -99,6 +101,8 @@ class AudiConnectVehicle(AudiVehicleProperties):
             await self.call_update(self.update_vehicle_shortterm, 3)
             info = "longterm"
             await self.call_update(self.update_vehicle_longterm, 3)
+            info = "trips"
+            await self.call_update(self.update_vehicle_trip_summary, 3)
             info = "position"
             await self.call_update(self.update_vehicle_position, 3)
             info = "climater"
@@ -574,6 +578,46 @@ class AudiConnectVehicle(AudiVehicleProperties):
                 exception,
                 f"Unable to obtain the vehicle charger state for {self._redacted_vin}",
             )
+
+    # What is kept from a trip: the figures, not the trip id or anything else.
+    _TRIP_FIELDS = (
+        "tripEndTimestamp",
+        "mileage_km",
+        "travelTime",
+        "averageElectricConsumption",
+        "averageSpeed_kmph",
+        "totalElectricConsumption_kwh",
+    )
+
+    async def update_vehicle_trip_summary(self):
+        """Last short-term trip and the long-term totals, from the CARIAD API."""
+        if not self.support_trip_summary:
+            return
+        for kind, key in (
+            ("shortterm", "lastTripShortTerm"),
+            ("longterm", "lastTripLongTerm"),
+        ):
+            try:
+                data = await self._audi_service.get_last_trip(self._vehicle.vin, kind)
+            except ClientResponseError as cre:
+                if cre.status == 404:
+                    # The car has no trips of this kind right now.
+                    _LOGGER.debug(
+                        "TRIPS: no %s trips for VIN: %s", kind, self._redacted_vin
+                    )
+                    self._vehicle.state.pop(key, None)
+                else:
+                    # Transient (502 and the like): keep what we have.
+                    _LOGGER.debug(
+                        "TRIPS: status %s reading %s trips for VIN: %s",
+                        cre.status,
+                        kind,
+                        self._redacted_vin,
+                    )
+                continue
+            kept = {k: data[k] for k in self._TRIP_FIELDS if k in data}
+            if kept:
+                self._vehicle.state[key] = kept
 
     async def update_vehicle_longterm(self):
         await self.update_vehicle_tripdata("longTerm")

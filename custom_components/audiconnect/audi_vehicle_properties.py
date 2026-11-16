@@ -60,6 +60,10 @@ def _is_bool(v: Any) -> bool:
     return isinstance(v, bool)
 
 
+def _is_dict(v: Any) -> bool:
+    return isinstance(v, dict) and bool(v)
+
+
 def _is_list(v: Any) -> bool:
     return isinstance(v, list)
 
@@ -280,6 +284,18 @@ class AudiVehicleProperties:
             "The car's own one-word verdict on doors, windows and locks together, "
             '"safe" when everything is closed and locked.'
         ),
+    )
+    last_trip = _Field(
+        _STATE,
+        "lastTripShortTerm",
+        _is_dict,
+        doc="The car's last short-term trip: distance, duration, consumption.",
+    )
+    trip_totals = _Field(
+        _STATE,
+        "lastTripLongTerm",
+        _is_dict,
+        doc="The car's long-term trip: totals since its counter was last reset.",
     )
     shortterm_current = _Field(_STATE, "shortterm_current", _truthy)
     shortterm_reset = _Field(_STATE, "shortterm_reset", _truthy)

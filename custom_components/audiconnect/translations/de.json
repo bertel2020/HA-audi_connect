@@ -390,6 +390,39 @@
       "access_overall_status": {
         "name": "Sicherheitsstatus"
       },
+      "last_trip_end": {
+        "name": "Letzte Fahrt beendet"
+      },
+      "last_trip_distance": {
+        "name": "Letzte Fahrt Strecke"
+      },
+      "last_trip_duration": {
+        "name": "Letzte Fahrt Dauer"
+      },
+      "last_trip_consumption": {
+        "name": "Letzte Fahrt Verbrauch"
+      },
+      "last_trip_energy": {
+        "name": "Letzte Fahrt Energie"
+      },
+      "last_trip_speed": {
+        "name": "Letzte Fahrt Durchschnittsgeschwindigkeit"
+      },
+      "trip_totals_distance": {
+        "name": "Langzeit Strecke"
+      },
+      "trip_totals_duration": {
+        "name": "Langzeit Fahrzeit"
+      },
+      "trip_totals_consumption": {
+        "name": "Langzeit Verbrauch"
+      },
+      "trip_totals_energy": {
+        "name": "Langzeit Energie"
+      },
+      "trip_totals_speed": {
+        "name": "Langzeit Durchschnittsgeschwindigkeit"
+      },
       "battery_care_mode": {
         "name": "Batteriepflege-Modus"
       },

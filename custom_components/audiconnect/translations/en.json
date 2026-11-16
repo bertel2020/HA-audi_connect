@@ -390,6 +390,39 @@
       "access_overall_status": {
         "name": "Security status"
       },
+      "last_trip_end": {
+        "name": "Last trip ended"
+      },
+      "last_trip_distance": {
+        "name": "Last trip distance"
+      },
+      "last_trip_duration": {
+        "name": "Last trip duration"
+      },
+      "last_trip_consumption": {
+        "name": "Last trip consumption"
+      },
+      "last_trip_energy": {
+        "name": "Last trip energy"
+      },
+      "last_trip_speed": {
+        "name": "Last trip average speed"
+      },
+      "trip_totals_distance": {
+        "name": "Long-term trip distance"
+      },
+      "trip_totals_duration": {
+        "name": "Long-term trip duration"
+      },
+      "trip_totals_consumption": {
+        "name": "Long-term trip consumption"
+      },
+      "trip_totals_energy": {
+        "name": "Long-term trip energy"
+      },
+      "trip_totals_speed": {
+        "name": "Long-term trip average speed"
+      },
       "battery_care_mode": {
         "name": "Battery care mode"
       },
