@@ -2,103 +2,299 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import timedelta
+from typing import Any
 
 from .util import parse_float, parse_int
 
 _INACTIVE_PREHEATER_STATES = frozenset({"off", "invalid", "unsupported", "error", ""})
+_UNSUPPORTED = "unsupported"
+
+_STATE = "state"
+_FIELDS = "fields"
+
+
+# "Is it supported?" tests. They deliberately keep the exact return values the
+# hand-written properties had (True/None versus True/False): entities only look
+# at truthiness, but a few tests pin the exact value.
+def _truthy(v: Any) -> bool | None:
+    return True if v else None
+
+
+def _truthy_known(v: Any) -> bool | None:
+    return True if v and v != _UNSUPPORTED else None
+
+
+def _not_none(v: Any) -> bool | None:
+    return True if v is not None else None
+
+
+def _known_not_none(v: Any) -> bool | None:
+    return True if v is not None and v != _UNSUPPORTED else None
+
+
+def _truthy_int(v: Any) -> bool | None:
+    return True if v and parse_int(v) else None
+
+
+def _is_not_none(v: Any) -> bool:
+    return v is not None
+
+
+def _is_known(v: Any) -> bool:
+    return v is not None and v != _UNSUPPORTED
+
+
+def _int_parses(v: Any) -> bool:
+    return parse_int(v) is not None
+
+
+def _is_list(v: Any) -> bool:
+    return isinstance(v, list)
+
+
+def _is_numeric_level(v: Any) -> bool:
+    return not isinstance(v, bool) and v is not None
+
+
+def _raw(v: Any) -> Any:
+    return v
+
+
+# Value conversions.
+def _is_not_3(v: Any) -> bool:
+    return v != "3"
+
+
+def _is_not_2(v: Any) -> bool:
+    return v != "2"
+
+
+def _is_connected(v: Any) -> bool:
+    return v not in ("invalid", "disconnected")
+
+
+def _is_not_locked(v: Any) -> bool:
+    return v != "locked"
+
+
+def _float_or_minus_one(v: Any) -> float | int | None:
+    try:
+        return parse_float(v)
+    except ValueError:
+        return -1
+
+
+class _Field:
+    """One value read from the vehicle's ``state`` or ``fields`` dict.
+
+    Declaring ``name = _Field(...)`` in the class body creates two read-only
+    properties: ``name`` and ``name_supported``. The value is None unless the
+    car reports it (``gated``); ``gated=False`` returns the stored value as is.
+    """
+
+    def __init__(
+        self,
+        source: str,
+        key: str,
+        present: Callable[[Any], Any],
+        convert: Callable[[Any], Any] | None = None,
+        *,
+        gated: bool = True,
+        doc: str | None = None,
+    ) -> None:
+        self._source = source
+        self._key = key
+        self._present = present
+        self._convert = convert
+        self._gated = gated
+        self._doc = doc
+
+    def __set_name__(self, owner: type, name: str) -> None:
+        source, key, present = self._source, self._key, self._present
+        convert, gated = self._convert, self._gated
+
+        def raw(obj: Any) -> Any:
+            return getattr(obj._vehicle, source).get(key)
+
+        def supported(obj: Any) -> Any:
+            return present(raw(obj))
+
+        def value(obj: Any) -> Any:
+            v = raw(obj)
+            if gated and not present(v):
+                return None
+            return v if convert is None else convert(v)
+
+        setattr(owner, name, property(value, doc=self._doc))
+        setattr(owner, f"{name}_supported", property(supported))
 
 
 class AudiVehicleProperties:
     """Read-only views of ``self._vehicle.state``; mixed into AudiConnectVehicle."""
 
-    @property
-    def last_update_time(self):
-        if self.last_update_time_supported:
-            return self._vehicle.state.get("last_update_time")
+    # Declarative properties: each line defines ``name`` and ``name_supported``.
+    # Explicit properties below cover everything that needs more than one key.
+    last_update_time = _Field(_STATE, "last_update_time", _truthy)
+    service_inspection_time = _Field(
+        _FIELDS, "MAINTENANCE_INTERVAL_TIME_TO_INSPECTION", _int_parses, int
+    )
+    service_inspection_distance = _Field(
+        _FIELDS, "MAINTENANCE_INTERVAL_DISTANCE_TO_INSPECTION", _int_parses, int
+    )
+    service_adblue_distance = _Field(_FIELDS, "ADBLUE_RANGE", _int_parses, int)
+    oil_change_time = _Field(
+        _FIELDS, "MAINTENANCE_INTERVAL_TIME_TO_OIL_CHANGE", _int_parses, int
+    )
+    oil_change_distance = _Field(
+        _FIELDS, "MAINTENANCE_INTERVAL_DISTANCE_TO_OIL_CHANGE", _int_parses, int
+    )
+    oil_level = _Field(
+        _FIELDS, "OIL_LEVEL_DIPSTICKS_PERCENTAGE", _is_numeric_level, parse_float
+    )
+    braking_status = _Field(_FIELDS, "BRAKING_STATUS", _truthy, _is_not_2)
+    mileage = _Field(_FIELDS, "UTC_TIME_AND_KILOMETER_STATUS", _truthy_int, parse_int)
+    range = _Field(_FIELDS, "TOTAL_RANGE", _int_parses, parse_int)
+    tank_level = _Field(_FIELDS, "TANK_LEVEL_IN_PERCENTAGE", _int_parses, parse_int)
+    position = _Field(_STATE, "position", _truthy)
+    left_front_window_open = _Field(_FIELDS, "STATE_LEFT_FRONT_WINDOW", _raw, _is_not_3)
+    right_front_window_open = _Field(
+        _FIELDS, "STATE_RIGHT_FRONT_WINDOW", _raw, _is_not_3
+    )
+    left_rear_window_open = _Field(_FIELDS, "STATE_LEFT_REAR_WINDOW", _raw, _is_not_3)
+    right_rear_window_open = _Field(_FIELDS, "STATE_RIGHT_REAR_WINDOW", _raw, _is_not_3)
+    sun_roof = _Field(_FIELDS, "STATE_SUN_ROOF_MOTOR_COVER", _raw, _is_not_3)
+    roof_cover = _Field(_FIELDS, "STATE_ROOF_COVER_WINDOW", _raw, _is_not_3)
+    left_front_door_open = _Field(
+        _FIELDS, "OPEN_STATE_LEFT_FRONT_DOOR", _raw, _is_not_3
+    )
+    right_front_door_open = _Field(
+        _FIELDS, "OPEN_STATE_RIGHT_FRONT_DOOR", _raw, _is_not_3
+    )
+    left_rear_door_open = _Field(_FIELDS, "OPEN_STATE_LEFT_REAR_DOOR", _raw, _is_not_3)
+    right_rear_door_open = _Field(
+        _FIELDS, "OPEN_STATE_RIGHT_REAR_DOOR", _raw, _is_not_3
+    )
+    trunk_unlocked = _Field(_FIELDS, "LOCK_STATE_TRUNK_LID", _truthy, _is_not_2)
+    trunk_open = _Field(_FIELDS, "OPEN_STATE_TRUNK_LID", _truthy, _is_not_3)
+    hood_open = _Field(_FIELDS, "OPEN_STATE_HOOD", _truthy, _is_not_3)
+    charging_state = _Field(_STATE, "chargingState", _truthy)
+    charging_mode = _Field(_STATE, "chargeMode", _is_known)
+    preferred_charge_mode = _Field(
+        _STATE,
+        "preferredChargeMode",
+        _is_known,
+        doc="Return the charge mode the car is set to, not the one in progress.",
+    )
+    energy_flow = _Field(_STATE, "energyFlow", _not_none)
+    charging_type = _Field(_STATE, "chargeType", _truthy_known)
+    max_charge_current = _Field(
+        _STATE, "maxChargeCurrent", _not_none, _float_or_minus_one
+    )
+    actual_charge_rate = _Field(
+        _STATE, "actualChargeRate", _not_none, _float_or_minus_one
+    )
+    charging_power = _Field(_STATE, "chargingPower", _not_none, _float_or_minus_one)
+    primary_engine_type = _Field(_STATE, "engineTypeFirstEngine", _truthy_known)
+    secondary_engine_type = _Field(_STATE, "engineTypeSecondEngine", _truthy_known)
+    primary_engine_range = _Field(_STATE, "primaryEngineRange", _truthy_known)
+    primary_engine_range_percent = _Field(
+        _STATE, "primaryEngineRangePercent", _truthy_known
+    )
+    secondary_engine_range = _Field(_STATE, "secondaryEngineRange", _known_not_none)
+    car_type = _Field(_STATE, "carType", _truthy_known)
+    secondary_engine_range_percent = _Field(
+        _STATE, "secondaryEngineRangePercent", _truthy_known
+    )
+    hybrid_range = _Field(_STATE, "hybridRange", _truthy_known)
+    state_of_charge = _Field(_STATE, "stateOfCharge", _int_parses, parse_int)
+    target_state_of_charge = _Field(
+        _STATE, "targetstateOfCharge", _int_parses, parse_int
+    )
+    active_charging_profile_target_soc = _Field(
+        _STATE,
+        "activeChargingProfileTargetSoc",
+        _int_parses,
+        parse_int,
+        doc="Return the target SoC of the location profile the car is parked in.\n\nThis is the limit the car actually charges to. target_state_of_charge is\nthe global setting, which a location profile overrides, so the two\ndisagree whenever a profile is in force (upstream #722).",
+    )
+    active_charging_profile_name = _Field(
+        _STATE,
+        "activeChargingProfileName",
+        _is_not_none,
+        doc="Return the name of the charging profile in force at this location.",
+    )
+    active_charging_profile_id = _Field(
+        _STATE, "activeChargingProfileId", _int_parses, parse_int
+    )
+    active_charging_profile_min_soc = _Field(
+        _STATE,
+        "activeChargingProfileMinSoc",
+        _int_parses,
+        parse_int,
+        doc="Return the minimum SoC the profile tops up to regardless of schedule.",
+    )
+    preferred_charging_time_start = _Field(
+        _STATE, "preferredChargingTimeStart", _is_not_none
+    )
+    preferred_charging_time_end = _Field(
+        _STATE, "preferredChargingTimeEnd", _is_not_none
+    )
+    charging_timer_enabled_count = _Field(
+        _STATE, "chargingTimerEnabledCount", _int_parses, parse_int
+    )
+    plug_state = _Field(_STATE, "plugState", _truthy, _is_connected)
+    plug_lock_state = _Field(_STATE, "plugLockState", _truthy, _is_not_locked)
+    plug_led_color = _Field(_STATE, "plugledColor", _truthy)
+    climatisation_state = _Field(_STATE, "climatisationState", _truthy)
+    climatisation_target_temperature = _Field(
+        _STATE,
+        "climatisationTargetTemperatureC",
+        _is_not_none,
+        doc="Return the target temperature the car is set to, in Celsius.\n\nReported by the car, so it does not have to be held locally. Note the\ncar stores half degrees even though the api_level 1 write truncates to\nwhole ones.",
+    )
+    outdoor_temperature = _Field(_STATE, "outdoorTemperature", _truthy)
+    glass_surface_heating = _Field(_STATE, "isMirrorHeatingActive", _is_not_none)
+    park_time = _Field(_STATE, "vehicleParkingClock", _is_not_none)
+    door_lock_status = _Field(
+        _STATE,
+        "doorLockStatus",
+        _is_known,
+        doc='The car\'s own lock verdict for the whole vehicle, "locked" or\n"unlocked". Preferred over doors_trunk_status, which needs all four\ndoors and so has nothing to say about a coupé.',
+    )
+    shortterm_current = _Field(_STATE, "shortterm_current", _truthy)
+    shortterm_reset = _Field(_STATE, "shortterm_reset", _truthy)
+    longterm_current = _Field(_STATE, "longterm_current", _truthy)
+    longterm_reset = _Field(_STATE, "longterm_reset", _truthy)
 
-    @property
-    def last_update_time_supported(self):
-        check = self._vehicle.state.get("last_update_time")
-        if check:
-            return True
-
-    @property
-    def service_inspection_time(self):
-        """Return time left for service inspection"""
-        if self.service_inspection_time_supported:
-            return int(
-                self._vehicle.fields.get("MAINTENANCE_INTERVAL_TIME_TO_INSPECTION")
-            )
-
-    @property
-    def service_inspection_time_supported(self) -> bool:
-        check = self._vehicle.fields.get("MAINTENANCE_INTERVAL_TIME_TO_INSPECTION")
-        return parse_int(check) is not None
-
-    @property
-    def service_inspection_distance(self):
-        """Return distance left for service inspection"""
-        if self.service_inspection_distance_supported:
-            return int(
-                self._vehicle.fields.get("MAINTENANCE_INTERVAL_DISTANCE_TO_INSPECTION")
-            )
-
-    @property
-    def service_inspection_distance_supported(self) -> bool:
-        check = self._vehicle.fields.get("MAINTENANCE_INTERVAL_DISTANCE_TO_INSPECTION")
-        return parse_int(check) is not None
-
-    @property
-    def service_adblue_distance(self):
-        """Return distance left for service inspection"""
-        if self.service_adblue_distance_supported:
-            return int(self._vehicle.fields.get("ADBLUE_RANGE"))
-
-    @property
-    def service_adblue_distance_supported(self) -> bool:
-        check = self._vehicle.fields.get("ADBLUE_RANGE")
-        return parse_int(check) is not None
-
-    @property
-    def oil_change_time(self):
-        """Return time left for oil change"""
-        if self.oil_change_time_supported:
-            return int(
-                self._vehicle.fields.get("MAINTENANCE_INTERVAL_TIME_TO_OIL_CHANGE")
-            )
-
-    @property
-    def oil_change_time_supported(self) -> bool:
-        check = self._vehicle.fields.get("MAINTENANCE_INTERVAL_TIME_TO_OIL_CHANGE")
-        return parse_int(check) is not None
-
-    @property
-    def oil_change_distance(self):
-        """Return distance left for oil change"""
-        if self.oil_change_distance_supported:
-            return int(
-                self._vehicle.fields.get("MAINTENANCE_INTERVAL_DISTANCE_TO_OIL_CHANGE")
-            )
-
-    @property
-    def oil_change_distance_supported(self) -> bool:
-        check = self._vehicle.fields.get("MAINTENANCE_INTERVAL_DISTANCE_TO_OIL_CHANGE")
-        return parse_int(check) is not None
-
-    @property
-    def oil_level(self):
-        """Return oil level percentage"""
-        if self.oil_level_supported:
-            return parse_float(
-                self._vehicle.fields.get("OIL_LEVEL_DIPSTICKS_PERCENTAGE")
-            )
-
-    @property
-    def oil_level_supported(self):
-        """Check if oil level is supported."""
-        check = self._vehicle.fields.get("OIL_LEVEL_DIPSTICKS_PERCENTAGE")
-        return not isinstance(check, bool) and check is not None
+    # Returned whether or not the car reports it:
+    charging_profiles = _Field(_STATE, "chargingProfiles", _is_list, gated=False)
+    charging_timers = _Field(
+        _STATE,
+        "chargingTimers",
+        _is_list,
+        gated=False,
+        doc="Return the departure/charging timers, for the attribute payload.",
+    )
+    climatisation_window_heating_enabled = _Field(
+        _STATE, "climatisationWindowHeatingEnabled", _is_not_none, gated=False
+    )
+    climatisation_at_unlock = _Field(
+        _STATE, "climatisationAtUnlock", _is_not_none, gated=False
+    )
+    climatisation_zone_front_left = _Field(
+        _STATE, "climatisationZoneFrontLeft", _is_not_none, gated=False
+    )
+    climatisation_zone_front_right = _Field(
+        _STATE, "climatisationZoneFrontRight", _is_not_none, gated=False
+    )
+    climatisation_zone_rear_left = _Field(
+        _STATE, "climatisationZoneRearLeft", _is_not_none, gated=False
+    )
+    climatisation_zone_rear_right = _Field(
+        _STATE, "climatisationZoneRearRight", _is_not_none, gated=False
+    )
 
     @property
     def oil_level_binary(self):
@@ -175,70 +371,6 @@ class AudiVehicleProperties:
             return True
 
     @property
-    def braking_status(self):
-        """Return true if braking status is on"""
-        if self.braking_status_supported:
-            check = self._vehicle.fields.get("BRAKING_STATUS")
-            return check != "2"
-
-    @property
-    def braking_status_supported(self):
-        """Return true if braking status is supported"""
-        check = self._vehicle.fields.get("BRAKING_STATUS")
-        if check:
-            return True
-
-    @property
-    def mileage(self):
-        if self.mileage_supported:
-            check = self._vehicle.fields.get("UTC_TIME_AND_KILOMETER_STATUS")
-            return parse_int(check)
-
-    @property
-    def mileage_supported(self):
-        """Return true if mileage is supported"""
-        check = self._vehicle.fields.get("UTC_TIME_AND_KILOMETER_STATUS")
-        if check and parse_int(check):
-            return True
-
-    @property
-    def range(self):
-        if self.range_supported:
-            check = self._vehicle.fields.get("TOTAL_RANGE")
-            return parse_int(check)
-
-    @property
-    def range_supported(self) -> bool:
-        """Return true if range is supported"""
-        check = self._vehicle.fields.get("TOTAL_RANGE")
-        return parse_int(check) is not None
-
-    @property
-    def tank_level(self):
-        if self.tank_level_supported:
-            check = self._vehicle.fields.get("TANK_LEVEL_IN_PERCENTAGE")
-            return parse_int(check)
-
-    @property
-    def tank_level_supported(self) -> bool:
-        """Return true if tank_level is supported"""
-        check = self._vehicle.fields.get("TANK_LEVEL_IN_PERCENTAGE")
-        return parse_int(check) is not None
-
-    @property
-    def position(self):
-        """Return position."""
-        if self.position_supported:
-            return self._vehicle.state.get("position")
-
-    @property
-    def position_supported(self):
-        """Return true if vehicle has position."""
-        check = self._vehicle.state.get("position")
-        if check:
-            return True
-
-    @property
     def any_window_open_supported(self):
         """Return true if window state is supported"""
         checkLeftFront = self._vehicle.fields.get("STATE_LEFT_FRONT_WINDOW")
@@ -276,60 +408,6 @@ class AudiVehicleProperties:
                 and (checkSunRoof in acceptable_window_states)
                 and (checkRoofCover in acceptable_window_states)
             )
-
-    @property
-    def left_front_window_open_supported(self):
-        return self._vehicle.fields.get("STATE_LEFT_FRONT_WINDOW")
-
-    @property
-    def left_front_window_open(self):
-        if self.left_front_window_open_supported:
-            return self._vehicle.fields.get("STATE_LEFT_FRONT_WINDOW") != "3"
-
-    @property
-    def right_front_window_open_supported(self):
-        return self._vehicle.fields.get("STATE_RIGHT_FRONT_WINDOW")
-
-    @property
-    def right_front_window_open(self):
-        if self.right_front_window_open_supported:
-            return self._vehicle.fields.get("STATE_RIGHT_FRONT_WINDOW") != "3"
-
-    @property
-    def left_rear_window_open_supported(self):
-        return self._vehicle.fields.get("STATE_LEFT_REAR_WINDOW")
-
-    @property
-    def left_rear_window_open(self):
-        if self.left_rear_window_open_supported:
-            return self._vehicle.fields.get("STATE_LEFT_REAR_WINDOW") != "3"
-
-    @property
-    def right_rear_window_open_supported(self):
-        return self._vehicle.fields.get("STATE_RIGHT_REAR_WINDOW")
-
-    @property
-    def right_rear_window_open(self):
-        if self.right_rear_window_open_supported:
-            return self._vehicle.fields.get("STATE_RIGHT_REAR_WINDOW") != "3"
-
-    @property
-    def sun_roof_supported(self):
-        return self._vehicle.fields.get("STATE_SUN_ROOF_MOTOR_COVER")
-
-    @property
-    def sun_roof(self):
-        if self.sun_roof_supported:
-            return self._vehicle.fields.get("STATE_SUN_ROOF_MOTOR_COVER") != "3"
-
-    @property
-    def roof_cover_supported(self):
-        return self._vehicle.fields.get("STATE_ROOF_COVER_WINDOW")
-
-    @property
-    def roof_cover(self):
-        if self.roof_cover_supported:
-            return self._vehicle.fields.get("STATE_ROOF_COVER_WINDOW") != "3"
 
     @property
     def any_door_unlocked_supported(self):
@@ -378,42 +456,6 @@ class AudiVehicleProperties:
             )
 
     @property
-    def left_front_door_open_supported(self):
-        return self._vehicle.fields.get("OPEN_STATE_LEFT_FRONT_DOOR")
-
-    @property
-    def left_front_door_open(self):
-        if self.left_front_door_open_supported:
-            return self._vehicle.fields.get("OPEN_STATE_LEFT_FRONT_DOOR") != "3"
-
-    @property
-    def right_front_door_open_supported(self):
-        return self._vehicle.fields.get("OPEN_STATE_RIGHT_FRONT_DOOR")
-
-    @property
-    def right_front_door_open(self):
-        if self.right_front_door_open_supported:
-            return self._vehicle.fields.get("OPEN_STATE_RIGHT_FRONT_DOOR") != "3"
-
-    @property
-    def left_rear_door_open_supported(self):
-        return self._vehicle.fields.get("OPEN_STATE_LEFT_REAR_DOOR")
-
-    @property
-    def left_rear_door_open(self):
-        if self.left_rear_door_open_supported:
-            return self._vehicle.fields.get("OPEN_STATE_LEFT_REAR_DOOR") != "3"
-
-    @property
-    def right_rear_door_open_supported(self):
-        return self._vehicle.fields.get("OPEN_STATE_RIGHT_REAR_DOOR")
-
-    @property
-    def right_rear_door_open(self):
-        if self.right_rear_door_open_supported:
-            return self._vehicle.fields.get("OPEN_STATE_RIGHT_REAR_DOOR") != "3"
-
-    @property
     def doors_trunk_status_supported(self):
         return (
             self.any_door_open_supported
@@ -438,259 +480,14 @@ class AudiVehicleProperties:
                 return "Locked"
 
     @property
-    def trunk_unlocked(self):
-        if self.trunk_unlocked_supported:
-            check = self._vehicle.fields.get("LOCK_STATE_TRUNK_LID")
-            return check != "2"
-
-    @property
-    def trunk_unlocked_supported(self):
-        check = self._vehicle.fields.get("LOCK_STATE_TRUNK_LID")
-        if check:
-            return True
-
-    @property
-    def trunk_open(self):
-        if self.trunk_open_supported:
-            check = self._vehicle.fields.get("OPEN_STATE_TRUNK_LID")
-            return check != "3"
-
-    @property
-    def trunk_open_supported(self):
-        check = self._vehicle.fields.get("OPEN_STATE_TRUNK_LID")
-        if check:
-            return True
-
-    @property
-    def hood_open(self):
-        if self.hood_open_supported:
-            check = self._vehicle.fields.get("OPEN_STATE_HOOD")
-            return check != "3"
-
-    @property
-    def hood_open_supported(self):
-        check = self._vehicle.fields.get("OPEN_STATE_HOOD")
-        if check:
-            return True
-
-    @property
-    def charging_state(self):
-        """Return charging state"""
-        if self.charging_state_supported:
-            return self._vehicle.state.get("chargingState")
-
-    @property
-    def charging_state_supported(self):
-        check = self._vehicle.state.get("chargingState")
-        if check:
-            return True
-
-    @property
-    def charging_mode(self):
-        """Return charging mode"""
-        if self.charging_mode_supported:
-            return self._vehicle.state.get("chargeMode")
-
-    @property
-    def charging_mode_supported(self):
-        check = self._vehicle.state.get("chargeMode")
-        return check is not None and check != "unsupported"
-
-    @property
-    def preferred_charge_mode(self):
-        """Return the charge mode the car is set to, not the one in progress."""
-        if self.preferred_charge_mode_supported:
-            return self._vehicle.state.get("preferredChargeMode")
-
-    @property
-    def preferred_charge_mode_supported(self):
-        check = self._vehicle.state.get("preferredChargeMode")
-        return check is not None and check != "unsupported"
-
-    @property
     def available_charge_modes(self):
         """Return the modes the car says it accepts, which can be empty."""
         modes = self._vehicle.state.get("availableChargeModes")
         return modes if isinstance(modes, list) else None
 
     @property
-    def energy_flow(self):
-        """Return charging mode"""
-        if self.energy_flow_supported:
-            return self._vehicle.state.get("energyFlow")
-
-    @property
-    def energy_flow_supported(self):
-        check = self._vehicle.state.get("energyFlow")
-        if check is not None:
-            return True
-
-    @property
-    def charging_type(self):
-        """Return charging type"""
-        if self.charging_type_supported:
-            return self._vehicle.state.get("chargeType")
-
-    @property
-    def charging_type_supported(self):
-        check = self._vehicle.state.get("chargeType")
-        if check and check != "unsupported":
-            return True
-
-    @property
-    def max_charge_current(self):
-        """Return max charge current"""
-        if self.max_charge_current_supported:
-            try:
-                return parse_float(self._vehicle.state.get("maxChargeCurrent"))
-            except ValueError:
-                return -1
-
-    @property
-    def max_charge_current_supported(self):
-        check = self._vehicle.state.get("maxChargeCurrent")
-        if check is not None:
-            return True
-
-    @property
-    def actual_charge_rate(self):
-        """Return actual charge rate"""
-        if self.actual_charge_rate_supported:
-            try:
-                return parse_float(self._vehicle.state.get("actualChargeRate"))
-            except ValueError:
-                return -1
-
-    @property
-    def actual_charge_rate_supported(self):
-        check = self._vehicle.state.get("actualChargeRate")
-        if check is not None:
-            return True
-
-    @property
     def actual_charge_rate_unit(self):
         return "km/h"
-
-    @property
-    def charging_power(self):
-        """Return charging power"""
-        if self.charging_power_supported:
-            try:
-                return parse_float(self._vehicle.state.get("chargingPower"))
-            except ValueError:
-                return -1
-
-    @property
-    def charging_power_supported(self):
-        check = self._vehicle.state.get("chargingPower")
-        if check is not None:
-            return True
-
-    @property
-    def primary_engine_type(self):
-        """Return primary engine type"""
-        if self.primary_engine_type_supported:
-            return self._vehicle.state.get("engineTypeFirstEngine")
-
-    @property
-    def primary_engine_type_supported(self):
-        check = self._vehicle.state.get("engineTypeFirstEngine")
-        if check and check != "unsupported":
-            return True
-
-    @property
-    def secondary_engine_type(self):
-        """Return secondary engine type"""
-        if self.secondary_engine_type_supported:
-            return self._vehicle.state.get("engineTypeSecondEngine")
-
-    @property
-    def secondary_engine_type_supported(self):
-        check = self._vehicle.state.get("engineTypeSecondEngine")
-        if check and check != "unsupported":
-            return True
-
-    @property
-    def primary_engine_range(self):
-        """Return primary engine range"""
-        if self.primary_engine_range_supported:
-            return self._vehicle.state.get("primaryEngineRange")
-
-    @property
-    def primary_engine_range_supported(self):
-        check = self._vehicle.state.get("primaryEngineRange")
-        if check and check != "unsupported":
-            return True
-
-    @property
-    def primary_engine_range_percent(self):
-        """Return primary engine range"""
-        if self.primary_engine_range_percent_supported:
-            return self._vehicle.state.get("primaryEngineRangePercent")
-
-    @property
-    def primary_engine_range_percent_supported(self):
-        check = self._vehicle.state.get("primaryEngineRangePercent")
-        if check and check != "unsupported":
-            return True
-
-    @property
-    def secondary_engine_range(self):
-        """Return secondary engine range"""
-        if self.secondary_engine_range_supported:
-            return self._vehicle.state.get("secondaryEngineRange")
-
-    @property
-    def secondary_engine_range_supported(self):
-        check = self._vehicle.state.get("secondaryEngineRange")
-        if check is not None and check != "unsupported":
-            return True
-
-    @property
-    def car_type(self):
-        """Return secondary engine range"""
-        if self.car_type_supported:
-            return self._vehicle.state.get("carType")
-
-    @property
-    def car_type_supported(self):
-        check = self._vehicle.state.get("carType")
-        if check and check != "unsupported":
-            return True
-
-    @property
-    def secondary_engine_range_percent(self):
-        """Return secondary engine range"""
-        if self.secondary_engine_range_percent_supported:
-            return self._vehicle.state.get("secondaryEngineRangePercent")
-
-    @property
-    def secondary_engine_range_percent_supported(self):
-        check = self._vehicle.state.get("secondaryEngineRangePercent")
-        if check and check != "unsupported":
-            return True
-
-    @property
-    def hybrid_range(self):
-        """Return hybrid range"""
-        if self.hybrid_range_supported:
-            return self._vehicle.state.get("hybridRange")
-
-    @property
-    def hybrid_range_supported(self):
-        check = self._vehicle.state.get("hybridRange")
-        if check and check != "unsupported":
-            return True
-
-    @property
-    def state_of_charge(self):
-        """Return state of charge"""
-        if self.state_of_charge_supported:
-            return parse_int(self._vehicle.state.get("stateOfCharge"))
-
-    @property
-    def state_of_charge_supported(self):
-        return parse_int(self._vehicle.state.get("stateOfCharge")) is not None
 
     @property
     def remaining_charging_time(self):
@@ -732,145 +529,12 @@ class AudiVehicleProperties:
         return self.charging_complete_time_frozen
 
     @property
-    def target_state_of_charge(self):
-        """Return state of charge"""
-        if self.target_state_of_charge_supported:
-            return parse_int(self._vehicle.state.get("targetstateOfCharge"))
-
-    @property
-    def target_state_of_charge_supported(self):
-        return parse_int(self._vehicle.state.get("targetstateOfCharge")) is not None
-
-    @property
-    def active_charging_profile_target_soc(self):
-        """Return the target SoC of the location profile the car is parked in.
-
-        This is the limit the car actually charges to. target_state_of_charge is
-        the global setting, which a location profile overrides, so the two
-        disagree whenever a profile is in force (upstream #722).
-        """
-        if self.active_charging_profile_target_soc_supported:
-            return parse_int(self._vehicle.state.get("activeChargingProfileTargetSoc"))
-
-    @property
-    def active_charging_profile_target_soc_supported(self):
-        return (
-            parse_int(self._vehicle.state.get("activeChargingProfileTargetSoc"))
-            is not None
-        )
-
-    @property
-    def active_charging_profile_name(self):
-        """Return the name of the charging profile in force at this location."""
-        if self.active_charging_profile_name_supported:
-            return self._vehicle.state.get("activeChargingProfileName")
-
-    @property
-    def active_charging_profile_name_supported(self):
-        return self._vehicle.state.get("activeChargingProfileName") is not None
-
-    @property
-    def active_charging_profile_id(self):
-        if self.active_charging_profile_id_supported:
-            return parse_int(self._vehicle.state.get("activeChargingProfileId"))
-
-    @property
-    def active_charging_profile_id_supported(self):
-        return parse_int(self._vehicle.state.get("activeChargingProfileId")) is not None
-
-    @property
-    def active_charging_profile_min_soc(self):
-        """Return the minimum SoC the profile tops up to regardless of schedule."""
-        if self.active_charging_profile_min_soc_supported:
-            return parse_int(self._vehicle.state.get("activeChargingProfileMinSoc"))
-
-    @property
-    def active_charging_profile_min_soc_supported(self):
-        return (
-            parse_int(self._vehicle.state.get("activeChargingProfileMinSoc"))
-            is not None
-        )
-
-    @property
-    def charging_profiles(self):
-        """Return every location profile, for the attribute payload."""
-        return self._vehicle.state.get("chargingProfiles")
-
-    @property
-    def charging_profiles_supported(self):
-        return isinstance(self._vehicle.state.get("chargingProfiles"), list)
-
-    @property
-    def preferred_charging_time_start(self):
-        if self.preferred_charging_time_start_supported:
-            return self._vehicle.state.get("preferredChargingTimeStart")
-
-    @property
-    def preferred_charging_time_start_supported(self):
-        return self._vehicle.state.get("preferredChargingTimeStart") is not None
-
-    @property
-    def preferred_charging_time_end(self):
-        if self.preferred_charging_time_end_supported:
-            return self._vehicle.state.get("preferredChargingTimeEnd")
-
-    @property
-    def preferred_charging_time_end_supported(self):
-        return self._vehicle.state.get("preferredChargingTimeEnd") is not None
-
-    @property
     def preferred_charging_time_enabled(self):
         return self._vehicle.state.get("preferredChargingTimeEnabled")
 
     @property
-    def charging_timers(self):
-        """Return the departure/charging timers, for the attribute payload."""
-        return self._vehicle.state.get("chargingTimers")
-
-    @property
-    def charging_timers_supported(self):
-        return isinstance(self._vehicle.state.get("chargingTimers"), list)
-
-    @property
-    def charging_timer_enabled_count(self):
-        if self.charging_timer_enabled_count_supported:
-            return parse_int(self._vehicle.state.get("chargingTimerEnabledCount"))
-
-    @property
-    def charging_timer_enabled_count_supported(self):
-        return (
-            parse_int(self._vehicle.state.get("chargingTimerEnabledCount")) is not None
-        )
-
-    @property
     def next_charging_timer_departure(self):
         return self._vehicle.state.get("nextChargingTimerDeparture")
-
-    @property
-    def plug_state(self):
-        """Return plug state"""
-        if self.plug_state_supported:
-            check = self._vehicle.state.get("plugState")
-            return check not in ("invalid", "disconnected")
-
-    @property
-    def plug_state_supported(self):
-        check = self._vehicle.state.get("plugState")
-        if check:
-            return True
-
-    @property
-    def plug_lock_state(self):
-        """Return plug lock state"""
-        if self.plug_lock_state_supported:
-            check = self._vehicle.state.get("plugLockState")
-            return check != "locked"
-
-    @property
-    def plug_lock_state_supported(self):
-        check = self._vehicle.state.get("plugLockState")
-        if check:
-            return True
 
     @property
     def external_power(self):
@@ -887,23 +551,6 @@ class AudiVehicleProperties:
     @property
     def external_power_supported(self):
         return self._vehicle.state.get("externalPower") is not None
-
-    @property
-    def plug_led_color(self):
-        """Return plug LED Color"""
-        if self.plug_led_color_supported:
-            return self._vehicle.state.get("plugledColor")
-
-    @property
-    def plug_led_color_supported(self):
-        check = self._vehicle.state.get("plugledColor")
-        if check:
-            return True
-
-    @property
-    def climatisation_state(self):
-        if self.climatisation_state_supported:
-            return self._vehicle.state.get("climatisationState")
 
     @property
     def capabilities(self) -> frozenset[str]:
@@ -932,95 +579,6 @@ class AudiVehicleProperties:
         return capability in caps
 
     @property
-    def climatisation_state_supported(self):
-        check = self._vehicle.state.get("climatisationState")
-        if check:
-            return True
-
-    @property
-    def climatisation_target_temperature(self):
-        """Return the target temperature the car is set to, in Celsius.
-
-        Reported by the car, so it does not have to be held locally. Note the
-        car stores half degrees even though the api_level 1 write truncates to
-        whole ones.
-        """
-        if self.climatisation_target_temperature_supported:
-            return self._vehicle.state.get("climatisationTargetTemperatureC")
-
-    @property
-    def climatisation_target_temperature_supported(self):
-        return self._vehicle.state.get("climatisationTargetTemperatureC") is not None
-
-    @property
-    def climatisation_window_heating_enabled(self):
-        return self._vehicle.state.get("climatisationWindowHeatingEnabled")
-
-    @property
-    def climatisation_window_heating_enabled_supported(self):
-        return self._vehicle.state.get("climatisationWindowHeatingEnabled") is not None
-
-    @property
-    def climatisation_at_unlock(self):
-        return self._vehicle.state.get("climatisationAtUnlock")
-
-    @property
-    def climatisation_at_unlock_supported(self):
-        return self._vehicle.state.get("climatisationAtUnlock") is not None
-
-    @property
-    def climatisation_zone_front_left(self):
-        return self._vehicle.state.get("climatisationZoneFrontLeft")
-
-    @property
-    def climatisation_zone_front_left_supported(self):
-        return self._vehicle.state.get("climatisationZoneFrontLeft") is not None
-
-    @property
-    def climatisation_zone_front_right(self):
-        return self._vehicle.state.get("climatisationZoneFrontRight")
-
-    @property
-    def climatisation_zone_front_right_supported(self):
-        return self._vehicle.state.get("climatisationZoneFrontRight") is not None
-
-    @property
-    def climatisation_zone_rear_left(self):
-        return self._vehicle.state.get("climatisationZoneRearLeft")
-
-    @property
-    def climatisation_zone_rear_left_supported(self):
-        return self._vehicle.state.get("climatisationZoneRearLeft") is not None
-
-    @property
-    def climatisation_zone_rear_right(self):
-        return self._vehicle.state.get("climatisationZoneRearRight")
-
-    @property
-    def climatisation_zone_rear_right_supported(self):
-        return self._vehicle.state.get("climatisationZoneRearRight") is not None
-
-    @property
-    def outdoor_temperature(self):
-        if self.outdoor_temperature_supported:
-            return self._vehicle.state.get("outdoorTemperature")
-
-    @property
-    def outdoor_temperature_supported(self):
-        check = self._vehicle.state.get("outdoorTemperature")
-        if check:
-            return True
-
-    @property
-    def glass_surface_heating(self):
-        if self.glass_surface_heating_supported:
-            return self._vehicle.state.get("isMirrorHeatingActive")
-
-    @property
-    def glass_surface_heating_supported(self):
-        return self._vehicle.state.get("isMirrorHeatingActive") is not None
-
-    @property
     def position_last_updated(self):
         """When the vehicle last reported the position, not when HA last polled.
 
@@ -1035,15 +593,6 @@ class AudiVehicleProperties:
     @property
     def position_last_updated_supported(self):
         return (self._vehicle.state.get("position") or {}).get("timestamp") is not None
-
-    @property
-    def park_time(self):
-        if self.park_time_supported:
-            return self._vehicle.state.get("vehicleParkingClock")
-
-    @property
-    def park_time_supported(self):
-        return self._vehicle.state.get("vehicleParkingClock") is not None
 
     @property
     def remaining_climatisation_time(self):
@@ -1072,19 +621,6 @@ class AudiVehicleProperties:
             return True
 
     @property
-    def door_lock_status(self):
-        """The car's own lock verdict for the whole vehicle, "locked" or
-        "unlocked". Preferred over doors_trunk_status, which needs all four
-        doors and so has nothing to say about a coupé."""
-        if self.door_lock_status_supported:
-            return self._vehicle.state.get("doorLockStatus")
-
-    @property
-    def door_lock_status_supported(self):
-        check = self._vehicle.state.get("doorLockStatus")
-        return check is not None and check != "unsupported"
-
-    @property
     def lock_supported(self):
         """A property, not a method. As a method the support check saw a bound
         function, which is always truthy, and created the lock on every car
@@ -1093,58 +629,6 @@ class AudiVehicleProperties:
             self._audi_service._spin is not None
             and (self.door_lock_status_supported or self.doors_trunk_status_supported)
         )
-
-    @property
-    def shortterm_current(self):
-        """Return shortterm."""
-        if self.shortterm_current_supported:
-            return self._vehicle.state.get("shortterm_current")
-
-    @property
-    def shortterm_current_supported(self):
-        """Return true if vehicle has shortterm_current."""
-        check = self._vehicle.state.get("shortterm_current")
-        if check:
-            return True
-
-    @property
-    def shortterm_reset(self):
-        """Return shortterm."""
-        if self.shortterm_reset_supported:
-            return self._vehicle.state.get("shortterm_reset")
-
-    @property
-    def shortterm_reset_supported(self):
-        """Return true if vehicle has shortterm_reset."""
-        check = self._vehicle.state.get("shortterm_reset")
-        if check:
-            return True
-
-    @property
-    def longterm_current(self):
-        """Return longterm."""
-        if self.longterm_current_supported:
-            return self._vehicle.state.get("longterm_current")
-
-    @property
-    def longterm_current_supported(self):
-        """Return true if vehicle has longterm_current."""
-        check = self._vehicle.state.get("longterm_current")
-        if check:
-            return True
-
-    @property
-    def longterm_reset(self):
-        """Return longterm."""
-        if self.longterm_reset_supported:
-            return self._vehicle.state.get("longterm_reset")
-
-    @property
-    def longterm_reset_supported(self):
-        """Return true if vehicle has longterm_reset."""
-        check = self._vehicle.state.get("longterm_reset")
-        if check:
-            return True
 
     @property
     def is_moving(self):
