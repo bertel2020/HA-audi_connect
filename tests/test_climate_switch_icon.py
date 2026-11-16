@@ -2,6 +2,8 @@
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 from custom_components.audiconnect.switch import AudiClimateQuickSwitch
 
@@ -10,7 +12,8 @@ TRANSLATIONS = Path(__file__).parent.parent / "custom_components" / "audiconnect
 
 def test_the_climate_switch_icon_is_a_real_one():
     # "mdi:car-air-conditioner" does not exist and shows as no icon at all.
-    assert AudiClimateQuickSwitch._attr_icon == "mdi:air-conditioner"
+    switch = AudiClimateQuickSwitch(MagicMock(), SimpleNamespace(vin="V1"))
+    assert switch.icon == "mdi:air-conditioner"
 
 
 def test_every_charge_mode_the_select_can_offer_has_a_translated_name():
