@@ -710,6 +710,9 @@
       },
       "stop_engine": {
         "name": "Stop engine"
+      },
+      "honk_horn": {
+        "name": "Honk horn"
       }
     },
     "number": {

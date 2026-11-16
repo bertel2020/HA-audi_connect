@@ -530,6 +530,29 @@ class AudiConnectAccount:
             ),
         )
 
+    async def honk_horn(self, vin: str, duration_s: int = 10) -> bool:
+        """Sound the horn and flash the lights, at the car's reported position."""
+        if not self._loggedin:
+            await self.login()
+        if not self._loggedin:
+            return False
+
+        vehicle = next((v for v in self.vehicles if v.vin.lower() == vin.lower()), None)
+        position = getattr(vehicle, "position", None) if vehicle else None
+        latitude = (position or {}).get("latitude")
+        longitude = (position or {}).get("longitude")
+        if latitude is None or longitude is None:
+            _LOGGER.warning(
+                "Cannot honk for %s: the car has not reported a position", vin
+            )
+            return False
+
+        return await self._run_command(
+            vin,
+            f"honk the horn of vehicle {vin}",
+            lambda: self._audi_service.honk_horn(vin, latitude, longitude, duration_s),
+        )
+
     async def set_target_state_of_charge(self, vin: str, target_soc: int):
         """Set the target state of charge for the vehicle battery."""
         return await self._run_command(

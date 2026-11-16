@@ -927,6 +927,29 @@ class AudiService(AudiAuthMixin):
             data=json.dumps(data),
         )
 
+    async def honk_horn(
+        self, vin: str, latitude: float, longitude: float, duration_s: int = 10
+    ) -> None:
+        """Sound the horn and flash the lights.
+
+        The same endpoint as flash_lights, with the mode the myAudi app sends
+        for the horn. It is a separate method with a literal mode, not an
+        option of flash_lights, so the silent flash can never turn into a horn
+        by passing a different string.
+        """
+        headers = {"Authorization": "Bearer " + self._bearer_token_json["access_token"]}
+        data = {
+            "duration_s": duration_s,
+            "mode": "honkandflash",
+            "userPosition": {"latitude": latitude, "longitude": longitude},
+        }
+        await self._api.request(
+            "POST",
+            self._get_cariad_url_for_vin(vin, "honkandflash"),
+            headers=headers,
+            data=json.dumps(data),
+        )
+
     async def set_climatisation_settings(
         self, vin: str, *, variant: str = "app_dto", method: str = "PUT", **changes: Any
     ) -> None:
