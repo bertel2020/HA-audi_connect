@@ -212,7 +212,7 @@ class AudiClimateQuickSwitch(AudiEntity, SwitchEntity):
     """
 
     _attr_translation_key = "climate_quick_control"
-    _attr_icon = "mdi:car-air-conditioner"
+    _attr_icon = "mdi:air-conditioner"
     _backing_attr = "climatisation_state"
 
     def __init__(self, coordinator: AudiDataUpdateCoordinator, vehicle: Any) -> None:
