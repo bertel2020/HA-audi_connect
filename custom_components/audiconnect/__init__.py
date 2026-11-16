@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
@@ -10,7 +11,12 @@ from typing import Any
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import (
+    HomeAssistant,
+    ServiceCall,
+    ServiceResponse,
+    SupportsResponse,
+)
 from homeassistant.exceptions import ConfigEntryAuthFailed, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -20,6 +26,8 @@ from homeassistant.helpers.typing import ConfigType
 from .audi_account import (
     SERVICE_EXECUTE_VEHICLE_ACTION,
     SERVICE_EXECUTE_VEHICLE_ACTION_SCHEMA,
+    SERVICE_PROBE_API,
+    SERVICE_PROBE_API_SCHEMA,
     SERVICE_REFRESH_CLOUD_DATA,
     SERVICE_REFRESH_VEHICLE_DATA,
     SERVICE_REFRESH_VEHICLE_DATA_SCHEMA,
@@ -52,7 +60,9 @@ from .const import (
     PLATFORMS,
     uses_auth0,
 )
+from .audi_services import SELECTIVESTATUS_JOBS
 from .coordinator import AudiDataUpdateCoordinator
+from .diagnostics import _redact
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -152,6 +162,9 @@ def _get_account_for_vin(hass: HomeAssistant, vin: str) -> AudiAccount | None:
     return None
 
 
+_PROBE_PATH = re.compile(r"[A-Za-z0-9_/\-.?=&,]+")
+
+
 def _resolve_service_call(
     hass: HomeAssistant, service: ServiceCall
 ) -> tuple[str, AudiAccount]:
@@ -240,6 +253,31 @@ def _async_register_services(hass: HomeAssistant) -> None:
 
     hass.services.async_register(
         DOMAIN, SERVICE_REFRESH_CLOUD_DATA, _handle_refresh_cloud_data
+    )
+
+    async def _handle_probe_api(service: ServiceCall) -> ServiceResponse:
+        """Read-only discovery: ask the API for jobs or a path and return the answer."""
+        vin, account = _resolve_service_call(hass, service)
+        path = service.data.get("path")
+        if path is not None:
+            if not _PROBE_PATH.fullmatch(path) or ".." in path:
+                raise ServiceValidationError(
+                    "path may only contain letters, digits and /_-.?=&,"
+                )
+            query = path
+        else:
+            jobs = service.data.get("jobs") or sorted(SELECTIVESTATUS_JOBS)
+            query = "selectivestatus?jobs=" + ",".join(jobs)
+        result = await account.connection.probe(vin, query)
+        pattern = re.compile(re.escape(vin), re.IGNORECASE)
+        return {"query": query, **_redact(result, pattern)}
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_PROBE_API,
+        _handle_probe_api,
+        schema=SERVICE_PROBE_API_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
     )
 
     vehicle_services: tuple[tuple[str, vol.Schema, str, bool], ...] = (

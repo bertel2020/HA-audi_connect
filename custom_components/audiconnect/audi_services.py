@@ -153,6 +153,11 @@ class AudiService(AudiAuthMixin):
         _LOGGER.debug("Vehicle data returned for VIN: %s: %s", redacted_vin, data)
         return VehicleDataResponse(data)
 
+    async def probe_vehicle_endpoint(self, vin: str, path_and_query: str):
+        """GET any read-only path below the vehicle's CARIAD URL (discovery)."""
+        self._api.use_token(self._bearer_token_json)
+        return await self._api.get(self._get_cariad_url_for_vin(vin, path_and_query))
+
     async def get_charger(self, vin: str):
         self._api.use_token(self.vwToken)
         return await self._api.get(

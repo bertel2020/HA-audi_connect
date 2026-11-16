@@ -266,6 +266,24 @@ class AudiConnectAccount:
                         f"{'*' * (len(vehicle.vin) - 4) + vehicle.vin[-4:]}",
                     )
 
+    async def probe(self, vin: str, path_and_query: str) -> dict[str, Any]:
+        """One read-only GET below the vehicle URL; errors are returned, not raised."""
+        if not self._loggedin:
+            await self.login()
+        if not self._loggedin:
+            return {"error": "not logged in"}
+        try:
+            return {
+                "status": "ok",
+                "body": await self._audi_service.probe_vehicle_endpoint(
+                    vin, path_and_query
+                ),
+            }
+        except ClientResponseError as exception:
+            return {"status": exception.status, "error": exception.message}
+        except TimeoutError:
+            return {"error": "timeout"}
+
     async def refresh_vehicle_data(self, vin: str):
         redacted_vin = "*" * (len(vin) - 4) + vin[-4:]
         if not self._loggedin:

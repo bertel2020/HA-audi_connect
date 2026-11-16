@@ -278,6 +278,24 @@
           "description": "Das Audi-Fahrzeug, dessen Motor gestoppt werden soll."
         }
       }
+    },
+    "probe_api": {
+      "name": "API abfragen (Diagnose)",
+      "description": "Fragt die Audi-API lesend ab und liefert die Antwort zurück. Nur zur Erkundung; zählt zum API-Limit.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Audi-Fahrzeug."
+        },
+        "jobs": {
+          "name": "Jobs",
+          "description": "Selectivestatus-Jobs, die abgefragt werden (Standard: alle bekannten)."
+        },
+        "path": {
+          "name": "Pfad",
+          "description": "Alternativ ein Pfad unterhalb der Fahrzeug-URL, z. B. capabilities."
+        }
+      }
     }
   }
 }
