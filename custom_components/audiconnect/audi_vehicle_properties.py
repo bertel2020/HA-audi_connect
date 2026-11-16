@@ -179,6 +179,35 @@ class AudiVehicleProperties:
     range = _Field(_FIELDS, "TOTAL_RANGE", _int_parses, parse_int)
     tank_level = _Field(_FIELDS, "TANK_LEVEL_IN_PERCENTAGE", _int_parses, parse_int)
     position = _Field(_STATE, "position", _truthy)
+
+    @property
+    def window_open_percent(self) -> dict[str, int | float]:
+        """How far each window is open, by the car's own window name."""
+        state = self._vehicle.state
+        return {
+            key.removeprefix("windowOpenPct_"): value
+            for key, value in state.items()
+            if key.startswith("windowOpenPct_")
+            and isinstance(value, (int, float))
+            and not isinstance(value, bool)
+        }
+
+    @property
+    def window_open_pct_front_left(self):
+        return self.window_open_percent.get("frontLeft")
+
+    @property
+    def window_open_pct_front_right(self):
+        return self.window_open_percent.get("frontRight")
+
+    @property
+    def window_open_pct_rear_left(self):
+        return self.window_open_percent.get("rearLeft")
+
+    @property
+    def window_open_pct_rear_right(self):
+        return self.window_open_percent.get("rearRight")
+
     left_front_window_open = _Field(_FIELDS, "STATE_LEFT_FRONT_WINDOW", _raw, _is_not_3)
     right_front_window_open = _Field(
         _FIELDS, "STATE_RIGHT_FRONT_WINDOW", _raw, _is_not_3

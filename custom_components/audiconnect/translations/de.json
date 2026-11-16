@@ -656,6 +656,18 @@
       },
       "warning_light_count": {
         "name": "Warnleuchten"
+      },
+      "window_open_pct_front_left": {
+        "name": "Fenster vorne links Öffnung"
+      },
+      "window_open_pct_front_right": {
+        "name": "Fenster vorne rechts Öffnung"
+      },
+      "window_open_pct_rear_left": {
+        "name": "Fenster hinten links Öffnung"
+      },
+      "window_open_pct_rear_right": {
+        "name": "Fenster hinten rechts Öffnung"
       }
     },
     "binary_sensor": {

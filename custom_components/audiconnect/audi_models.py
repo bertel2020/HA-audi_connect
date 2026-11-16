@@ -522,6 +522,7 @@ class VehicleDataResponse:
         self._parseChargingTimers(data)
         self._parseClimatisationTimers(data)
         self._parseUserCapabilities(data)
+        self._parseWindowPositions(data)
 
     def _appendState(self, name: str, value: Any, ts: Any) -> None:
         """Append a derived state. Used by the charging-profile and timer parsers,
@@ -530,6 +531,30 @@ class VehicleDataResponse:
         if value is None or not ts:
             return
         self.states.append({"name": name, "value": value, "measure_time": ts})
+
+    def _parseWindowPositions(self, data: dict[str, Any]) -> None:
+        """How far each window is open, in percent, from the access job.
+
+        The open/closed state is parsed elsewhere; this is the figure the car
+        reports beside it. A window with no percentage, or an unreadable one, is
+        left out rather than shown as closed.
+        """
+        block = get_attr(data, "access.accessStatus.value", {})
+        windows = block.get("windows") if isinstance(block, dict) else None
+        if not isinstance(windows, list):
+            return
+        ts = block.get("carCapturedTimestamp")
+        for window in windows:
+            if not isinstance(window, dict):
+                continue
+            name, pct = window.get("name"), window.get("windowOpen_pct")
+            if (
+                isinstance(name, str)
+                and isinstance(pct, (int, float))
+                and not isinstance(pct, bool)
+                and 0 <= pct <= 100
+            ):
+                self._appendState(f"windowOpenPct_{name}", pct, ts)
 
     def _parseUserCapabilities(self, data: dict[str, Any]) -> None:
         """Record what the car says it can do, as distinct from what this poll
