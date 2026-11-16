@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 from collections import deque
 from contextlib import suppress
 from datetime import UTC, datetime
@@ -24,6 +25,8 @@ DEBUG_VERBOSE = False
 
 TIMEOUT = 30
 _LOGGER = logging.getLogger(__name__)
+_WRITE_METHODS = frozenset({METH_POST, METH_PUT})
+_ERROR_BODY_CHARS = 300
 
 
 class AudiAPI:
@@ -47,6 +50,31 @@ class AudiAPI:
         self.__xclientid = xclientid
         if DEBUG_VERBOSE:
             _LOGGER.debug("[set_xclient_id] X-Client-ID set: %s", xclientid)
+
+    async def _log_rejected_write(self, method: str, url: str, response: Any) -> None:
+        """Say why Audi refused a write.
+
+        The status line alone ("502 Bad Gateway") cannot tell a rejected body
+        from a sleeping car. The reply body usually can. Only the route and the
+        start of the reply are logged: the VIN is masked and the length capped,
+        and nothing about the request body or headers is kept.
+        """
+        try:
+            text = await response.text()
+        except Exception:  # noqa: BLE001 - diagnostics must never mask the error
+            return
+        route = re.sub(r"/vehicles/[A-Za-z0-9]+", "/vehicles/<vin>", url.split("?")[0])
+        reply = re.sub(r"[A-HJ-NPR-Z0-9]{17}", "<vin>", text.strip())[
+            :_ERROR_BODY_CHARS
+        ]
+        _LOGGER.warning(
+            "Audi rejected %s %s with %s %s: %s",
+            method.upper(),
+            route,
+            response.status,
+            response.reason,
+            reply or "(empty reply)",
+        )
 
     async def request(
         self,
@@ -159,6 +187,8 @@ class AudiAPI:
                                 response.status,
                                 response.reason,
                             )
+                            if method.upper() in _WRITE_METHODS:
+                                await self._log_rejected_write(method, url, response)
                             if DEBUG_VERBOSE:
                                 _LOGGER.debug(
                                     "Response url: %s, body: %s",

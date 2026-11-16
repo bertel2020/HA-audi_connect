@@ -44,3 +44,8 @@ def test_legacy_account_keeps_the_parking_heater_switch():
 @pytest.mark.parametrize("uses_auth0", [True, False])
 def test_other_switches_are_unaffected(uses_auth0):
     assert "plug_auto_unlock" in _created_keys(uses_auth0=uses_auth0)
+
+
+def test_unlock_setting_does_not_share_the_window_heating_icon():
+    icons = {d.key: d.icon for d in switch.SWITCH_DESCRIPTIONS}
+    assert icons["climatisation_at_unlock"] != icons["climatisation_window_heating"]
