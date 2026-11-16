@@ -553,7 +553,13 @@
         "name": "Charging Timers Enabled"
       },
       "vehicle_data_freshness": {
-        "name": "Vehicle data freshness"
+        "name": "Vehicle data freshness",
+        "state": {
+          "fresh": "Fresh",
+          "delayed": "Delayed",
+          "stale": "Stale",
+          "unknown": "Unknown"
+        }
       },
       "vehicle_data_age": {
         "name": "Vehicle data age"
