@@ -312,12 +312,6 @@ class VehicleDataResponse:
         )
         self._tryAppendStateWithTs(
             data,
-            "navigationTargetSoc",
-            -1,
-            ["charging", "batteryStatus", "value", "navigationTargetSOC_pct"],
-        )
-        self._tryAppendStateWithTs(
-            data,
             "stateOfCharge",
             -1,
             ["charging", "batteryStatus", "value", "currentSOC_pct"],

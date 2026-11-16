@@ -265,13 +265,6 @@ class AudiVehicleProperties:
     active_charging_profile_uses_preferred_times = _Field(
         _STATE, "activeChargingProfileUsesPreferredTimes", _is_not_none
     )
-    navigation_target_soc = _Field(
-        _STATE,
-        "navigationTargetSoc",
-        _int_parses,
-        parse_int,
-        doc="The charge level the navigation asks for on the way to its destination.",
-    )
     preferred_charging_time_start = _Field(
         _STATE, "preferredChargingTimeStart", _is_not_none
     )

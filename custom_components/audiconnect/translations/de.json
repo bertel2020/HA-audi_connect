@@ -362,9 +362,6 @@
       "active_charging_profile_max_current": {
         "name": "Ladestrom des aktiven Profils"
       },
-      "navigation_target_soc": {
-        "name": "Ladeziel der Navigation"
-      },
       "last_update_time": {
         "name": "Letzte Aktualisierung"
       },

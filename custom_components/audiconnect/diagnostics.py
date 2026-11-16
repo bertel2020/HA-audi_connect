@@ -40,7 +40,6 @@ _OBSERVED_KEYS = (
     "longterm_current",
     "lastTripShortTerm",
     "lastTripLongTerm",
-    "navigationTargetSoc",
     "accessOverallStatus",
     "chargeTargetLimits",
     "activeChargingProfileMaxCurrent",
