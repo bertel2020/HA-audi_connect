@@ -66,6 +66,8 @@ class VehicleDataResponse:
         return self.error_count > 0 and not self.data_fields and not self.states
 
     def __init__(self, data: dict[str, Any]) -> None:
+        # The payload as received, kept for diagnostics.
+        self.raw = data
         self.data_fields: list[Field] = []
         self.states: list[dict[str, Any]] = []
         # #793: count the error objects up front, so an all-error outage (200 but

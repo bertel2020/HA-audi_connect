@@ -64,15 +64,15 @@ def test_capabilities_reporting_an_error_are_recorded_separately():
 
 
 def test_the_job_is_actually_requested():
-    """It was commented out of JOBS2QUERY, so parsing it would have been dead
+    """It was commented out of the job list, so parsing it would have been dead
     code. This is the call-site half."""
     import inspect
 
     from custom_components.audiconnect import audi_services
 
+    assert "userCapabilities" in audi_services.SELECTIVESTATUS_JOBS
     source = inspect.getsource(audi_services.AudiService.get_stored_vehicle_data)
-    assert '"userCapabilities",' in source
-    assert '# "userCapabilities"' not in source
+    assert "SELECTIVESTATUS_JOBS" in source
 
 
 def test_a_payload_without_the_block_yields_nothing():

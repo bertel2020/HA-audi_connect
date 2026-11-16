@@ -20,6 +20,7 @@ from .const import DEFAULT_API_LEVEL
 from .util import get_attr
 
 __all__ = [
+    "SELECTIVESTATUS_JOBS",
     "AudiAuthError",
     "AudiService",
     "AudiTokenRefreshError",
@@ -27,6 +28,36 @@ __all__ = [
     "build_climatisation_start_body",
     "build_profile_update",
 ]
+
+# The selectivestatus jobs requested on every poll. A car only answers for the
+# ones it has; diagnostics lists which of these it left out.
+SELECTIVESTATUS_JOBS = frozenset(
+    {
+        "access",
+        "activeVentilation",
+        "auxiliaryHeating",
+        "batteryChargingCare",
+        "batterySupport",
+        "charging",
+        "chargingProfiles",
+        "chargingTimers",
+        "climatisation",
+        "climatisationTimers",
+        "departureProfiles",
+        "departureTimers",
+        "fuelStatus",
+        "honkAndFlash",
+        "hybridCarAuxiliaryHeating",
+        "lvBattery",
+        "measurements",
+        "oilLevel",
+        "readiness",
+        "userCapabilities",
+        "vehicleHealthInspection",
+        "vehicleHealthWarnings",
+        "vehicleLights",
+    }
+)
 
 MAX_RESPONSE_ATTEMPTS = 10
 REQUEST_STATUS_SLEEP = 10
@@ -112,35 +143,10 @@ class AudiService(AudiAuthMixin):
 
     async def get_stored_vehicle_data(self, vin: str):
         redacted_vin = "*" * (len(vin) - 4) + vin[-4:]
-        JOBS2QUERY = {
-            "access",
-            "activeVentilation",
-            "auxiliaryHeating",
-            "batteryChargingCare",
-            "batterySupport",
-            "charging",
-            "chargingProfiles",
-            "chargingTimers",
-            "climatisation",
-            "climatisationTimers",
-            "departureProfiles",
-            "departureTimers",
-            "fuelStatus",
-            "honkAndFlash",
-            "hybridCarAuxiliaryHeating",
-            "lvBattery",
-            "measurements",
-            "oilLevel",
-            "readiness",
-            "userCapabilities",
-            "vehicleHealthInspection",
-            "vehicleHealthWarnings",
-            "vehicleLights",
-        }
         self._api.use_token(self._bearer_token_json)
         data = await self._api.get(
             self._get_cariad_url_for_vin(
-                vin, "selectivestatus?jobs={jobs}", jobs=",".join(JOBS2QUERY)
+                vin, "selectivestatus?jobs={jobs}", jobs=",".join(SELECTIVESTATUS_JOBS)
             )
         )
 
