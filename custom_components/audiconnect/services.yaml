@@ -329,3 +329,22 @@ delete_climatisation_timer:
           min: 0
           max: 99
           mode: box
+
+set_climatisation_timer_enabled:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: audiconnect
+    timer_id:
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 99
+          mode: box
+    enabled:
+      required: true
+      selector:
+        boolean:

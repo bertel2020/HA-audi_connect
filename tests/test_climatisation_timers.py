@@ -133,3 +133,108 @@ def test_deleting_sends_a_delete_to_the_timer():
     assert method == "DELETE"
     assert url.endswith(f"/vehicle/v2/departure/{VIN}/climatisation/timers/3")
     assert data is None
+
+
+# --- switching a timer on or off ---------------------------------------------------
+
+from custom_components.audiconnect.audi_payloads import (  # noqa: E402
+    build_climatisation_timers_update,
+    timer_for_update,
+)
+
+Q8_SINGLE = {
+    "enabled": False,
+    "id": 1,
+    "singleTimer": {
+        "startDateTimeLocal": "2026-08-11T07:10:00",
+        "targetDateTimeLocal": "2026-08-11T07:10:00",
+    },
+}
+Q8_RECURRING = {
+    "enabled": True,
+    "id": 2,
+    "recurringTimer": {
+        "departureTimeLocal": "11:05",
+        "recurringOn": {"thursdays": True, "mondays": False},
+        "repetitionDays": ["thursday"],
+    },
+}
+APP_SHAPE = {
+    "enabled": True,
+    "id": 5,
+    "heaterSource": "electric",
+    "recurringTimer": {
+        "recurringOn": {"mondays": True},
+        "startTime": "02:00",
+        "startTimeLocal": "03:00",
+    },
+}
+
+
+def test_a_single_timer_with_a_date_becomes_a_weekday():
+    timer = timer_for_update(Q8_SINGLE, 120)
+    assert timer["singleTimer"] == {
+        "occurringOn": "Tuesday",  # 11 August 2026
+        "startTime": "05:10",
+        "startTimeLocal": "07:10",
+    }
+    assert timer["enabled"] is False and timer["id"] == 1
+
+
+def test_a_recurring_timer_keeps_all_seven_days():
+    days = timer_for_update(Q8_RECURRING, 60)["recurringTimer"]["recurringOn"]
+    assert days["thursdays"] is True and days["mondays"] is False
+    assert set(days) == {
+        "mondays", "tuesdays", "wednesdays", "thursdays",
+        "fridays", "saturdays", "sundays",
+    }  # fmt: skip
+
+
+def test_a_timer_already_in_the_apps_shape_is_kept_as_it_is():
+    timer = timer_for_update(APP_SHAPE, 60)
+    assert timer["recurringTimer"]["startTime"] == "02:00"
+    assert timer["recurringTimer"]["startTimeLocal"] == "03:00"
+    assert timer["heaterSource"] == "electric"
+
+
+def test_only_the_chosen_timer_changes_and_all_come_back():
+    body = build_climatisation_timers_update([Q8_SINGLE, Q8_RECURRING], 1, True, 60)
+    by_id = {t["id"]: t for t in body["timers"]}
+    assert by_id[1]["enabled"] is True
+    assert by_id[2]["enabled"] is True  # unchanged
+    assert len(body["timers"]) == 2
+
+
+@pytest.mark.parametrize(
+    ("timers", "timer_id"),
+    [([], 1), (None, 1), ([Q8_SINGLE], 9), ([{"id": 1, "enabled": True}], 1)],
+)
+def test_nothing_is_sent_when_a_timer_cannot_be_sent_back_whole(timers, timer_id):
+    with pytest.raises(ValueError):
+        build_climatisation_timers_update(timers, timer_id, True, 60)
+
+
+def test_the_service_reads_then_puts_the_whole_list():
+    svc = service()
+
+    async def with_timers(url):
+        svc._api.calls.append(("GET", url, None))
+        return {
+            "departureTimers": {
+                "climatisationTimersStatus": {
+                    "value": {
+                        "timeInCar": "2026-11-16T20:52:55+01:00",
+                        "timers": [Q8_SINGLE, Q8_RECURRING],
+                    }
+                }
+            }
+        }
+
+    svc._api.get = with_timers
+    asyncio.run(svc.set_climatisation_timer_enabled(VIN, 1, True))
+    assert [c[0] for c in svc._api.calls] == ["GET", "PUT"]
+    method, url, data, headers = svc._api.calls[-1]
+    assert url.endswith(f"/vehicle/v2/departure/{VIN}/climatisation/timers")
+    assert headers["Content-Type"] == "application/json"
+    sent = {t["id"]: t for t in json.loads(data)["timers"]}
+    assert sent[1]["enabled"] is True and 2 in sent

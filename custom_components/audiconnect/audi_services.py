@@ -22,6 +22,7 @@ from .audi_payloads import (
     JSON_CONTENT_VARIANTS,
     build_climatisation_settings_update,
     build_climatisation_timer,
+    build_climatisation_timers_update,
     build_climatisation_start_body,
     build_profile_change,
     build_profile_update,
@@ -1054,6 +1055,46 @@ class AudiService(AudiAuthMixin):
         }
         return await self._api.request(
             "POST",
+            self._departure_url(vin, "climatisation/timers"),
+            headers=headers,
+            data=json.dumps(body),
+        )
+
+    async def set_climatisation_timer_enabled(
+        self, vin: str, timer_id: int, enabled: bool
+    ) -> Any:
+        """Switch one climatisation timer on or off.
+
+        PUT {bff}/vehicle/v2/departure/{vin}/climatisation/timers replaces the
+        whole list, so the current timers are read, converted to the app's shape
+        and all sent back with only this one changed.
+        """
+        self._api.use_token(self._bearer_token_json)
+        raw = await self._api.get(
+            self._get_cariad_url_for_vin(
+                vin, "selectivestatus?jobs={jobs}", jobs="departureTimers"
+            )
+        )
+        status = get_attr(raw, "departureTimers.climatisationTimersStatus.value") or {}
+        stamp = status.get("timeInCar") if isinstance(status, dict) else None
+        try:
+            offset_delta = datetime.fromisoformat(stamp).utcoffset()
+        except (TypeError, ValueError):
+            offset_delta = None
+        if offset_delta is None:
+            raise ValueError("The car did not report its local time; refusing to guess")
+        body = build_climatisation_timers_update(
+            status.get("timers"),
+            timer_id,
+            enabled,
+            int(offset_delta.total_seconds() // 60),
+        )
+        headers = {
+            "Authorization": "Bearer " + self._bearer_token_json["access_token"],
+            "Content-Type": "application/json",
+        }
+        return await self._api.request(
+            "PUT",
             self._departure_url(vin, "climatisation/timers"),
             headers=headers,
             data=json.dumps(body),
