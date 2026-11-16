@@ -197,9 +197,29 @@ class AudiService(AudiAuthMixin):
                 "/vehicle/v1/trips/{vin}/" + path_and_query[len("trips/") :],
                 vin=vin.upper(),
             )
+        elif path_and_query.startswith("bs/"):
+            url = self._bs_url(vin, path_and_query)
         else:
             url = self._get_cariad_url_for_vin(vin, path_and_query)
         return await self._api.get(url)
+
+    def _bs_url(self, vin: str, path: str) -> str:
+        """URL of a "bs/<service>/<version>/<rest>" route of the myAudi app.
+
+        The app reaches several backend services (climatisation, batterycharge,
+        departuretimer, ...) as bs/<service>/<version>/<brand>/<country>/
+        vehicles/<vin>/<rest>, beside the vehicle/v1 URL this integration uses.
+        The caller gives only service, version and rest; brand, country and VIN
+        are filled in here.
+        """
+        parts = path.split("/", 3)
+        if len(parts) != 4 or not all(parts[1:]):
+            raise ValueError("bs path must be bs/<service>/<version>/<route>")
+        _, service, version, rest = parts
+        base = self._get_cariad_url(
+            "/bs/{service}/{version}", service=service, version=version
+        )
+        return f"{base}/audi/{self._country.upper()}/vehicles/{vin.upper()}/{rest}"
 
     async def get_charger(self, vin: str):
         self._api.use_token(self.vwToken)
