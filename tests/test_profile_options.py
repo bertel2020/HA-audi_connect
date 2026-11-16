@@ -53,11 +53,11 @@ def states(payload=PAYLOAD):
     return {s["name"]: s["value"] for s in VehicleDataResponse(payload).states}
 
 
-def test_the_profile_options_and_navigation_target_are_read():
+def test_the_profile_options_are_read():
     s = states()
     assert s["activeChargingProfileMaxCurrent"] == "max"
     assert s["activeChargingProfileUsesPreferredTimes"] is False
-    assert s["navigationTargetSoc"] == 0
+    assert "navigationTargetSoc" not in s
 
 
 def test_the_a6_names_the_preferred_window_start_and_end():
@@ -121,8 +121,8 @@ def test_the_entities_exist_and_read_the_values():
     sensors = {d.key for d in SENSOR_DESCRIPTIONS}
     binary = {d.key for d in BINARY_SENSOR_DESCRIPTIONS}
 
-    assert {"active_charging_profile_max_current", "navigation_target_soc"} <= sensors
+    assert "active_charging_profile_max_current" in sensors
+    assert "navigation_target_soc" not in sensors
     assert "active_charging_profile_uses_preferred_times" in binary
     assert vehicle.active_charging_profile_max_current == "max"
     assert vehicle.active_charging_profile_uses_preferred_times is False
-    assert vehicle.navigation_target_soc == 0
