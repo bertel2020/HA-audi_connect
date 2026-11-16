@@ -36,8 +36,10 @@ def test_every_other_field_survives_one_change():
     current = settings()
     body = build_climatisation_settings_update(current, zoneFrontLeftEnabled=True)
     assert body["zoneFrontLeftEnabled"] is True
+    # The app names the target temperature "targetTemperature" with a unit.
+    assert body["targetTemperature"] == current["targetTemperature_C"]
+    assert body["targetTemperatureUnit"] == "celsius"
     for field in (
-        "targetTemperature_C",
         "climatizationAtUnlock",
         "windowHeatingEnabled",
         "climatisationWithoutExternalPower",
@@ -126,7 +128,7 @@ def test_it_reads_then_puts_the_whole_object():
     assert put[1].endswith("/climatisation/settings")
     body = json.loads(put[2])
     assert body["windowHeatingEnabled"] is True
-    assert body["targetTemperature_C"] == settings()["targetTemperature_C"]
+    assert body["targetTemperature"] == settings()["targetTemperature_C"]
 
 
 def test_it_sends_nothing_when_the_car_reports_no_settings():
@@ -206,7 +208,9 @@ A6_SETTINGS = {
 
 
 def test_the_a6_body_carries_only_writable_settings():
-    body = build_climatisation_settings_update(A6_SETTINGS, climatizationAtUnlock=True)
+    body = build_climatisation_settings_update(
+        A6_SETTINGS, variant="full", climatizationAtUnlock=True
+    )
     assert body == {
         "targetTemperature_C": 22.5,
         "climatizationAtUnlock": True,
@@ -329,3 +333,20 @@ def test_json_variants_send_a_json_content_type_and_the_others_do_not():
         )
         headers = svc._api.headers[-1]
         assert (headers.get("Content-Type") == "application/json") is expected, variant
+
+
+def test_the_default_is_the_body_the_app_sends_and_it_worked_on_the_a6():
+    """Verified on the A6 e-tron: this body, with a JSON content type, was
+    accepted where every other shape got 502 (Audi error 2105)."""
+    default = build_climatisation_settings_update(
+        A6_SETTINGS, climatizationAtUnlock=True
+    )
+    assert default == build_climatisation_settings_update(
+        A6_SETTINGS, variant="app_dto", climatizationAtUnlock=True
+    )
+
+
+def test_a_switch_write_sends_json_by_default():
+    svc = service()
+    asyncio.run(svc.set_climatisation_settings("VIN1", windowHeatingEnabled=True))
+    assert svc._api.headers[-1].get("Content-Type") == "application/json"

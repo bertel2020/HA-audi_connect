@@ -488,7 +488,7 @@ class AudiConnectAccount:
         vin: str,
         field: str,
         value,
-        variant: str = "full",
+        variant: str = "app_dto",
         method: str = "PUT",
     ) -> bool:
         """Change one climatisation setting, leaving the others as they are."""

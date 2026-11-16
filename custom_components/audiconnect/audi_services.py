@@ -928,7 +928,7 @@ class AudiService(AudiAuthMixin):
         )
 
     async def set_climatisation_settings(
-        self, vin: str, *, variant: str = "full", method: str = "PUT", **changes: Any
+        self, vin: str, *, variant: str = "app_dto", method: str = "PUT", **changes: Any
     ) -> None:
         """Change climatisation settings without starting climatisation.
 
