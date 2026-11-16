@@ -3,12 +3,15 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from collections import deque
 from contextlib import suppress
 from datetime import UTC, datetime
 from typing import Any
 
 from aiohttp import ClientResponseError, ClientSession
 from aiohttp.hdrs import METH_GET, METH_POST, METH_PUT
+
+from .diagnostic_events import build_http_event
 
 # ===========================================
 # VERBOSE DEBUG TOGGLE
@@ -33,6 +36,7 @@ class AudiAPI:
         self._session = session
         self.vcf_remaining_calls: int | None = None
         self.vcf_remaining_calls_last_observed: datetime | None = None
+        self.diagnostic_events = deque(maxlen=40)
 
     def use_token(self, token: dict[str, Any] | None) -> None:
         self.__token = token
@@ -68,6 +72,10 @@ class AudiAPI:
                 async with self._session.request(
                     method, url, headers=headers, data=data, **kwargs
                 ) as response:
+                    # Record status and route only; never retain URL, VIN, body or headers.
+                    event = build_http_event(method, url, response.status)
+                    if event is not None:
+                        self.diagnostic_events.append(event)
                     if DEBUG_VERBOSE:
                         _LOGGER.debug("[RESPONSE RECEIVED]")
                         _LOGGER.debug("Status: %s", response.status)
@@ -125,11 +133,18 @@ class AudiAPI:
                             _LOGGER.debug(
                                 "Raw JSON text (before parsing): %s", raw_body
                             )
+                        # Some CARIAD mutation endpoints acknowledge with
+                        # HTTP 200/202 and an empty body (not JSON). Accept the
+                        # transport response without inventing vehicle success.
+                        if not raw_body.strip():
+                            return None
                         json_data = json_loads(raw_body)
                         if DEBUG_VERBOSE:
                             _LOGGER.debug("Parsed JSON data (full): %s", json_data)
                         else:
-                            _LOGGER.debug("Returning JSON data: %s", json_data)
+                            _LOGGER.debug(
+                                "Returning parsed JSON response (payload redacted)"
+                            )
                         return json_data
 
                     else:

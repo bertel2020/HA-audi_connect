@@ -46,6 +46,7 @@ from .audi_account import (
     SERVICE_STOP_ENGINE,
     SERVICE_STOP_ENGINE_SCHEMA,
     AudiAccount,
+    _single_device_id,
 )
 from .const import (
     CONF_API_LEVEL,
@@ -60,11 +61,28 @@ from .const import (
     PLATFORMS,
     uses_auth0,
 )
-from .audi_services import SELECTIVESTATUS_JOBS
+from .capability_jobs import BASE_SELECTIVE_JOBS
 from .coordinator import AudiDataUpdateCoordinator
-from .diagnostics import _redact
+from .diagnostics_payload import redact
+from .local_extensions import DEALER_FIELDS, update_local_dealer_options
 
 _LOGGER = logging.getLogger(__name__)
+
+SERVICE_PROBE_API_PATHS = "probe_api_paths"
+SERVICE_SET_LOCAL_DEALER = "set_local_dealer"
+PROBE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): cv.string,
+        vol.Optional("extended", default=False): bool,
+    }
+)
+LOCAL_DEALER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): cv.string,
+        vol.Optional("clear", default=False): bool,
+        **{vol.Optional(field): cv.string for field in DEALER_FIELDS},
+    }
+)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -161,6 +179,22 @@ def _get_account_for_vin(hass: HomeAssistant, vin: str) -> AudiAccount | None:
                 return runtime_data.account
     return None
 
+
+SERVICE_PROBE_API_PATHS = "probe_api_paths"
+SERVICE_SET_LOCAL_DEALER = "set_local_dealer"
+PROBE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Optional("extended", default=False): bool,
+    }
+)
+LOCAL_DEALER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Optional("clear", default=False): bool,
+        **{vol.Optional(field): cv.string for field in DEALER_FIELDS},
+    }
+)
 
 _PROBE_PATH = re.compile(r"[A-Za-z0-9_/\-.?=&,]+")
 
@@ -266,11 +300,33 @@ def _async_register_services(hass: HomeAssistant) -> None:
                 )
             query = path
         else:
-            jobs = service.data.get("jobs") or sorted(SELECTIVESTATUS_JOBS)
+            jobs = service.data.get("jobs") or list(BASE_SELECTIVE_JOBS)
             query = "selectivestatus?jobs=" + ",".join(jobs)
         result = await account.connection.probe(vin, query)
         pattern = re.compile(re.escape(vin), re.IGNORECASE)
-        return {"query": query, **_redact(result, pattern)}
+        return {"query": query, **redact(result, pattern)}
+
+    async def _handle_probe_api_paths(service: ServiceCall) -> None:
+        """Explicit user action. A diagnostics download never triggers probes."""
+        vin, account = _resolve_service_call(hass, service)
+        await account.connection.probe_read_only_api(
+            vin, extended=service.data.get("extended", False)
+        )
+
+    async def _handle_set_local_dealer(service: ServiceCall) -> None:
+        """Opt-in local metadata only; no Audi network calls."""
+        vin, account = _resolve_service_call(hass, service)
+        fields = {
+            key: service.data[key] for key in DEALER_FIELDS if key in service.data
+        }
+        current = dict(account.config_entry.options)
+        options = update_local_dealer_options(
+            current, vin, fields, clear=service.data.get("clear", False)
+        )
+        if options != current:
+            hass.config_entries.async_update_entry(
+                account.config_entry, options=options
+            )
 
     hass.services.async_register(
         DOMAIN,
@@ -278,6 +334,19 @@ def _async_register_services(hass: HomeAssistant) -> None:
         _handle_probe_api,
         schema=SERVICE_PROBE_API_SCHEMA,
         supports_response=SupportsResponse.ONLY,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_PROBE_API_PATHS,
+        _handle_probe_api_paths,
+        schema=PROBE_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_LOCAL_DEALER,
+        _handle_set_local_dealer,
+        schema=LOCAL_DEALER_SCHEMA,
     )
 
     vehicle_services: tuple[tuple[str, vol.Schema, str, bool], ...] = (

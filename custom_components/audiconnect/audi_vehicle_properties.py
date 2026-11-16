@@ -256,7 +256,6 @@ class AudiVehicleProperties:
     )
     outdoor_temperature = _Field(_STATE, "outdoorTemperature", _truthy)
     glass_surface_heating = _Field(_STATE, "isMirrorHeatingActive", _is_not_none)
-    park_time = _Field(_STATE, "vehicleParkingClock", _is_not_none)
     door_lock_status = _Field(
         _STATE,
         "doorLockStatus",
@@ -527,6 +526,87 @@ class AudiVehicleProperties:
             return None
         # Otherwise, return the frozen complete time
         return self.charging_complete_time_frozen
+
+    @property
+    def park_time(self):
+        """Legacy true parking clock or a labeled last parked-position capture.
+
+        CARIAD parkingposition supplies carCapturedTimestamp. It is the time
+        Audi captured the *parked GPS position*, not a verified parking-start
+        or engine-off event. Never claim a more precise meaning.
+        """
+        legacy = self._vehicle.state.get("vehicleParkingClock")
+        if legacy is not None:
+            return legacy
+        position = self._vehicle.state.get("position") or {}
+        if isinstance(position, dict):
+            return position.get("parktime") or position.get("timestamp")
+        return None
+
+    @property
+    def park_time_source(self):
+        if self._vehicle.state.get("vehicleParkingClock") is not None:
+            return "vehicle_parking_clock"
+        if self.park_time is not None:
+            return "last_parked_position_capture_estimate"
+        return "unavailable"
+
+    @property
+    def park_time_supported(self):
+        return self.park_time is not None
+
+    @property
+    def charging_current_limit_a(self):
+        """Modern numeric AC charging current limit reported by CARIAD."""
+        value = self._vehicle.state.get("chargingCurrentLimitA")
+        return parse_float(value) if value is not None else None
+
+    @property
+    def charging_current_limit_mode(self):
+        return self._vehicle.state.get("chargingCurrentLimitMode")
+
+    @property
+    def charging_plug_auto_unlock(self):
+        value = self._vehicle.state.get("chargingPlugAutoUnlock")
+        if value == "on":
+            return "enabled"
+        if value == "off":
+            return "disabled"
+        return None
+
+    @property
+    def vehicle_reported_online(self):
+        value = self._vehicle.state.get("vehicleReportedOnline")
+        if value is True:
+            return "online"
+        if value is False:
+            return "offline"
+        return None
+
+    @property
+    def vehicle_reported_active(self):
+        value = self._vehicle.state.get("vehicleReportedActive")
+        if value is True:
+            return "active"
+        if value is False:
+            return "inactive"
+        return None
+
+    @property
+    def climatisation_timers(self):
+        return self._vehicle.state.get("climatisationTimers")
+
+    @property
+    def climatisation_timer_count(self):
+        return self._vehicle.state.get("climatisationTimerCount")
+
+    @property
+    def climatisation_timer_enabled_count(self):
+        return self._vehicle.state.get("climatisationTimerEnabledCount")
+
+    @property
+    def next_climatisation_timer_local(self):
+        return self._vehicle.state.get("nextClimatisationTimerLocal")
 
     @property
     def preferred_charging_time_enabled(self):
