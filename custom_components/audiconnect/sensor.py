@@ -985,6 +985,9 @@ class AudiLocalDealerSensor(AudiEntity, SensorEntity):
     Never claim that manual dealer metadata came from the Audi cloud.
     """
 
+    # Off until the user wants them: for a car that reports one inspection date
+    # they add little, and they stay available for those who enter a dealer.
+    _attr_entity_registry_enabled_default = False
     _attr_translation_key = "dealer_local"
     _attr_icon = "mdi:store"
 
@@ -1021,6 +1024,9 @@ class AudiLocalDealerSensor(AudiEntity, SensorEntity):
 class AudiServiceOverviewSensor(AudiEntity, SensorEntity):
     """Car-sourced maintenance combined with optional local appointment data."""
 
+    # Off until the user wants them: for a car that reports one inspection date
+    # they add little, and they stay available for those who enter a dealer.
+    _attr_entity_registry_enabled_default = False
     _attr_translation_key = "service_overview"
     _attr_icon = "mdi:car-wrench"
 

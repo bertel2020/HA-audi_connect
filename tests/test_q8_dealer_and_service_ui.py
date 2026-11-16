@@ -96,3 +96,17 @@ def test_options_flow_translations_have_manual_dealer_steps():
         assert "dealer_vehicle" in data["options"]["step"]
         assert "dealer" in data["options"]["step"]
         assert "experimental_commands" in data["options"]["step"]["init"]["data"]
+
+
+def test_the_dealer_and_service_sensors_are_off_until_the_user_turns_them_on():
+    car, entry = make()
+    assert (
+        AudiLocalDealerSensor(Coordinator(), car, entry).entity_registry_enabled_default
+        is False
+    )
+    assert (
+        AudiServiceOverviewSensor(
+            Coordinator(), car, entry
+        ).entity_registry_enabled_default
+        is False
+    )
