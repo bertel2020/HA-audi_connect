@@ -140,6 +140,15 @@ def _climatisation_timer_attrs(vehicle: Any) -> dict[str, Any]:
     }
 
 
+def _service_expiry_attrs(vehicle: Any) -> dict[str, Any]:
+    """Which services end when, soonest first."""
+    ordered = sorted(vehicle.service_expiry.items(), key=lambda item: item[1])
+    return {
+        "services": {name: when.isoformat() for name, when in ordered},
+        "count": len(ordered),
+    }
+
+
 def _charging_timer_attrs(vehicle: Any) -> dict[str, Any]:
     attrs: dict[str, Any] = {
         "timers": getattr(vehicle, "charging_timers", None),
@@ -376,6 +385,16 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         capability="charging",
         translation_key="charging_plug_auto_unlock",
         icon="mdi:ev-plug-type2",
+    ),
+    AudiSensorEntityDescription(
+        key="service_expiry_date",
+        attr_key="service_expiry_date",
+        translation_key="service_expiry_date",
+        icon="mdi:calendar-clock",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda v: v.service_expiry_date,
+        extra_attrs_fn=_service_expiry_attrs,
     ),
     AudiSensorEntityDescription(
         key="vehicle_reported_online",

@@ -80,6 +80,15 @@ def _profiles(vehicle: Any) -> list[dict[str, Any]]:
     return [p for p in profiles if isinstance(p, dict) and p.get("id") is not None]
 
 
+def profiles_with_a_target(vehicle: Any) -> list[dict[str, Any]]:
+    """The profiles that carry a charge target.
+
+    A car whose profiles carry none (the A6 reports that it does not support
+    one) would get a slider that can never show or set a value.
+    """
+    return [p for p in _profiles(vehicle) if p.get("targetSOC_pct") is not None]
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -103,7 +112,7 @@ async def async_setup_entry(
             runtime_data.coordinator, config_vehicle.vehicle, profile
         )
         for config_vehicle in runtime_data.account.config_vehicles
-        for profile in _profiles(config_vehicle.vehicle)
+        for profile in profiles_with_a_target(config_vehicle.vehicle)
     )
     async_add_entities(entities)
 
