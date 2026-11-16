@@ -87,13 +87,15 @@ def test_unproven_controls_require_user_opt_in_and_explicit_capability():
     assert _wakeup_capable(v)
     new = {d.key: d for d in BUTTON_DESCRIPTIONS}
     for key in (
-        "start_charging_modern",
-        "stop_charging_modern",
         "start_window_heating_modern",
         "stop_window_heating_modern",
     ):
         assert new[key].experimental is True
         assert new[key].supported_fn(v) is True
+    # Start and stop charging are not offered: Audi accepted them on an A6 e-tron
+    # but the car never carried them out.
+    assert "start_charging_modern" not in new
+    assert "stop_charging_modern" not in new
     # Waking the car only asks it to report; it was proven on a live A6 e-tron
     # (the data was fresh again afterwards) and is a normal control now.
     assert new["wake_vehicle_modern"].experimental is False
