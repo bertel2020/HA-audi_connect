@@ -95,6 +95,19 @@ def profiles_with_a_target(vehicle: Any) -> list[dict[str, Any]]:
     return [p for p in _profiles(vehicle) if p.get("targetSOC_pct") is not None]
 
 
+def profile_slider_wanted(vehicle: Any) -> bool:
+    """Whether the car's profiles can carry a target for a slider to show.
+
+    A car that lists profiles but gives none of them a target (the A6 says so
+    with targetSOC_pct null) never will, so the slider would stay unavailable
+    for good. That is the car's own statement, so a registry entry from an
+    earlier poll must not bring the slider back. A poll with no profiles at all
+    says nothing and leaves the decision to the usual rules.
+    """
+    profiles = _profiles(vehicle)
+    return not profiles or bool(profiles_with_a_target(vehicle))
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -111,6 +124,10 @@ async def async_setup_entry(
             description.key,
             vehicle := config_vehicle.vehicle,
             description.attr_key,
+            configured=(
+                description.key != "active_charging_profile_target_soc"
+                or profile_slider_wanted(vehicle)
+            ),
         )
     ]
     entities.extend(
