@@ -291,6 +291,20 @@ class AudiService(AudiAuthMixin):
             f"{await self._get_home_region(vin.upper())}/fs-car/vehicleMgmt/vehicledata/v2/{self._type}/{self._country}/vehicles/{vin.upper()}/"
         )
 
+    async def get_capabilities(self, vin: str) -> dict[str, Any]:
+        """What the car can do, with each capability's parameters.
+
+        The capability list inside selectivestatus carries no parameters. This
+        separate call does: limits such as the lowest charge target the car
+        accepts. Returns the capabilities keyed by id.
+        """
+        self._api.use_token(self._bearer_token_json)
+        response = await self._api.get(
+            self._get_cariad_url_for_vin(vin, "capabilities")
+        )
+        found = response.get("capabilities") if isinstance(response, dict) else None
+        return found if isinstance(found, dict) else {}
+
     async def get_last_trip(self, vin: str, kind: str) -> dict[str, Any]:
         """The car's last trip of one kind ("shortterm" or "longterm").
 
