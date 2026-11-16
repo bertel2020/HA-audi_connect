@@ -329,6 +329,28 @@
           "description": "Alternatively a path below the vehicle URL, e.g. capabilities."
         }
       }
+    },
+    "test_climatisation_write": {
+      "name": "Test a climatisation setting write",
+      "description": "Experimental: writes one climatisation setting with a chosen request body to find what the vehicle accepts. Changes the setting stored in the car.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The Audi vehicle."
+        },
+        "setting": {
+          "name": "Setting",
+          "description": "The setting to change."
+        },
+        "value": {
+          "name": "Value",
+          "description": "New value."
+        },
+        "variant": {
+          "name": "Body variant",
+          "description": "full: all settings; without_window_heating: leaves out window heating; single_field: only the changed field."
+        }
+      }
     }
   },
   "entity": {

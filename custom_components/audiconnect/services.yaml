@@ -240,3 +240,34 @@ stop_engine:
       selector:
         device:
           integration: audiconnect
+
+test_climatisation_write:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: audiconnect
+    setting:
+      required: true
+      selector:
+        select:
+          options:
+            - climatizationAtUnlock
+            - windowHeatingEnabled
+            - zoneFrontLeftEnabled
+            - zoneFrontRightEnabled
+            - zoneRearLeftEnabled
+            - zoneRearRightEnabled
+    value:
+      required: true
+      selector:
+        boolean:
+    variant:
+      required: true
+      selector:
+        select:
+          options:
+            - full
+            - without_window_heating
+            - single_field

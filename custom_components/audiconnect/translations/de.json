@@ -329,6 +329,28 @@
           "description": "Alternativ ein Pfad unterhalb der Fahrzeug-URL, z. B. capabilities."
         }
       }
+    },
+    "test_climatisation_write": {
+      "name": "Testschreiben Klimatisierungs-Einstellung",
+      "description": "Experimentell: schreibt eine einzelne Klimatisierungs-Einstellung mit einem wählbaren Body, um herauszufinden, was das Auto annimmt. Ändert die gespeicherte Einstellung im Auto.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Audi-Fahrzeug."
+        },
+        "setting": {
+          "name": "Einstellung",
+          "description": "Die zu ändernde Einstellung."
+        },
+        "value": {
+          "name": "Wert",
+          "description": "Neuer Wert."
+        },
+        "variant": {
+          "name": "Body-Variante",
+          "description": "full: alle Einstellungen; without_window_heating: ohne Scheibenheizung; single_field: nur das geänderte Feld."
+        }
+      }
     }
   },
   "entity": {

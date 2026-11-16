@@ -145,6 +145,27 @@ SERVICE_SET_TARGET_SOC_SCHEMA = vol.Schema(
     }
 )
 
+SERVICE_TEST_CLIMATISATION_WRITE = "test_climatisation_write"
+SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Required("setting"): vol.In(
+            [
+                "climatizationAtUnlock",
+                "windowHeatingEnabled",
+                "zoneFrontLeftEnabled",
+                "zoneFrontRightEnabled",
+                "zoneRearLeftEnabled",
+                "zoneRearRightEnabled",
+            ]
+        ),
+        vol.Required("value"): cv.boolean,
+        vol.Required("variant"): vol.In(
+            ["full", "without_window_heating", "single_field"]
+        ),
+    }
+)
+
 SERVICE_START_ENGINE = "start_engine"
 SERVICE_START_ENGINE_SCHEMA = vol.Schema(
     {vol.Required(CONF_DEVICE_ID): _single_device_id}
@@ -355,6 +376,16 @@ class AudiAccount(AudiConnectObserver):
         )
         self._raise_on_failed_command(result, "set_target_soc")
 
+    async def test_climatisation_write(self, vin: str, service: ServiceCall) -> None:
+        """Write one climatisation setting with a chosen body, to find what the car takes."""
+        result = await self.connection.set_climatisation_setting(
+            vin.lower(),
+            service.data["setting"],
+            service.data["value"],
+            service.data["variant"],
+        )
+        self._raise_on_failed_command(result, "test_climatisation_write")
+
     def _require_remote_engine_support(self, vin: str) -> None:
         """Check direct-service calls as well as buttons; never infer capability."""
         for config_vehicle in self.config_vehicles:
@@ -440,6 +471,8 @@ __all__ = [
     "SERVICE_START_CLIMATE_CONTROL_SCHEMA",
     "SERVICE_START_ENGINE",
     "SERVICE_START_ENGINE_SCHEMA",
+    "SERVICE_TEST_CLIMATISATION_WRITE",
+    "SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA",
     "SERVICE_STOP_ENGINE",
     "SERVICE_STOP_ENGINE_SCHEMA",
     "AudiAccount",
