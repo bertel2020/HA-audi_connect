@@ -531,6 +531,15 @@ class AudiConnectAccount:
             lambda: self._audi_service.set_target_state_of_charge(vin, target_soc),
         )
 
+    async def set_plug_auto_unlock(self, vin: str, enabled: bool):
+        """Let the car release the charging plug when charging is done."""
+        state = "on" if enabled else "off"
+        return await self._run_command(
+            vin,
+            f"switch plug auto-unlock {state} for vehicle {vin}",
+            lambda: self._audi_service.set_plug_auto_unlock(vin, enabled),
+        )
+
     async def set_vehicle_climatisation(self, vin: str, activate: bool):
         action = "start" if activate else "stop"
         return await self._run_command(

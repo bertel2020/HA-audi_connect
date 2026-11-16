@@ -34,6 +34,8 @@ class AudiSwitchEntityDescription(SwitchEntityDescription):
     turn_on_fn: Callable[[Any, str], Coroutine[Any, Any, bool]]
     turn_off_fn: Callable[[Any, str], Coroutine[Any, Any, bool]]
     value_fn: Callable[[Any], bool] = bool
+    # Writes whose exact format the car has not been seen to accept yet.
+    experimental: bool = False
 
 
 # Climatisation settings the car stores and reports back. Writable through
@@ -99,6 +101,17 @@ SWITCH_DESCRIPTIONS: tuple[AudiSwitchEntityDescription, ...] = (
         turn_off_fn=lambda conn, vin: conn.set_vehicle_pre_heater(vin, False),
     ),
     *(_setting_switch(*row) for row in _CLIMATISATION_SETTINGS),
+    AudiSwitchEntityDescription(
+        key="plug_auto_unlock",
+        attr_key="charging_plug_auto_unlock",
+        translation_key="plug_auto_unlock",
+        icon="mdi:ev-plug-type2",
+        entity_category=EntityCategory.CONFIG,
+        value_fn=lambda value: value == "enabled",
+        turn_on_fn=lambda conn, vin: conn.set_plug_auto_unlock(vin, True),
+        turn_off_fn=lambda conn, vin: conn.set_plug_auto_unlock(vin, False),
+        experimental=True,
+    ),
 )
 
 
@@ -118,6 +131,10 @@ async def async_setup_entry(
             description.key,
             vehicle := config_vehicle.vehicle,
             description.attr_key,
+            configured=(
+                not description.experimental
+                or config_entry.options.get("experimental_commands", False)
+            ),
         )
     ]
     # One stateful ON/OFF control for the two physically verified Q8 climate

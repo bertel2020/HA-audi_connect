@@ -579,7 +579,9 @@ class AudiVehicleProperties:
     @property
     def charging_plug_auto_unlock(self):
         value = self._vehicle.state.get("chargingPlugAutoUnlock")
-        if value == "on":
+        # "on" is what older code assumed; "permanent" is what the capability
+        # (allowPlugUnlockACPermanent) announces. Either means enabled.
+        if value in ("on", "permanent"):
             return "enabled"
         if value == "off":
             return "disabled"

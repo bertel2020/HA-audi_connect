@@ -656,6 +656,9 @@
       "climatisation_window_heating": {
         "name": "Window heating"
       },
+      "plug_auto_unlock": {
+        "name": "Release plug after charging"
+      },
       "climatisation_at_unlock": {
         "name": "Climatisation at unlock"
       },
