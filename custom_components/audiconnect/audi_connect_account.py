@@ -5,7 +5,7 @@ import logging
 import re
 import time
 from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timedelta, UTC
 from typing import Any
 
@@ -340,111 +340,87 @@ class AudiConnectAccount:
             )
             return False
 
-    async def set_vehicle_lock(self, vin: str, lock: bool):
+    async def _run_command(
+        self,
+        vin: str,
+        description: str,
+        call: Callable[[], Awaitable[Any]],
+        *,
+        notify_action: str | None = None,
+        notify_label: str | None = None,
+    ) -> bool:
+        """Log in if needed, send one vehicle command and say whether it worked.
+
+        A command that cannot be sent is logged and reported as ``False``; it
+        must never take the integration down, whatever the cause. When
+        ``notify_action`` is given the cloud refresh is requested afterwards,
+        successful or not, and a failure of that refresh is only a warning.
+        """
         if not self._loggedin:
             await self.login()
-
         if not self._loggedin:
             return False
 
         try:
-            _LOGGER.debug(
-                "Sending %s command to vehicle %s",
-                "lock" if lock else "unlock",
-                vin,
-            )
-
-            await self._audi_service.set_vehicle_lock(vin, lock)
-
-            _LOGGER.debug(
-                "Successfully %s vehicle %s",
-                "locked" if lock else "unlocked",
-                vin,
-            )
-
+            _LOGGER.debug("Sending command to %s", description)
+            await call()
+            _LOGGER.debug("Command succeeded: %s", description)
             return True
-
         except Exception as exception:
-            log_exception(
-                exception,
-                "Unable to {action} {vin}".format(
-                    action="lock" if lock else "unlock", vin=vin
-                ),
-            )
+            log_exception(exception, f"Unable to {description}")
             return False
         finally:
-            try:
-                await self.notify(vin, ACTION_LOCK)
-            except Exception as ex:
-                _LOGGER.warning(
-                    "Cloud refresh failed after lock/unlock for %s: %s", vin, ex
-                )
+            if notify_action is not None:
+                try:
+                    await self.notify(vin, notify_action)
+                except Exception as ex:
+                    _LOGGER.warning(
+                        "Cloud refresh failed after %s for %s: %s",
+                        notify_label or description,
+                        vin,
+                        ex,
+                    )
+
+    async def set_vehicle_lock(self, vin: str, lock: bool):
+        action = "lock" if lock else "unlock"
+        return await self._run_command(
+            vin,
+            f"{action} vehicle {vin}",
+            lambda: self._audi_service.set_vehicle_lock(vin, lock),
+            notify_action=ACTION_LOCK,
+            notify_label="lock/unlock",
+        )
 
     async def set_location_charge_target(self, vin: str, profile_id, target_soc: int):
         """Set a location charging profile's target SoC (the governing value)."""
-        if not self._loggedin:
-            await self.login()
-        if not self._loggedin:
-            return False
-        try:
-            _LOGGER.debug(
-                "Setting location charge target to %d%% (profile %s) for %s",
-                target_soc,
-                profile_id,
-                vin,
-            )
-            await self._audi_service.set_location_charge_target(
+        return await self._run_command(
+            vin,
+            f"set location charge target to {target_soc}% "
+            f"(profile {profile_id}) for vehicle {vin}",
+            lambda: self._audi_service.set_location_charge_target(
                 vin, profile_id, target_soc
-            )
-            return True
-        except Exception as exception:
-            log_exception(
-                exception,
-                f"Unable to set location charge target for vehicle {vin}",
-            )
-            return False
+            ),
+        )
 
     async def set_charge_mode(self, vin: str, mode: str):
         """Set the preferred charge mode (manual or timer)."""
-        if not self._loggedin:
-            await self.login()
-
-        if not self._loggedin:
-            return False
-
-        try:
-            _LOGGER.debug("Setting charge mode to %s for vehicle %s", mode, vin)
-            await self._audi_service.set_preferred_charge_mode(vin, mode)
-            return True
-        except Exception as exception:
-            log_exception(exception, f"Unable to set charge mode for vehicle {vin}")
-            return False
+        return await self._run_command(
+            vin,
+            f"set charge mode to {mode} for vehicle {vin}",
+            lambda: self._audi_service.set_preferred_charge_mode(vin, mode),
+        )
 
     async def set_climatisation_setting(self, vin: str, field: str, value) -> bool:
         """Change one climatisation setting, leaving the others as they are."""
-        if not self._loggedin:
-            await self.login()
-        if not self._loggedin:
-            return False
-
-        try:
-            _LOGGER.debug("Setting %s=%s for vehicle %s", field, value, vin)
-            await self._audi_service.set_climatisation_settings(
+        return await self._run_command(
+            vin,
+            f"set {field}={value} for vehicle {vin}",
+            lambda: self._audi_service.set_climatisation_settings(
                 vin.lower(), **{field: value}
-            )
-            return True
-        except Exception as exception:
-            log_exception(exception, f"Unable to set {field} for vehicle {vin}")
-            return False
-        finally:
-            try:
-                await self.notify(vin, ACTION_CLIMATISATION)
-            except Exception as ex:
-                _LOGGER.warning(
-                    "Cloud refresh failed after a climatisation setting for %s: %s",
-                    vin,
-                    ex,
-                )
+            ),
+            notify_action=ACTION_CLIMATISATION,
+            notify_label="a climatisation setting",
+        )
 
     async def flash_lights(self, vin: str, duration_s: int = 10) -> bool:
         """Flash the vehicle's lights. Never sounds the horn."""
@@ -466,84 +442,31 @@ class AudiConnectAccount:
             )
             return False
 
-        try:
-            _LOGGER.debug("Flashing lights for vehicle %s", vin)
-            await self._audi_service.flash_lights(vin, latitude, longitude, duration_s)
-            return True
-        except Exception as exception:
-            log_exception(exception, f"Unable to flash lights for vehicle {vin}")
-            return False
+        return await self._run_command(
+            vin,
+            f"flash lights of vehicle {vin}",
+            lambda: self._audi_service.flash_lights(
+                vin, latitude, longitude, duration_s
+            ),
+        )
 
     async def set_target_state_of_charge(self, vin: str, target_soc: int):
         """Set the target state of charge for the vehicle battery."""
-        if not self._loggedin:
-            await self.login()
-
-        if not self._loggedin:
-            return False
-
-        try:
-            _LOGGER.debug(
-                "Setting target state of charge to %d%% for vehicle %s",
-                target_soc,
-                vin,
-            )
-
-            await self._audi_service.set_target_state_of_charge(vin, target_soc)
-
-            _LOGGER.debug(
-                "Successfully set target state of charge to %d%% for vehicle %s",
-                target_soc,
-                vin,
-            )
-
-            return True
-
-        except Exception as exception:
-            log_exception(
-                exception,
-                f"Unable to set target state of charge for vehicle {vin}",
-            )
-            return False
+        return await self._run_command(
+            vin,
+            f"set target state of charge to {target_soc}% for vehicle {vin}",
+            lambda: self._audi_service.set_target_state_of_charge(vin, target_soc),
+        )
 
     async def set_vehicle_climatisation(self, vin: str, activate: bool):
-        if not self._loggedin:
-            await self.login()
-
-        if not self._loggedin:
-            return False
-
-        try:
-            _LOGGER.debug(
-                "Sending command to %s climatisation for vehicle %s",
-                "start" if activate else "stop",
-                vin,
-            )
-
-            await self._audi_service.set_climatisation(vin, activate)
-
-            _LOGGER.debug(
-                "Successfully %s climatisation for vehicle %s",
-                "started" if activate else "stopped",
-                vin,
-            )
-
-            return True
-
-        except Exception as exception:
-            log_exception(
-                exception,
-                "Unable to {action} climatisation of vehicle {vin}".format(
-                    action="start" if activate else "stop", vin=vin
-                ),
-            )
-        finally:
-            try:
-                await self.notify(vin, ACTION_CLIMATISATION)
-            except Exception as ex:
-                _LOGGER.warning(
-                    "Cloud refresh failed after climatisation for %s: %s", vin, ex
-                )
+        action = "start" if activate else "stop"
+        return await self._run_command(
+            vin,
+            f"{action} climatisation of vehicle {vin}",
+            lambda: self._audi_service.set_climatisation(vin, activate),
+            notify_action=ACTION_CLIMATISATION,
+            notify_label="climatisation",
+        )
 
     async def start_climate_control(
         self,
@@ -558,18 +481,14 @@ class AudiConnectAccount:
         climatisation_at_unlock: bool | None = None,
         climatisation_mode: str | None = None,
     ):
-        if not self._loggedin:
-            await self.login()
-
-        if not self._loggedin:
-            return False
-
-        try:
-            _LOGGER.debug(
-                "Sending command to start climate control for vehicle %s with settings - "
-                "Temp(F): %s, Temp(C): %s, Glass Heating: %s, Seat FL: %s, "
-                "Seat FR: %s, Seat RL: %s, Seat RR: %s, "
-                "Climatisation at Unlock: %s, Climatisation Mode: %s",
+        return await self._run_command(
+            vin,
+            f"start climate control of vehicle {vin} (Temp(F): {temp_f}, "
+            f"Temp(C): {temp_c}, Glass Heating: {glass_heating}, "
+            f"Seat FL: {seat_fl}, Seat FR: {seat_fr}, Seat RL: {seat_rl}, "
+            f"Seat RR: {seat_rr}, Climatisation at Unlock: "
+            f"{climatisation_at_unlock}, Climatisation Mode: {climatisation_mode})",
+            lambda: self._audi_service.start_climate_control(
                 vin,
                 temp_f,
                 temp_c,
@@ -580,219 +499,58 @@ class AudiConnectAccount:
                 seat_rr,
                 climatisation_at_unlock,
                 climatisation_mode,
-            )
-
-            await self._audi_service.start_climate_control(
-                vin,
-                temp_f,
-                temp_c,
-                glass_heating,
-                seat_fl,
-                seat_fr,
-                seat_rl,
-                seat_rr,
-                climatisation_at_unlock,
-                climatisation_mode,
-            )
-
-            _LOGGER.debug(
-                "Successfully started climate control of vehicle %s",
-                vin,
-            )
-
-            return True
-
-        except Exception:
-            _LOGGER.exception(
-                "Unable to start climate control of vehicle %s",
-                vin,
-            )
-            return False
-        finally:
-            try:
-                await self.notify(vin, ACTION_CLIMATISATION)
-            except Exception as ex:
-                _LOGGER.warning(
-                    "Cloud refresh failed after climate control for %s: %s", vin, ex
-                )
+            ),
+            notify_action=ACTION_CLIMATISATION,
+            notify_label="climate control",
+        )
 
     async def set_battery_charger(self, vin: str, activate: bool, timer: bool):
-        if not self._loggedin:
-            await self.login()
-
-        if not self._loggedin:
-            return False
-
-        try:
-            _LOGGER.debug(
-                "Sending command to %s%s charger for vehicle %s",
-                "start" if activate else "stop",
-                " timed" if timer else "",
-                vin,
-            )
-
-            await self._audi_service.set_battery_charger(vin, activate, timer)
-
-            _LOGGER.debug(
-                "Successfully %s%s charger for vehicle %s",
-                "started" if activate else "stopped",
-                " timed" if timer else "",
-                vin,
-            )
-
-            return True
-
-        except Exception as exception:
-            log_exception(
-                exception,
-                "Unable to {action} charger of vehicle {vin}".format(
-                    action="start" if activate else "stop", vin=vin
-                ),
-            )
-        finally:
-            try:
-                await self.notify(vin, ACTION_CHARGER)
-            except Exception as ex:
-                _LOGGER.warning(
-                    "Cloud refresh failed after charger action for %s: %s", vin, ex
-                )
+        action = "start" if activate else "stop"
+        return await self._run_command(
+            vin,
+            f"{action}{' timed' if timer else ''} charger of vehicle {vin}",
+            lambda: self._audi_service.set_battery_charger(vin, activate, timer),
+            notify_action=ACTION_CHARGER,
+            notify_label="charger action",
+        )
 
     async def set_vehicle_window_heating(self, vin: str, activate: bool):
-        if not self._loggedin:
-            await self.login()
-
-        if not self._loggedin:
-            return False
-
-        try:
-            _LOGGER.debug(
-                "Sending command to %s window heating for vehicle %s",
-                "start" if activate else "stop",
-                vin,
-            )
-
-            await self._audi_service.set_window_heating(vin, activate)
-
-            _LOGGER.debug(
-                "Successfully %s window heating for vehicle %s",
-                "started" if activate else "stopped",
-                vin,
-            )
-
-            return True
-
-        except Exception as exception:
-            log_exception(
-                exception,
-                "Unable to {action} window heating of vehicle {vin}".format(
-                    action="start" if activate else "stop", vin=vin
-                ),
-            )
-        finally:
-            try:
-                await self.notify(vin, ACTION_WINDOW_HEATING)
-            except Exception as ex:
-                _LOGGER.warning(
-                    "Cloud refresh failed after window heating for %s: %s", vin, ex
-                )
+        action = "start" if activate else "stop"
+        return await self._run_command(
+            vin,
+            f"{action} window heating of vehicle {vin}",
+            lambda: self._audi_service.set_window_heating(vin, activate),
+            notify_action=ACTION_WINDOW_HEATING,
+            notify_label="window heating",
+        )
 
     async def set_vehicle_pre_heater(self, vin: str, activate: bool, **kwargs):
-        if not self._loggedin:
-            await self.login()
-
-        if not self._loggedin:
-            return False
-
-        try:
-            _LOGGER.debug(
-                "Sending command to %s pre-heater for vehicle %s",
-                "start" if activate else "stop",
-                vin,
-            )
-
-            # Pass **kwargs down
-            await self._audi_service.set_pre_heater(vin, activate, **kwargs)
-
-            _LOGGER.debug(
-                "Successfully %s pre-heater for vehicle %s",
-                "started" if activate else "stopped",
-                vin,
-            )
-
-            return True
-
-        except Exception as exception:
-            log_exception(
-                exception,
-                "Unable to {action} pre-heater of vehicle {vin}".format(
-                    action="start" if activate else "stop", vin=vin
-                ),
-            )
-        finally:
-            try:
-                await self.notify(vin, ACTION_PRE_HEATER)
-            except Exception as ex:
-                _LOGGER.warning(
-                    "Cloud refresh failed after pre-heater for %s: %s", vin, ex
-                )
+        action = "start" if activate else "stop"
+        return await self._run_command(
+            vin,
+            f"{action} pre-heater of vehicle {vin}",
+            lambda: self._audi_service.set_pre_heater(vin, activate, **kwargs),
+            notify_action=ACTION_PRE_HEATER,
+            notify_label="pre-heater",
+        )
 
     async def start_engine(self, vin: str):
-        if not self._loggedin:
-            await self.login()
-
-        if not self._loggedin:
-            return False
-
-        try:
-            _LOGGER.debug("Sending command to start engine for vehicle %s", vin)
-
-            await self._audi_service.start_engine(vin)
-
-            _LOGGER.debug("Successfully started engine of vehicle %s", vin)
-
-            return True
-
-        except Exception as exception:
-            log_exception(
-                exception,
-                f"Unable to start engine of vehicle {vin}",
-            )
-        finally:
-            try:
-                await self.notify(vin, ACTION_ENGINE)
-            except Exception as ex:
-                _LOGGER.warning(
-                    "Cloud refresh failed after engine start for %s: %s", vin, ex
-                )
+        return await self._run_command(
+            vin,
+            f"start engine of vehicle {vin}",
+            lambda: self._audi_service.start_engine(vin),
+            notify_action=ACTION_ENGINE,
+            notify_label="engine start",
+        )
 
     async def stop_engine(self, vin: str):
-        if not self._loggedin:
-            await self.login()
-
-        if not self._loggedin:
-            return False
-
-        try:
-            _LOGGER.debug("Sending command to stop engine for vehicle %s", vin)
-
-            await self._audi_service.stop_engine(vin)
-
-            _LOGGER.debug("Successfully stopped engine of vehicle %s", vin)
-
-            return True
-
-        except Exception as exception:
-            log_exception(
-                exception,
-                f"Unable to stop engine of vehicle {vin}",
-            )
-        finally:
-            try:
-                await self.notify(vin, ACTION_ENGINE)
-            except Exception as ex:
-                _LOGGER.warning(
-                    "Cloud refresh failed after engine stop for %s: %s", vin, ex
-                )
+        return await self._run_command(
+            vin,
+            f"stop engine of vehicle {vin}",
+            lambda: self._audi_service.stop_engine(vin),
+            notify_action=ACTION_ENGINE,
+            notify_label="engine stop",
+        )
 
 
 class AudiConnectVehicle:
