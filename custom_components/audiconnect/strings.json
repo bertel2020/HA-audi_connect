@@ -387,6 +387,9 @@
       "charging_scenario": {
         "name": "Charging scenario"
       },
+      "access_overall_status": {
+        "name": "Security status"
+      },
       "battery_care_mode": {
         "name": "Battery care mode"
       },

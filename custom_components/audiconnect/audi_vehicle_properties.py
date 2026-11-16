@@ -272,6 +272,15 @@ class AudiVehicleProperties:
         _is_known,
         doc='The car\'s own lock verdict for the whole vehicle, "locked" or\n"unlocked". Preferred over doors_trunk_status, which needs all four\ndoors and so has nothing to say about a coupé.',
     )
+    access_overall_status = _Field(
+        _STATE,
+        "accessOverallStatus",
+        _is_known,
+        doc=(
+            "The car's own one-word verdict on doors, windows and locks together, "
+            '"safe" when everything is closed and locked.'
+        ),
+    )
     shortterm_current = _Field(_STATE, "shortterm_current", _truthy)
     shortterm_reset = _Field(_STATE, "shortterm_reset", _truthy)
     longterm_current = _Field(_STATE, "longterm_current", _truthy)

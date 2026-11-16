@@ -205,6 +205,15 @@ class VehicleDataResponse:
             ["access", "accessStatus", "value", "doorLockStatus"],
         )
 
+        # The car's one-word verdict on doors, windows and locks together
+        # ("safe" when everything is closed and locked).
+        self._tryAppendStateWithTs(
+            data,
+            "accessOverallStatus",
+            -1,
+            ["access", "accessStatus", "value", "overallStatus"],
+        )
+
         self._tryAppendStateWithTs(
             data, "carType", -1, ["fuelStatus", "rangeStatus", "value", "carType"]
         )
