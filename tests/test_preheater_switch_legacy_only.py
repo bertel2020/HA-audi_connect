@@ -70,10 +70,17 @@ def _setting_keys(flags):
     return {e.entity_description.key for e in added if hasattr(e, "entity_description")}
 
 
-def test_window_heating_is_hidden_when_the_car_says_it_is_unsupported():
+def test_window_heating_preset_stays_even_when_the_car_flags_it_unsupported():
+    # The A6 says supportsWindowHeatingEnabled=false but still takes the preset.
     keys = _setting_keys({"supportsWindowHeatingEnabled": False})
-    assert "climatisation_window_heating" not in keys
+    assert "climatisation_window_heating" in keys
     assert "climatisation_zone_front_left" in keys
+
+
+def test_zone_is_hidden_when_the_car_says_it_is_unsupported():
+    keys = _setting_keys({"supportsZoneRearLeftEnabled": False})
+    assert "climatisation_zone_rear_left" not in keys
+    assert "climatisation_window_heating" in keys
 
 
 def test_a_setting_stays_when_the_car_gave_no_answer():
