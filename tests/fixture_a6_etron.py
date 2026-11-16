@@ -73,6 +73,17 @@ CAPABILITIES = {
                 {"id": "eRoutePlanner", "expirationDate": "2028-03-10T00:00:00+00:00"},
                 {"id": "bluetoothIdent", "expirationDate": "2124-03-10T00:00:00+00:00"},
                 {"id": "batteryChargingCare"},
+                {
+                    "id": "charging",
+                    "parameters": [
+                        {"key": "supportsTargetStateOfCharge", "value": "true"},
+                        {
+                            "key": "targetStateOfChargeMinimumAllowedValue",
+                            "value": "50",
+                        },
+                        {"key": "targetStateOfChargeStepSize", "value": "5"},
+                    ],
+                },
             ]
         }
     }

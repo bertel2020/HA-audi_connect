@@ -650,6 +650,20 @@ class AudiVehicleProperties:
     parking_brake = _Field(_STATE, "parkingBrake", _is_bool)
 
     @property
+    def charge_target_limits(self) -> dict[str, int]:
+        """Lowest charge target and step size the car says it accepts."""
+        value = self._vehicle.state.get("chargeTargetLimits")
+        return value if isinstance(value, dict) else {}
+
+    @property
+    def charge_target_min(self) -> int | None:
+        return self.charge_target_limits.get("min")
+
+    @property
+    def charge_target_step(self) -> int | None:
+        return self.charge_target_limits.get("step")
+
+    @property
     def service_expiry(self) -> dict[str, Any]:
         """End date per time-limited online service, as the car lists them."""
         value = self._vehicle.state.get("serviceExpiry")
