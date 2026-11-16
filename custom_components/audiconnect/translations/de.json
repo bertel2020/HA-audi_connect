@@ -710,6 +710,9 @@
       },
       "stop_engine": {
         "name": "Motor stoppen"
+      },
+      "honk_horn": {
+        "name": "Hupen"
       }
     },
     "number": {

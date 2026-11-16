@@ -69,6 +69,17 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
         press_fn=lambda account, vin: account.connection.flash_lights(vin),
     ),
     AudiButtonEntityDescription(
+        key="honk_horn",
+        translation_key="honk_horn",
+        icon="mdi:bullhorn",
+        # Loud, so off until the user turns it on.
+        entity_registry_enabled_default=False,
+        supported_fn=lambda vehicle: is_entity_supported(
+            vehicle, "position", "honkAndFlash"
+        ),
+        press_fn=lambda account, vin: account.connection.honk_horn(vin),
+    ),
+    AudiButtonEntityDescription(
         key="start_charging_modern",
         translation_key="start_charging_modern",
         icon="mdi:ev-station",
