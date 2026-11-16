@@ -54,3 +54,8 @@ def test_a_malformed_bs_path_is_refused_before_any_request():
 
     with pytest.raises(ValueError, match="bs path"):
         probe("bs/climatisation")
+
+
+def test_bff_paths_reach_any_read_only_route_with_the_vin_filled_in():
+    url = probe("bff/vehicle/v1/vehicles/{vin}")
+    assert url == f"https://emea.bff.cariad.digital/vehicle/v1/vehicles/{VIN}"
