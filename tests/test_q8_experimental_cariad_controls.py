@@ -91,10 +91,13 @@ def test_unproven_controls_require_user_opt_in_and_explicit_capability():
         "stop_charging_modern",
         "start_window_heating_modern",
         "stop_window_heating_modern",
-        "wake_vehicle_modern",
     ):
         assert new[key].experimental is True
         assert new[key].supported_fn(v) is True
+    # Waking the car only asks it to report; it was proven on a live A6 e-tron
+    # (the data was fresh again afterwards) and is a normal control now.
+    assert new["wake_vehicle_modern"].experimental is False
+    assert new["wake_vehicle_modern"].supported_fn(v) is True
     assert "start_climate_car_settings" not in new
     assert "stop_climate" not in new
     assert new["flash_lights"].experimental is False

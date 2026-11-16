@@ -123,7 +123,6 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
         key="wake_vehicle_modern",
         translation_key="wake_vehicle_modern",
         icon="mdi:car-connected",
-        experimental=True,
         supported_fn=_wakeup_capable,
         press_fn=lambda account, vin: account.connection.trigger_vehicle_wakeup(vin),
     ),
