@@ -75,11 +75,9 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
     # warn when both are provided.
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
-    # The api_level 1 payload truncates the target to a whole number
-    # (int(temp_c)), so a half-degree step would advertise a precision the car
-    # never receives. api_level 0 keeps the fraction, but the step has to hold
-    # for both.
-    _attr_target_temperature_step = 1.0
+    # The car stores half degrees, and both requests that carry the target
+    # (the settings write and the start) send them.
+    _attr_target_temperature_step = 0.5
     _attr_min_temp = _MIN_TEMP_C
     _attr_max_temp = _MAX_TEMP_C
 
@@ -202,6 +200,20 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
             return
         self._attr_native_target_temperature = float(temperature)
         self.async_write_ha_state()
+        connection = self.coordinator.account.connection
+        service = getattr(connection, "_audi_service", None)
+        # Stopped: store it in the car, which is what the myAudi app does. This
+        # does not start the climatisation. Without a way to write the setting
+        # the value stays here and is used at the next start.
+        if not self._is_running and getattr(service, "uses_auth0", False):
+            if not await connection.set_climatisation_setting(
+                self._vehicle.vin, "targetTemperature", float(temperature)
+            ):
+                raise HomeAssistantError(
+                    "Failed to set the target temperature; see the log for details"
+                )
+            await self.coordinator.async_request_refresh()
+            return
         # Re-send only if it is already running, so setting a temperature while
         # off does not start the car climatising.
         if self._is_running:

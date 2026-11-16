@@ -191,6 +191,21 @@ def test_setting_a_temperature_while_off_does_not_start_the_car():
     assert coordinator.refreshed == 0
 
 
+def test_with_a_modern_account_a_stopped_car_gets_the_setting_written():
+    """Not just remembered here: the car reports its own target, which would
+    otherwise overwrite the value again and make the change look ignored."""
+    from types import SimpleNamespace as NS
+
+    connection = RecordingConnection()
+    connection._audi_service = NS(uses_auth0=True)
+    coordinator, entity = build("off", connection)
+    asyncio.run(entity.async_set_temperature(**{ATTR_TEMPERATURE: 19.5}))
+    assert connection.calls == [
+        ("set_climatisation_setting", (VIN, "targetTemperature", 19.5), {})
+    ]
+    assert coordinator.refreshed == 1
+
+
 def test_setting_a_temperature_while_running_re_sends_it():
     connection = RecordingConnection()
     _, entity = build("heating", connection)
@@ -268,18 +283,17 @@ def test_a_failed_command_raises_and_does_not_refresh(mode):
 
 
 def test_the_advertised_step_matches_what_the_car_receives():
-    """api_level 1 sends int(temp_c), so a 0.5 step would promise a precision
-    the car discards. Same class of defect as #751's Fahrenheit round trip,
-    reached by truncation instead."""
-    import inspect
+    """The car stores half degrees and both requests that carry the target send
+    them, so a 0.5 step promises nothing the car discards."""
+    from custom_components.audiconnect.audi_payloads import (
+        build_climatisation_start_body,
+    )
 
-    from custom_components.audiconnect import audi_services
-
-    source = inspect.getsource(audi_services.build_climatisation_start_body)
-    assert "int(temp_c)" in source  # control: the truncation is still there
+    assert build_climatisation_start_body({}, temp_c=19.5)["targetTemperature"] == 19.5
+    assert build_climatisation_start_body({}, temp_c=19.7)["targetTemperature"] == 19.5
 
     _, entity = build()
-    assert entity.target_temperature_step == 1.0
+    assert entity.target_temperature_step == 0.5
 
 
 def test_turn_on_and_off_are_advertised():
