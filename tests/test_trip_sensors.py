@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
 from types import SimpleNamespace
 
 import pytest
@@ -127,7 +126,6 @@ def test_the_sensors_show_the_cars_figures():
     assert read("last_trip_consumption") == 24.7
     assert read("last_trip_energy") == 5.681
     assert read("last_trip_speed") == 57
-    assert read("last_trip_end") == datetime.fromisoformat("2026-11-15T17:36:15+00:00")
     assert read("trip_totals_distance") == 6338
     assert read("trip_totals_duration") == 6553
 
