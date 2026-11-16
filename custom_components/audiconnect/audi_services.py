@@ -186,9 +186,20 @@ class AudiService(AudiAuthMixin):
         return response
 
     async def probe_vehicle_endpoint(self, vin: str, path_and_query: str):
-        """GET any read-only path below the vehicle's CARIAD URL (discovery)."""
+        """GET any read-only path below the vehicle's CARIAD URL (discovery).
+
+        Trip data lives beside the vehicle URL, not below it
+        (/vehicle/v1/trips/{vin}/...), so "trips/..." selects that root.
+        """
         self._api.use_token(self._bearer_token_json)
-        return await self._api.get(self._get_cariad_url_for_vin(vin, path_and_query))
+        if path_and_query.startswith("trips/"):
+            url = self._get_cariad_url(
+                "/vehicle/v1/trips/{vin}/" + path_and_query[len("trips/") :],
+                vin=vin.upper(),
+            )
+        else:
+            url = self._get_cariad_url_for_vin(vin, path_and_query)
+        return await self._api.get(url)
 
     async def get_charger(self, vin: str):
         self._api.use_token(self.vwToken)
