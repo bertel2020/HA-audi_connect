@@ -254,5 +254,11 @@ class AudiBinarySensor(AudiEntity, BinarySensorEntity):
             return val != "Normal"
         return val
 
+    @property
+    def extra_state_attributes(self) -> dict[str, str] | None:
+        if self.entity_description.key == "parking_light":
+            return getattr(self._vehicle, "parking_light_sides", None)
+        return None
+
 
 __all__ = ["AudiBinarySensor", "async_setup_entry"]
