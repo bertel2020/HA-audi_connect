@@ -99,19 +99,12 @@ def _warning_light_attrs(vehicle: Any) -> dict[str, Any] | None:
     }
 
 
-def _trip_figure(attr_key: str, field: str, *, as_time: bool = False):
+def _trip_figure(attr_key: str, field: str):
     """One figure out of the car's last-trip or trip-totals block."""
 
     def value(vehicle: Any) -> Any:
         block = getattr(vehicle, attr_key, None)
         raw = block.get(field) if isinstance(block, dict) else None
-        if as_time:
-            # ISO 8601 with an offset, which parse_datetime does not read.
-            try:
-                moment = datetime.fromisoformat(raw) if isinstance(raw, str) else None
-            except ValueError:
-                return None
-            return moment if moment and moment.tzinfo else None
         return (
             raw if isinstance(raw, (int, float)) and not isinstance(raw, bool) else None
         )
@@ -299,14 +292,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         icon="mdi:update",
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_category=EntityCategory.DIAGNOSTIC,
-    ),
-    AudiSensorEntityDescription(
-        key="last_trip_end",
-        attr_key="last_trip",
-        translation_key="last_trip_end",
-        icon="mdi:flag-checkered",
-        device_class=SensorDeviceClass.TIMESTAMP,
-        value_fn=_trip_figure("last_trip", "tripEndTimestamp", as_time=True),
     ),
     *_trip_sensors("last_trip", "last_trip", enabled=True),
     *_trip_sensors("trip_totals", "trip_totals", enabled=True, cumulative=True),
