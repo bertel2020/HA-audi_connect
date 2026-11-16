@@ -530,6 +530,9 @@
       },
       "api_requests_remaining": {
         "name": "API requests remaining"
+      },
+      "service_expiry_date": {
+        "name": "Online services end"
       }
     },
     "binary_sensor": {

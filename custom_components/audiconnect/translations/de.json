@@ -530,6 +530,9 @@
       },
       "api_requests_remaining": {
         "name": "Verbleibende API-Abrufe"
+      },
+      "service_expiry_date": {
+        "name": "Online-Dienste laufen ab"
       }
     },
     "binary_sensor": {

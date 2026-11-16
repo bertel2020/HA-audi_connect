@@ -61,3 +61,19 @@ PAYLOAD = {
         "parkingBrakeStatus": {"value": {"carCapturedTimestamp": T, "value": True}}
     },
 }
+
+# Capability list as the car sends it: most services run to 2035, six end on
+# 2028-03-10, and "permanent" ones carry a date a century out. One has no date.
+CAPABILITIES = {
+    "userCapabilities": {
+        "capabilitiesStatus": {
+            "value": [
+                {"id": "access", "expirationDate": "2035-03-10T00:00:00+00:00"},
+                {"id": "trafficLights", "expirationDate": "2028-03-10T00:00:00+00:00"},
+                {"id": "eRoutePlanner", "expirationDate": "2028-03-10T00:00:00+00:00"},
+                {"id": "bluetoothIdent", "expirationDate": "2124-03-10T00:00:00+00:00"},
+                {"id": "batteryChargingCare"},
+            ]
+        }
+    }
+}

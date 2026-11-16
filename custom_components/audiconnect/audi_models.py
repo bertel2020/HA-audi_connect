@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from typing import Any
 
 from .util import get_attr
@@ -35,6 +36,25 @@ def _count_error_objects(data: Any) -> int:
     if isinstance(data, list):
         return sum(_count_error_objects(v) for v in data)
     return 0
+
+
+_PERMANENT_YEAR = 2100
+
+
+def _service_end(value: Any) -> datetime | None:
+    """A real end date, or None for no date / "never" (a hundred years out)."""
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except ValueError:
+            return None
+    if (
+        isinstance(value, datetime)
+        and value.tzinfo is not None
+        and value.year < _PERMANENT_YEAR
+    ):
+        return value
+    return None
 
 
 class VehicleDataResponse:
@@ -455,6 +475,7 @@ class VehicleDataResponse:
 
         ids = []
         impaired = []
+        expiry: dict[str, datetime] = {}
         for entry in value:
             if not isinstance(entry, dict):
                 continue
@@ -462,6 +483,9 @@ class VehicleDataResponse:
             if not isinstance(cap_id, str) or not cap_id:
                 continue
             ids.append(cap_id)
+            ends = _service_end(entry.get("expirationDate"))
+            if ends is not None:
+                expiry[cap_id] = ends
             # A listed capability can still be reporting an error, so it is not
             # the same as a working one.
             if entry.get("status"):
@@ -475,6 +499,12 @@ class VehicleDataResponse:
         self.states.append(
             {"name": "userCapabilities", "value": sorted(ids), "measure_time": None}
         )
+        if expiry:
+            # When each time-limited online service ends. Dates a century out
+            # are the car's way of saying "does not expire" and are left out.
+            self.states.append(
+                {"name": "serviceExpiry", "value": expiry, "measure_time": None}
+            )
         if impaired:
             self.states.append(
                 {

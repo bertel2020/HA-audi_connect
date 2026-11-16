@@ -166,3 +166,69 @@ def test_the_platform_hands_the_requirement_to_the_creation_gate(monkeypatch):
 
     assert seen["longterm_current"] is False and seen["mileage"] is True
     assert "longterm_current" not in created and "mileage" in created
+
+
+# --- when the online services end ---------------------------------------------------
+
+
+def _capability_state():
+    from tests.fixture_a6_etron import CAPABILITIES
+
+    return states_of(copy.deepcopy(CAPABILITIES))
+
+
+def test_the_soonest_service_end_is_reported():
+    vehicle = vehicle_with(_capability_state())
+
+    assert vehicle.service_expiry_date.year == 2028
+    assert vehicle.service_expiry_date_supported
+
+
+def test_services_that_never_end_or_have_no_date_are_left_out():
+    listed = vehicle_with(_capability_state()).service_expiry
+
+    assert set(listed) == {"access", "trafficLights", "eRoutePlanner"}
+    assert "bluetoothIdent" not in listed  # 2124: permanent
+    assert "batteryChargingCare" not in listed  # no date at all
+
+
+def test_a_car_without_dates_has_no_expiry_sensor():
+    vehicle = vehicle_with({})
+
+    assert vehicle.service_expiry_date is None
+    assert not vehicle.service_expiry_date_supported
+
+
+def test_the_expiry_sensor_names_the_services_soonest_first():
+    from custom_components.audiconnect.sensor import _service_expiry_attrs
+
+    attrs = _service_expiry_attrs(vehicle_with(_capability_state()))
+
+    assert list(attrs["services"])[-1] == "access"  # 2035 comes last
+    assert attrs["count"] == 3
+    assert attrs["services"]["trafficLights"].startswith("2028-03-10")
+
+
+# --- per-profile charge targets -----------------------------------------------------
+
+
+def test_profiles_without_a_target_get_no_slider():
+    """The A6 reports profiles with no targetSOC_pct (the car says it does not
+    support one), so a slider for it could never show or set anything."""
+    from custom_components.audiconnect.number import profiles_with_a_target
+
+    vehicle = SimpleNamespace(
+        charging_profiles=[
+            {"id": 1, "name": "Zuhause", "targetSOC_pct": None},
+            {"id": 2, "name": "Arbeit"},
+            {"id": 3, "name": "Q8", "targetSOC_pct": 60},
+        ]
+    )
+
+    assert [p["id"] for p in profiles_with_a_target(vehicle)] == [3]
+
+
+def test_a_car_that_reports_no_profiles_is_unaffected():
+    from custom_components.audiconnect.number import profiles_with_a_target
+
+    assert profiles_with_a_target(SimpleNamespace(charging_profiles=None)) == []

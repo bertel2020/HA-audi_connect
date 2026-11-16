@@ -650,6 +650,22 @@ class AudiVehicleProperties:
     parking_brake = _Field(_STATE, "parkingBrake", _is_bool)
 
     @property
+    def service_expiry(self) -> dict[str, Any]:
+        """End date per time-limited online service, as the car lists them."""
+        value = self._vehicle.state.get("serviceExpiry")
+        return value if isinstance(value, dict) else {}
+
+    @property
+    def service_expiry_date(self):
+        """The first date on which one of the online services ends."""
+        dates = self.service_expiry
+        return min(dates.values()) if dates else None
+
+    @property
+    def service_expiry_date_supported(self):
+        return bool(self.service_expiry)
+
+    @property
     def capabilities(self) -> frozenset[str]:
         """What the car says it can do. Empty when it does not report the list,
         which every caller must treat as "unknown", never as "nothing"."""
