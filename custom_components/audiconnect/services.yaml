@@ -83,6 +83,16 @@ probe_api:
       example: "capabilities"
       selector:
         text:
+    graphql:
+      required: false
+      selector:
+        select:
+          options:
+            - media
+            - core
+            - classification
+            - vehicle_fields
+            - media_fields
 
 execute_vehicle_action:
   fields:

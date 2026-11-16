@@ -327,6 +327,10 @@
         "path": {
           "name": "Path",
           "description": "Alternatively a path below the vehicle URL, e.g. capabilities."
+        },
+        "graphql": {
+          "name": "GraphQL question",
+          "description": "A fixed read-only question to the app's vehicle service."
         }
       }
     },

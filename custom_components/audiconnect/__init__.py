@@ -300,6 +300,11 @@ def _async_register_services(hass: HomeAssistant) -> None:
     async def _handle_probe_api(service: ServiceCall) -> ServiceResponse:
         """Read-only discovery: ask the API for jobs or a path and return the answer."""
         vin, account = _resolve_service_call(hass, service)
+        preset = service.data.get("graphql")
+        if preset is not None:
+            result = await account.connection.probe_graphql(preset)
+            pattern = re.compile(re.escape(vin), re.IGNORECASE)
+            return {"query": f"graphql:{preset}", **redact(result, pattern)}
         path = service.data.get("path")
         if path is not None:
             if not _PROBE_PATH.fullmatch(path) or ".." in path:

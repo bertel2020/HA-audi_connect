@@ -304,6 +304,22 @@ class AudiConnectAccount:
                         f"{'*' * (len(vehicle.vin) - 4) + vehicle.vin[-4:]}",
                     )
 
+    async def probe_graphql(self, preset: str) -> dict[str, Any]:
+        """One fixed read-only GraphQL question; errors are returned, not raised."""
+        if not self._loggedin:
+            await self.login()
+        if not self._loggedin:
+            return {"error": "not logged in"}
+        try:
+            return {
+                "status": "ok",
+                "body": await self._audi_service.probe_graphql(preset),
+            }
+        except ClientResponseError as exception:
+            return {"status": exception.status, "error": exception.message}
+        except ValueError as exception:
+            return {"error": str(exception)}
+
     async def probe(self, vin: str, path_and_query: str) -> dict[str, Any]:
         """One read-only GET below the vehicle URL; errors are returned, not raised."""
         if not self._loggedin:
