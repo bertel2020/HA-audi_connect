@@ -22,6 +22,7 @@ from .audi_payloads import (
     JSON_CONTENT_VARIANTS,
     build_climatisation_settings_update,
     build_climatisation_start_body,
+    build_profile_change,
     build_profile_update,
 )
 from .const import DEFAULT_API_LEVEL
@@ -33,6 +34,7 @@ __all__ = [
     "AudiTokenRefreshError",
     "build_climatisation_settings_update",
     "build_climatisation_start_body",
+    "build_profile_change",
     "build_profile_update",
 ]
 
@@ -862,9 +864,24 @@ class AudiService(AudiAuthMixin):
 
         profile_id None targets the profile the car is currently parked in.
         """
+        await self._put_profile_change(
+            vin, profile_id, f"target {target_soc}%", targetSOC_pct=target_soc
+        )
+
+    async def set_profile_charging_current(
+        self, vin: str, profile_id: int | None, current: str
+    ) -> None:
+        """Set a location profile's charging current to "max" or "reduced"."""
+        await self._put_profile_change(
+            vin, profile_id, f"current {current}", maxChargingCurrent=current
+        )
+
+    async def _put_profile_change(
+        self, vin: str, profile_id: int | None, label: str, **changes: Any
+    ) -> None:
         raw = await self.get_charging_profiles_raw(vin)
         value = get_attr(raw, "chargingProfiles.chargingProfilesStatus.value")
-        profile_id, put_body = build_profile_update(value, profile_id, target_soc)
+        profile_id, put_body = build_profile_change(value, profile_id, **changes)
 
         headers = {
             "Authorization": "Bearer " + self._bearer_token_json["access_token"],
@@ -886,12 +903,12 @@ class AudiService(AudiAuthMixin):
         request_id = get_attr(res, "data.requestID") if isinstance(res, dict) else None
         if request_id is None:
             _LOGGER.debug(
-                "Location charge target for %s accepted with no request id to confirm",
+                "Profile change for %s accepted with no request id to confirm",
                 vin,
             )
             return
         await self._confirm_charging_command(
-            vin, f"profile {profile_id} target {target_soc}%", request_id
+            vin, f"profile {profile_id} {label}", request_id
         )
 
     async def flash_lights(

@@ -112,18 +112,33 @@ def build_climatisation_settings_update(
     return body
 
 
-def build_profile_update(value: dict, profile_id, target_soc: int) -> tuple[int, dict]:
+# The profile fields a caller may change. Anything else is refused rather than
+# sent, so a typo cannot become a field the car silently drops.
+_PROFILE_CHANGEABLE = frozenset({"targetSOC_pct", "maxChargingCurrent"})
+CHARGING_CURRENTS = ("max", "reduced")
+
+
+def build_profile_change(value: dict, profile_id, **changes: Any) -> tuple[int, dict]:
     """Pure read-modify-write core for a location charging profile.
 
     `value` is chargingProfiles.chargingProfilesStatus.value as the car reports
     it. Returns (resolved_profile_id, put_body) where put_body is exactly what
-    goes on the wire: {"profile": <the whole profile, one field changed>}.
+    goes on the wire: {"profile": <the whole profile, the named fields changed>}.
+    The app's request is the same shape (PUT charging/profiles).
 
     Kept pure and module-level so the field-preservation and profile-selection
     logic is testable against a real payload without standing up the service.
     """
-    if not (20 <= target_soc <= 100):
+    unknown = set(changes) - _PROFILE_CHANGEABLE
+    if unknown:
+        raise ValueError(f"Not changeable profile settings: {sorted(unknown)}")
+    if "targetSOC_pct" in changes and not (20 <= changes["targetSOC_pct"] <= 100):
         raise ValueError("Target state of charge must be between 20 and 100 percent")
+    if (
+        "maxChargingCurrent" in changes
+        and changes["maxChargingCurrent"] not in CHARGING_CURRENTS
+    ):
+        raise ValueError(f"Charging current must be one of {CHARGING_CURRENTS}")
 
     profiles = (value or {}).get("profiles") or []
     if profile_id is None:
@@ -135,10 +150,15 @@ def build_profile_update(value: dict, profile_id, target_soc: int) -> tuple[int,
             f"No charging profile with id {profile_id} (present: {present})"
         )
 
-    # Change exactly one field; round-trip the rest, position included.
+    # Change only what was asked; round-trip the rest, position included.
     updated = dict(profile)
-    updated["targetSOC_pct"] = target_soc
+    updated.update(changes)
     return profile_id, {"profile": updated}
+
+
+def build_profile_update(value: dict, profile_id, target_soc: int) -> tuple[int, dict]:
+    """The target-SoC change, kept under its old name."""
+    return build_profile_change(value, profile_id, targetSOC_pct=target_soc)
 
 
 # Fields the start body carries straight over from the car's stored settings.

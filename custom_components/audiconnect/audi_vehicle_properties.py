@@ -737,6 +737,12 @@ class AudiVehicleProperties:
         return value if isinstance(value, dict) else {}
 
     @property
+    def charging_profiles_supports(self) -> dict[str, bool]:
+        """What the car says its charging profiles do ("supports..." answers)."""
+        value = self._vehicle.state.get("chargingProfilesSupports")
+        return value if isinstance(value, dict) else {}
+
+    @property
     def charge_target_min(self) -> int | None:
         return self.charge_target_limits.get("min")
 

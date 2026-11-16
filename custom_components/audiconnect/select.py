@@ -65,6 +65,20 @@ def climatisation_mode_supported(vehicle: Any) -> bool:
     )
 
 
+_PROFILE_CURRENTS = ["max", "reduced"]
+
+
+def profile_current_supported(vehicle: Any) -> bool:
+    """A modern account, and the car has not said it has no current choice."""
+    service = getattr(vehicle, "_audi_service", None)
+    if not getattr(service, "uses_auth0", False):
+        return False
+    flags = getattr(vehicle, "charging_profiles_supports", None)
+    return not (
+        isinstance(flags, dict) and flags.get("supportsMaxChargingCurrent") is False
+    )
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -88,6 +102,18 @@ async def async_setup_entry(
             config_vehicle.vehicle,
             "climatisation_mode",
             configured=climatisation_mode_supported(config_vehicle.vehicle),
+        )
+    )
+    entities.extend(
+        AudiProfileCurrentSelect(runtime_data.coordinator, config_vehicle.vehicle)
+        for config_vehicle in runtime_data.account.config_vehicles
+        if should_create_entity(
+            hass,
+            "select",
+            "profile_charging_current",
+            config_vehicle.vehicle,
+            "active_charging_profile_max_current",
+            configured=profile_current_supported(config_vehicle.vehicle),
         )
     )
     async_add_entities(entities)
@@ -179,4 +205,51 @@ class AudiClimatisationModeSelect(AudiEntity, SelectEntity):
         await self.coordinator.async_request_refresh()
 
 
-__all__ = ["AudiChargeModeSelect", "AudiClimatisationModeSelect", "async_setup_entry"]
+class AudiProfileCurrentSelect(AudiEntity, SelectEntity):
+    """The charging current of the profile the car stands in: maximum or reduced.
+
+    Written into the profile the car is parked in, with the whole profile sent
+    back unchanged apart from this one field.
+    """
+
+    _backing_attr = "active_charging_profile_max_current"
+
+    _attr_translation_key = "profile_charging_current"
+    _attr_icon = "mdi:current-ac"
+    _attr_options = _PROFILE_CURRENTS
+
+    def __init__(
+        self,
+        coordinator: AudiDataUpdateCoordinator,
+        vehicle: Any,
+    ) -> None:
+        super().__init__(coordinator, vehicle)
+        self._attr_unique_id = entity_unique_id(
+            vehicle, "select", "profile_charging_current"
+        )
+
+    @property
+    def current_option(self) -> str | None:
+        value = getattr(self._vehicle, "active_charging_profile_max_current", None)
+        if isinstance(value, str) and value.lower() in _PROFILE_CURRENTS:
+            return value.lower()
+        return None
+
+    async def async_select_option(self, option: str) -> None:
+        connection = self.coordinator.account.connection
+        if not await connection.set_profile_charging_current(
+            self._vehicle.vin, None, option
+        ):
+            raise HomeAssistantError(
+                f"Failed to set the profile charging current to {option}; "
+                "see the log for details"
+            )
+        await self.coordinator.async_request_refresh()
+
+
+__all__ = [
+    "AudiChargeModeSelect",
+    "AudiClimatisationModeSelect",
+    "AudiProfileCurrentSelect",
+    "async_setup_entry",
+]
