@@ -262,3 +262,30 @@ def test_the_default_stays_the_full_body():
     svc = service()
     asyncio.run(svc.set_climatisation_settings("VIN1", windowHeatingEnabled=True))
     assert [c[0] for c in svc._api.calls] == ["GET", "PUT"]
+
+
+def test_the_write_method_can_be_post_and_defaults_to_put():
+    svc = service()
+    asyncio.run(
+        svc.set_climatisation_settings(
+            "VIN1", variant="single_field", method="POST", climatizationAtUnlock=True
+        )
+    )
+    assert svc._api.calls[-1][0] == "POST"
+    svc = service()
+    asyncio.run(svc.set_climatisation_settings("VIN1", windowHeatingEnabled=True))
+    assert svc._api.calls[-1][0] == "PUT"
+
+
+def test_an_unknown_write_method_is_refused_before_anything_is_sent():
+    svc = service()
+    with pytest.raises(ValueError, match="method"):
+        asyncio.run(
+            svc.set_climatisation_settings(
+                "VIN1",
+                variant="single_field",
+                method="DELETE",
+                windowHeatingEnabled=True,
+            )
+        )
+    assert svc._api.calls == []

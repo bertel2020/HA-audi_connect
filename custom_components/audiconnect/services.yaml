@@ -271,3 +271,9 @@ test_climatisation_write:
             - full
             - without_window_heating
             - single_field
+    method:
+      selector:
+        select:
+          options:
+            - PUT
+            - POST
