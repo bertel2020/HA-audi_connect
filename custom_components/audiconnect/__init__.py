@@ -70,6 +70,7 @@ from .const import (
     uses_auth0,
 )
 from .capability_jobs import BASE_SELECTIVE_JOBS
+from .card import async_register_card
 from .coordinator import AudiDataUpdateCoordinator
 from .diagnostics_payload import redact
 from .local_extensions import DEALER_FIELDS, update_local_dealer_options
@@ -439,6 +440,7 @@ def _async_register_services(hass: HomeAssistant) -> None:
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the integration: services are registered once, not per entry."""
     _async_register_services(hass)
+    await async_register_card(hass)
     return True
 
 
