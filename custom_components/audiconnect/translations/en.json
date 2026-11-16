@@ -498,9 +498,6 @@
       "charging_complete_time": {
         "name": "Charging Complete Time"
       },
-      "target_state_of_charge": {
-        "name": "Target State of charge"
-      },
       "external_power": {
         "name": "External Power"
       },
