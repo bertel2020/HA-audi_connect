@@ -354,7 +354,7 @@ The integration ships its own dashboard card, `audi-connect-card`. There is noth
 
 1. Open a dashboard, choose **Edit** and **Add card**.
 2. Pick **Audi Connect**.
-3. Choose your vehicle in the card editor. A photo is optional.
+3. Choose your vehicle in the card editor. A photo is optional: upload one, or pick a picture from your `www` folder (it is served as `/local/...`).
 
 What it shows:
 
