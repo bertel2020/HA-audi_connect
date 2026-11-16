@@ -494,9 +494,6 @@
       "primary_engine_range_percent": {
         "name": "Füllstand (primär)"
       },
-      "car_type": {
-        "name": "Fahrzeugtyp"
-      },
       "secondary_engine_range_percent": {
         "name": "Füllstand (sekundär)"
       },

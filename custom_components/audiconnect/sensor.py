@@ -543,6 +543,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="primary_engine_type",
+        requires="has_non_electric_engine",
         attr_key="primary_engine_type",
         translation_key="primary_engine_type",
         icon="mdi:engine",
@@ -583,13 +584,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         translation_key="primary_engine_range_percent",
         icon="mdi:gauge",
         native_unit_of_measurement=PERCENTAGE,
-    ),
-    AudiSensorEntityDescription(
-        key="car_type",
-        attr_key="car_type",
-        translation_key="car_type",
-        icon="mdi:car-info",
-        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiSensorEntityDescription(
         key="secondary_engine_range_percent",

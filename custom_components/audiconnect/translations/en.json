@@ -494,9 +494,6 @@
       "primary_engine_range_percent": {
         "name": "Primary engine Percent"
       },
-      "car_type": {
-        "name": "Car Type"
-      },
       "secondary_engine_range_percent": {
         "name": "Secondary engine Percent"
       },
