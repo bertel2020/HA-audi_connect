@@ -350,3 +350,25 @@ def test_a_switch_write_sends_json_by_default():
     svc = service()
     asyncio.run(svc.set_climatisation_settings("VIN1", windowHeatingEnabled=True))
     assert svc._api.headers[-1].get("Content-Type") == "application/json"
+
+
+def test_a_new_target_temperature_replaces_the_stored_one_and_keeps_the_unit():
+    body = build_climatisation_settings_update(
+        A6_SETTINGS, variant="app_dto", targetTemperature=21.0
+    )
+    assert body["targetTemperature"] == 21.0
+    assert body["targetTemperatureUnit"] == "celsius"
+    assert body["zoneFrontLeftEnabled"] is True
+    assert "targetTemperature_C" not in body
+
+
+def test_the_test_service_takes_a_number_for_the_temperature_and_a_flag_otherwise():
+    from custom_components.audiconnect.audi_account import (
+        SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA as schema,
+    )
+
+    base = {"device_id": "abc", "variant": "app_dto"}
+    temperature = schema({**base, "setting": "targetTemperature", "value": 21.5})
+    assert temperature["value"] == 21.5
+    flag = schema({**base, "setting": "climatizationAtUnlock", "value": True})
+    assert flag["value"] is True

@@ -151,6 +151,7 @@ SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA = vol.Schema(
         vol.Required(CONF_DEVICE_ID): _single_device_id,
         vol.Required("setting"): vol.In(
             [
+                "targetTemperature",
                 "climatizationAtUnlock",
                 "windowHeatingEnabled",
                 "zoneFrontLeftEnabled",
@@ -159,7 +160,8 @@ SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA = vol.Schema(
                 "zoneRearRightEnabled",
             ]
         ),
-        vol.Required("value"): cv.boolean,
+        # A flag for the on/off settings, a number for the target temperature.
+        vol.Required("value"): vol.Any(bool, vol.Coerce(float)),
         vol.Required("variant"): vol.In(
             ["full", "without_window_heating", "single_field", "full_json", "app_dto"]
         ),
@@ -379,10 +381,15 @@ class AudiAccount(AudiConnectObserver):
 
     async def test_climatisation_write(self, vin: str, service: ServiceCall) -> None:
         """Write one climatisation setting with a chosen body, to find what the car takes."""
+        setting, value = service.data["setting"], service.data["value"]
+        if (setting == "targetTemperature") == isinstance(value, bool):
+            raise HomeAssistantError(
+                "targetTemperature takes a number, every other setting on or off"
+            )
         result = await self.connection.set_climatisation_setting(
             vin.lower(),
-            service.data["setting"],
-            service.data["value"],
+            setting,
+            value,
             service.data["variant"],
             service.data["method"],
         )
