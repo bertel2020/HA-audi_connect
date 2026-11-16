@@ -456,8 +456,19 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 async def async_remove_config_entry_device(
     hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
 ) -> bool:
-    """Remove a config entry from a device."""
-    return True
+    """Allow removing a device only if its vehicle is no longer in the account."""
+    runtime_data: AudiRuntimeData | None = getattr(config_entry, "runtime_data", None)
+    if runtime_data is None:
+        return True
+    active_vins = {
+        v.vehicle.vin.lower()
+        for v in runtime_data.account.config_vehicles
+        if v.vehicle and v.vehicle.vin
+    }
+    return not any(
+        domain == DOMAIN and identifier.lower() in active_vins
+        for domain, identifier in device_entry.identifiers
+    )
 
 
 __all__ = [
