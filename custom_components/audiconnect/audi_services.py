@@ -266,6 +266,49 @@ class AudiService(AudiAuthMixin):
             f"https://msg.volkswagen.de/fs-car/usermanagement/users/v1/{self._type}/{self._country}/vehicles"
         )
 
+    # Read-only GraphQL questions for finding out what the app's vehicle list
+    # knows (model name, pictures). Fixed texts, never built from input.
+    GRAPHQL_PROBES = {
+        "media": "query p { userVehicles { vin nickname vehicle { media { shortName longName } } } }",
+        "core": "query p { userVehicles { vin vehicle { core { modelYear } } } }",
+        "classification": (
+            "query p { userVehicles { vin vehicle { classification { driveTrain } } } }"
+        ),
+        "vehicle_fields": '{ __type(name: "Vehicle") { fields { name } } }',
+        "media_fields": '{ __type(name: "Media") { fields { name } } }',
+    }
+
+    async def probe_graphql(self, preset: str):
+        """POST one fixed, read-only GraphQL question to the app's vehicle service.
+
+        Returns the whole answer, errors included: the point is to see why the
+        model name is missing, which the normal vehicle list throws away.
+        """
+        if preset not in self.GRAPHQL_PROBES:
+            raise ValueError(f"Unknown GraphQL probe {preset!r}")
+        headers = {
+            "Accept": "application/json",
+            "Accept-Charset": "utf-8",
+            "X-App-Name": "myAudi",
+            "X-App-Version": AudiAPI.HDR_XAPP_VERSION,
+            "Accept-Language": f"{self._language}-{self._country.upper()}",
+            "X-User-Country": self._country.upper(),
+            "User-Agent": AudiAPI.HDR_USER_AGENT,
+            "Authorization": "Bearer " + self.audiToken["access_token"],
+            "Content-Type": "application/json; charset=utf-8",
+        }
+        _, text = await self._api.request(
+            "POST",
+            "https://app-api.my.aoa.audi.com/vgql/v1/graphql"
+            if self._country.upper() == "US"
+            else "https://app-api.live-my.audi.com/vgql/v1/graphql",
+            json.dumps({"query": self.GRAPHQL_PROBES[preset]}),
+            headers=headers,
+            allow_redirects=False,
+            rsp_wtxt=True,
+        )
+        return json.loads(text)
+
     async def get_vehicle_information(self):
         headers = {
             "Accept": "application/json",

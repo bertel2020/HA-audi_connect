@@ -327,6 +327,10 @@
         "path": {
           "name": "Pfad",
           "description": "Alternativ ein Pfad unterhalb der Fahrzeug-URL, z. B. capabilities."
+        },
+        "graphql": {
+          "name": "GraphQL-Abfrage",
+          "description": "Eine feste, lesende Abfrage an den Fahrzeugdienst der App."
         }
       }
     },

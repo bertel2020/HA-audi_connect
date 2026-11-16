@@ -79,6 +79,9 @@ SERVICE_PROBE_API_SCHEMA = vol.Schema(
         vol.Required(CONF_DEVICE_ID): _single_device_id,
         vol.Optional("jobs"): vol.All(cv.ensure_list, [cv.string]),
         vol.Optional("path"): cv.string,
+        vol.Optional("graphql"): vol.In(
+            ["media", "core", "classification", "vehicle_fields", "media_fields"]
+        ),
     }
 )
 
