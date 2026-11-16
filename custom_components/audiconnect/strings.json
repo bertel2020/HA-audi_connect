@@ -355,6 +355,46 @@
           "description": "PUT (default) or POST."
         }
       }
+    },
+    "create_climatisation_timer": {
+      "name": "Create climatisation timer",
+      "description": "Creates a climatisation timer in the car. The time is in the car's local time.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The Audi vehicle."
+        },
+        "time": {
+          "name": "Time",
+          "description": "Start time, for example 07:30."
+        },
+        "days": {
+          "name": "Days",
+          "description": "Weekdays. A single timer takes exactly one day."
+        },
+        "repeat": {
+          "name": "Repeat",
+          "description": "Every week on the chosen days. Off = once."
+        },
+        "enabled": {
+          "name": "Enabled",
+          "description": "The timer is switched on once created."
+        }
+      }
+    },
+    "delete_climatisation_timer": {
+      "name": "Delete climatisation timer",
+      "description": "Deletes a climatisation timer in the car by its number.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The Audi vehicle."
+        },
+        "timer_id": {
+          "name": "Timer number",
+          "description": "The timer number (see the attributes of the climate timer sensors)."
+        }
+      }
     }
   },
   "entity": {

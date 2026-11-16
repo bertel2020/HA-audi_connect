@@ -161,6 +161,65 @@ def build_profile_update(value: dict, profile_id, target_soc: int) -> tuple[int,
     return build_profile_change(value, profile_id, targetSOC_pct=target_soc)
 
 
+WEEKDAYS = (
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+)
+
+
+def _hhmm(value: str) -> tuple[int, int]:
+    try:
+        hours, minutes = (int(part) for part in value.strip().split(":")[:2])
+    except ValueError as err:
+        raise ValueError(f"Time must look like 07:30, got {value!r}") from err
+    if not (0 <= hours < 24 and 0 <= minutes < 60):
+        raise ValueError(f"Time out of range: {value!r}")
+    return hours, minutes
+
+
+def build_climatisation_timer(
+    time_local: str,
+    days: list[str],
+    *,
+    repeat: bool,
+    enabled: bool,
+    utc_offset_minutes: int,
+) -> dict:
+    """The body of POST departure/{vin}/climatisation/timers, as the app sends it.
+
+    The app gives each timer both its start in UTC (startTime) and in the car's
+    local clock (startTimeLocal), as "HH:mm". A recurring timer names its days
+    as {"mondays": true, ...}, a single timer one day as "Monday".
+    """
+    hours, minutes = _hhmm(time_local)
+    chosen = [d.lower() for d in days]
+    unknown = [d for d in chosen if d not in WEEKDAYS]
+    if unknown or not chosen:
+        raise ValueError(f"Days must be some of {WEEKDAYS}, got {days!r}")
+    utc_total = (hours * 60 + minutes - utc_offset_minutes) % (24 * 60)
+    times = {
+        "startTime": f"{utc_total // 60:02d}:{utc_total % 60:02d}",
+        "startTimeLocal": f"{hours:02d}:{minutes:02d}",
+    }
+    if repeat:
+        frequency = {
+            "recurringTimer": {
+                "recurringOn": {f"{d}s": d in chosen for d in WEEKDAYS},
+                **times,
+            }
+        }
+    else:
+        if len(chosen) != 1:
+            raise ValueError("A single timer takes exactly one day")
+        frequency = {"singleTimer": {"occurringOn": chosen[0].capitalize(), **times}}
+    return {"timer": {"enabled": enabled, **frequency}}
+
+
 # Fields the start body carries straight over from the car's stored settings.
 # Only those the car actually reports are sent: a vehicle with no rear zones
 # never receives zoneRear* keys, which is also the shape the myAudi app sends.

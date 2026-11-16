@@ -355,6 +355,46 @@
           "description": "PUT (Standard) oder POST."
         }
       }
+    },
+    "create_climatisation_timer": {
+      "name": "Klimatimer anlegen",
+      "description": "Legt einen Klimatimer im Auto an. Die Zeit gilt in der Ortszeit des Autos.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Audi-Fahrzeug."
+        },
+        "time": {
+          "name": "Uhrzeit",
+          "description": "Startzeit, zum Beispiel 07:30."
+        },
+        "days": {
+          "name": "Tage",
+          "description": "Wochentage. Ein einmaliger Timer nimmt genau einen Tag."
+        },
+        "repeat": {
+          "name": "Wiederholen",
+          "description": "Jede Woche an den gewählten Tagen. Aus = einmalig."
+        },
+        "enabled": {
+          "name": "Aktiv",
+          "description": "Der Timer ist nach dem Anlegen eingeschaltet."
+        }
+      }
+    },
+    "delete_climatisation_timer": {
+      "name": "Klimatimer löschen",
+      "description": "Löscht einen Klimatimer im Auto anhand seiner Nummer.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Audi-Fahrzeug."
+        },
+        "timer_id": {
+          "name": "Timer-Nummer",
+          "description": "Die Nummer des Timers (siehe Attribute der Klimatimer-Sensoren)."
+        }
+      }
     }
   },
   "entity": {
