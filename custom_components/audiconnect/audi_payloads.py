@@ -15,6 +15,7 @@ _CLIMATISATION_SETTING_FIELDS = frozenset(
         "targetTemperatureUnit",
         "climatisationWithoutExternalPower",
         "climatizationAtUnlock",
+        "climatisationMode",
         "windowHeatingEnabled",
         "heaterSource",
         "zoneFrontLeftEnabled",
