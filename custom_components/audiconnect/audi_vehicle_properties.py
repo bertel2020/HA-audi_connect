@@ -10,6 +10,7 @@ from .util import parse_float, parse_int
 
 _INACTIVE_PREHEATER_STATES = frozenset({"off", "invalid", "unsupported", "error", ""})
 _UNSUPPORTED = "unsupported"
+_INVALID = "invalid"
 
 _STATE = "state"
 _FIELDS = "fields"
@@ -20,6 +21,11 @@ _FIELDS = "fields"
 # at truthiness, but a few tests pin the exact value.
 def _truthy(v: Any) -> bool | None:
     return True if v else None
+
+
+def _valid(v: Any) -> bool | None:
+    """Present and not Audi's ``invalid``, which means "no reading", not a state."""
+    return True if v and v != _INVALID else None
 
 
 def _truthy_known(v: Any) -> bool | None:
@@ -48,6 +54,10 @@ def _is_known(v: Any) -> bool:
 
 def _int_parses(v: Any) -> bool:
     return parse_int(v) is not None
+
+
+def _is_bool(v: Any) -> bool:
+    return isinstance(v, bool)
 
 
 def _is_list(v: Any) -> bool:
@@ -244,9 +254,9 @@ class AudiVehicleProperties:
     charging_timer_enabled_count = _Field(
         _STATE, "chargingTimerEnabledCount", _int_parses, parse_int
     )
-    plug_state = _Field(_STATE, "plugState", _truthy, _is_connected)
-    plug_lock_state = _Field(_STATE, "plugLockState", _truthy, _is_not_locked)
-    plug_led_color = _Field(_STATE, "plugledColor", _truthy)
+    plug_state = _Field(_STATE, "plugState", _valid, _is_connected)
+    plug_lock_state = _Field(_STATE, "plugLockState", _valid, _is_not_locked)
+    plug_led_color = _Field(_STATE, "plugledColor", _valid)
     climatisation_state = _Field(_STATE, "climatisationState", _truthy)
     climatisation_target_temperature = _Field(
         _STATE,
@@ -563,7 +573,8 @@ class AudiVehicleProperties:
 
     @property
     def charging_current_limit_mode(self):
-        return self._vehicle.state.get("chargingCurrentLimitMode")
+        value = self._vehicle.state.get("chargingCurrentLimitMode")
+        return None if value == _INVALID else value
 
     @property
     def charging_plug_auto_unlock(self):
@@ -630,7 +641,13 @@ class AudiVehicleProperties:
 
     @property
     def external_power_supported(self):
-        return self._vehicle.state.get("externalPower") is not None
+        value = self._vehicle.state.get("externalPower")
+        return value is not None and value != _INVALID
+
+    battery_care_mode = _Field(_STATE, "batteryCareMode", _valid)
+    charging_scenario = _Field(_STATE, "chargingScenario", _valid)
+    climatisation_mode = _Field(_STATE, "climatisationMode", _valid)
+    parking_brake = _Field(_STATE, "parkingBrake", _is_bool)
 
     @property
     def capabilities(self) -> frozenset[str]:

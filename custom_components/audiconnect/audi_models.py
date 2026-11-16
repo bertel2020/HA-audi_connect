@@ -373,6 +373,28 @@ class VehicleDataResponse:
             self._tryAppendStateWithTs(
                 data, name, -1, ["charging", "chargingSettings", "value", key]
             )
+        # Settings and states the car reports that nothing exposed before.
+        for name, path in (
+            (
+                "batteryCareMode",
+                ["charging", "chargingCareSettings", "value", "batteryCareMode"],
+            ),
+            (
+                "chargingScenario",
+                ["charging", "chargingStatus", "value", "chargingScenario"],
+            ),
+            (
+                "climatisationMode",
+                [
+                    "climatisation",
+                    "climatisationSettings",
+                    "value",
+                    "climatisationMode",
+                ],
+            ),
+            ("parkingBrake", ["parkingBrake", "parkingBrakeStatus", "value", "value"]),
+        ):
+            self._tryAppendStateWithTs(data, name, -1, list(path))
         # Audi reports online/active at the vehicle, not at the cloud gateway.
         # This readiness block may have no capture time: never assign an
         # invented timestamp or claim every other status is freshly measured.

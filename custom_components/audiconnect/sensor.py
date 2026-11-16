@@ -46,9 +46,41 @@ class AudiSensorEntityDescription(SensorEntityDescription):
     # the value, so a partial poll leaves the entity unavailable instead of
     # deleting it.
     capability: str | None = None
+    # Name of a vehicle flag that must be true for the entity to exist. A hard
+    # "no" (see should_create_entity's ``configured``): a stale registry entry
+    # must not bring back a sensor the account cannot feed at all.
+    requires: str | None = None
     value_fn: Callable[[Any], Any] | None = None
     extra_attrs_fn: Callable[[Any], dict[str, Any]] | None = None
     unit_fn: Callable[[Any], str | None] | None = None
+
+
+def is_sensor_available_for(
+    description: AudiSensorEntityDescription, vehicle: Any
+) -> bool:
+    """False when the account cannot feed this sensor at all (e.g. trips on Auth0)."""
+    if description.requires is None:
+        return True
+    return bool(getattr(vehicle, description.requires, True))
+
+
+def sensor_descriptions_to_create(
+    hass: HomeAssistant, vehicle: Any
+) -> list[AudiSensorEntityDescription]:
+    """The sensor descriptions this vehicle gets an entity for."""
+    return [
+        description
+        for description in SENSOR_DESCRIPTIONS
+        if should_create_entity(
+            hass,
+            "sensor",
+            description.key,
+            vehicle,
+            description.attr_key,
+            description.capability,
+            configured=is_sensor_available_for(description, vehicle),
+        )
+    ]
 
 
 def _trip_data_value(vehicle: Any, attr_key: str) -> Any:
@@ -151,6 +183,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     AudiSensorEntityDescription(
         key="shortterm_current",
         attr_key="shortterm_current",
+        requires="support_trip_data",
         name="ShortTerm Trip Data",
         device_class=SensorDeviceClass.TIMESTAMP,
         value_fn=lambda v: _trip_data_value(v, "shortterm_current"),
@@ -159,6 +192,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     AudiSensorEntityDescription(
         key="shortterm_reset",
         attr_key="shortterm_reset",
+        requires="support_trip_data",
         name="ShortTerm Trip User Reset",
         device_class=SensorDeviceClass.TIMESTAMP,
         value_fn=lambda v: _trip_data_value(v, "shortterm_reset"),
@@ -167,6 +201,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     AudiSensorEntityDescription(
         key="longterm_current",
         attr_key="longterm_current",
+        requires="support_trip_data",
         name="LongTerm Trip Data",
         device_class=SensorDeviceClass.TIMESTAMP,
         value_fn=lambda v: _trip_data_value(v, "longterm_current"),
@@ -175,6 +210,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     AudiSensorEntityDescription(
         key="longterm_reset",
         attr_key="longterm_reset",
+        requires="support_trip_data",
         name="LongTerm Trip User Reset",
         device_class=SensorDeviceClass.TIMESTAMP,
         value_fn=lambda v: _trip_data_value(v, "longterm_reset"),
@@ -278,6 +314,27 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         key="charging_mode",
         attr_key="charging_mode",
         name="Charging mode",
+    ),
+    AudiSensorEntityDescription(
+        key="charging_scenario",
+        attr_key="charging_scenario",
+        name="Charging scenario",
+        icon="mdi:ev-station",
+        capability="charging",
+    ),
+    AudiSensorEntityDescription(
+        key="battery_care_mode",
+        attr_key="battery_care_mode",
+        name="Battery care mode",
+        icon="mdi:battery-heart-variant",
+        capability="batteryChargingCare",
+    ),
+    AudiSensorEntityDescription(
+        key="climatisation_mode",
+        attr_key="climatisation_mode",
+        name="Climatisation mode",
+        icon="mdi:air-conditioner",
+        capability="climatisation",
     ),
     AudiSensorEntityDescription(
         key="charging_type",
@@ -601,18 +658,8 @@ async def async_setup_entry(
         entities.append(
             AudiServiceOverviewSensor(runtime_data.coordinator, vehicle, config_entry)
         )
-        for description in SENSOR_DESCRIPTIONS:
-            if should_create_entity(
-                hass,
-                "sensor",
-                description.key,
-                vehicle,
-                description.attr_key,
-                description.capability,
-            ):
-                entities.append(
-                    AudiSensor(runtime_data.coordinator, description, vehicle)
-                )
+        for description in sensor_descriptions_to_create(hass, vehicle):
+            entities.append(AudiSensor(runtime_data.coordinator, description, vehicle))
 
     # Add account-level API rate limit sensor, attached to the first vehicle.
     if runtime_data.account.config_vehicles:
