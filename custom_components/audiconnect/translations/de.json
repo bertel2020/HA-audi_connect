@@ -553,7 +553,13 @@
         "name": "Aktive Ladetimer"
       },
       "vehicle_data_freshness": {
-        "name": "Aktualität der Fahrzeugdaten"
+        "name": "Aktualität der Fahrzeugdaten",
+        "state": {
+          "fresh": "Aktuell",
+          "delayed": "Verzögert",
+          "stale": "Veraltet",
+          "unknown": "Unbekannt"
+        }
       },
       "vehicle_data_age": {
         "name": "Alter der Fahrzeugdaten"
