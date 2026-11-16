@@ -253,6 +253,7 @@ test_climatisation_write:
       selector:
         select:
           options:
+            - targetTemperature
             - climatizationAtUnlock
             - windowHeatingEnabled
             - zoneFrontLeftEnabled
@@ -262,7 +263,7 @@ test_climatisation_write:
     value:
       required: true
       selector:
-        boolean:
+        object:
     variant:
       required: true
       selector:
