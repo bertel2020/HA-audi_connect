@@ -67,7 +67,7 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     AudiButtonEntityDescription(
         key="flash_lights",
         translation_key="flash_lights",
-        icon="mdi:car-light-high",
+        icon="mdi:car-light-alert",
         # Gated on the car's own capability, not on a field being present in
         # the current poll. The horn shares this capability and is deliberately
         # not exposed.
