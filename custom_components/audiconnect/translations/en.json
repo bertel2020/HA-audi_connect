@@ -693,12 +693,6 @@
       "flash_lights": {
         "name": "Flash lights"
       },
-      "start_charging_modern": {
-        "name": "Start charging (experimental)"
-      },
-      "stop_charging_modern": {
-        "name": "Stop charging (experimental)"
-      },
       "start_window_heating_modern": {
         "name": "Start window heating (experimental)"
       },
