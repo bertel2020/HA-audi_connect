@@ -14,6 +14,8 @@ from aiohttp.hdrs import METH_GET, METH_POST, METH_PUT
 # VERBOSE DEBUG TOGGLE
 # Set to True to log EVERYTHING (full headers, full body, raw JSON, etc.)
 # Set to False for normal operation (minimal debug output)
+# WARNING: when True this also logs access tokens and Authorization headers.
+# Never enable it on a system whose logs you share.
 DEBUG_VERBOSE = False
 # ===========================================
 
