@@ -80,7 +80,7 @@ SERVICE_PROBE_API_SCHEMA = vol.Schema(
         vol.Optional("jobs"): vol.All(cv.ensure_list, [cv.string]),
         vol.Optional("path"): cv.string,
         vol.Optional("graphql"): vol.In(
-            ["media", "core", "classification", "vehicle_fields", "media_fields"]
+            ["list", "details", "render_pictures", "configuration"]
         ),
     }
 )

@@ -304,7 +304,7 @@ class AudiConnectAccount:
                         f"{'*' * (len(vehicle.vin) - 4) + vehicle.vin[-4:]}",
                     )
 
-    async def probe_graphql(self, preset: str) -> dict[str, Any]:
+    async def probe_graphql(self, preset: str, vin: str) -> dict[str, Any]:
         """One fixed read-only GraphQL question; errors are returned, not raised."""
         if not self._loggedin:
             await self.login()
@@ -313,7 +313,7 @@ class AudiConnectAccount:
         try:
             return {
                 "status": "ok",
-                "body": await self._audi_service.probe_graphql(preset),
+                "body": await self._audi_service.probe_graphql(preset, vin),
             }
         except ClientResponseError as exception:
             return {"status": exception.status, "error": exception.message}
