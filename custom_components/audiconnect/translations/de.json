@@ -760,6 +760,13 @@
           "comfort": "Komfort",
           "economy": "Sparmodus"
         }
+      },
+      "profile_charging_current": {
+        "name": "Ladestrom des Profils",
+        "state": {
+          "max": "Maximal",
+          "reduced": "Reduziert"
+        }
       }
     },
     "climate": {

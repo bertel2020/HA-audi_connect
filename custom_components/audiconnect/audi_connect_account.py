@@ -475,6 +475,16 @@ class AudiConnectAccount:
             ),
         )
 
+    async def set_profile_charging_current(self, vin: str, profile_id, current: str):
+        """Set a location profile's charging current (max or reduced)."""
+        return await self._run_command(
+            vin,
+            f"set profile charging current to {current} for vehicle {vin}",
+            lambda: self._audi_service.set_profile_charging_current(
+                vin, profile_id, current
+            ),
+        )
+
     async def set_charge_mode(self, vin: str, mode: str):
         """Set the preferred charge mode (manual or timer)."""
         return await self._run_command(

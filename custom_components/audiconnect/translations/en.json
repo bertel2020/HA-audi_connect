@@ -760,6 +760,13 @@
           "comfort": "Comfort",
           "economy": "Economy"
         }
+      },
+      "profile_charging_current": {
+        "name": "Profile charging current",
+        "state": {
+          "max": "Maximum",
+          "reduced": "Reduced"
+        }
       }
     },
     "climate": {

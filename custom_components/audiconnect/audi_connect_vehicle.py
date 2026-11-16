@@ -614,6 +614,12 @@ class AudiConnectVehicle(AudiVehicleProperties):
         )
         if flags:
             self._vehicle.state["climatisationSupports"] = flags
+        profiles = capabilities.get("chargingProfiles")
+        profile_flags = _supports_flags(
+            profiles.get("parameters") if isinstance(profiles, dict) else None
+        )
+        if profile_flags:
+            self._vehicle.state["chargingProfilesSupports"] = profile_flags
         self._capability_parameters_loaded = True
 
     # What is kept from a trip: the figures, not the trip id or anything else.
