@@ -59,6 +59,13 @@ def test_a_refused_put_logs_the_reply_and_masks_the_vin(caplog):
     assert "502" in text
 
 
+def test_the_body_that_was_sent_is_logged_too(caplog):
+    api = AudiAPI(_Session(_Response(502, "Bad Gateway", "{}")))
+    with caplog.at_level(logging.WARNING), pytest.raises(ClientResponseError):
+        asyncio.run(api.request("PUT", URL, data='{"zoneFrontLeftEnabled": true}'))
+    assert "zoneFrontLeftEnabled" in caplog.text
+
+
 def test_the_reply_is_capped(caplog):
     with caplog.at_level(logging.WARNING):
         _send("PUT", 502, "x" * 5000)

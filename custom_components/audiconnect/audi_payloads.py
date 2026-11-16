@@ -25,6 +25,13 @@ _CLIMATISATION_SETTING_FIELDS = frozenset(
 )
 
 
+# Reported by the car but not part of what it takes back. Sent anyway they gave
+# the A6 a 502 (Audi error 2105) on every write, so the body carries only the
+# fields in _CLIMATISATION_SETTING_FIELDS, without the redundant Fahrenheit twin
+# of the Celsius target.
+_NOT_SENT = frozenset({"targetTemperature_F"})
+
+
 def build_climatisation_settings_update(value: dict, **changes: Any) -> dict:
     """Pure read-modify-write core for the climatisation settings.
 
@@ -37,9 +44,9 @@ def build_climatisation_settings_update(value: dict, **changes: Any) -> dict:
     A toggle of a heated seat must not clear the target temperature or the
     heater source.
 
-    carCapturedTimestamp is dropped. It is the server describing when it last
-    observed the settings, not a setting, and echoing it back is meaningless at
-    best.
+    Only the writable settings are sent back. carCapturedTimestamp, unitInCar,
+    climatisationMode and the Fahrenheit twin of the target are reports from the
+    car, not settings, and echoing them back is meaningless at best.
     """
     if not isinstance(value, dict) or not value:
         raise ValueError("No climatisation settings to update")
@@ -48,7 +55,11 @@ def build_climatisation_settings_update(value: dict, **changes: Any) -> dict:
     if unknown:
         raise ValueError(f"Not climatisation settings: {sorted(unknown)}")
 
-    body = {k: v for k, v in value.items() if k != "carCapturedTimestamp"}
+    body = {
+        k: v
+        for k, v in value.items()
+        if k in _CLIMATISATION_SETTING_FIELDS and k not in _NOT_SENT
+    }
     body.update(changes)
     return body
 
