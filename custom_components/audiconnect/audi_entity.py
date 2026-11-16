@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+from functools import cache
+from pathlib import Path
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -9,6 +12,45 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import AudiDataUpdateCoordinator
+
+
+@cache
+def _english_entity_names() -> dict[str, dict[str, str]]:
+    """{domain: {translation_key: English name}} from the shipped en.json."""
+    path = Path(__file__).parent / "translations" / "en.json"
+    try:
+        entities = json.loads(path.read_text(encoding="utf-8")).get("entity", {})
+    except (OSError, ValueError):
+        return {}
+    return {
+        domain: {
+            key: value["name"]
+            for key, value in keys.items()
+            if isinstance(value, dict) and isinstance(value.get("name"), str)
+        }
+        for domain, keys in entities.items()
+        if isinstance(keys, dict)
+    }
+
+
+def english_object_name(
+    domain: str | None, key: str | None, placeholders: dict[str, str] | None
+) -> str | None:
+    """The English name an entity id is built from, or None when there is none."""
+    if not key:
+        return None
+    names = _english_entity_names()
+    if domain is not None:
+        name = names.get(domain, {}).get(key)
+    else:
+        found = {n[key] for n in names.values() if key in n}
+        name = found.pop() if len(found) == 1 else None
+    if name is None:
+        return None
+    try:
+        return name.format(**(placeholders or {}))
+    except (KeyError, IndexError, ValueError):
+        return None
 
 
 def entity_unique_id(vehicle: Any, platform: str, key: str) -> str:
@@ -154,6 +196,21 @@ class AudiEntity(CoordinatorEntity[AudiDataUpdateCoordinator]):
     ) -> None:
         super().__init__(coordinator)
         self._vehicle = vehicle
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        """Entity ids are English, whatever language Home Assistant runs in.
+
+        The names shown follow the user's language; the id is what automations
+        and dashboards refer to, so it must not change with it.
+        """
+        platform_data = getattr(self, "platform_data", None)
+        english = english_object_name(
+            getattr(platform_data, "domain", None),
+            self.translation_key,
+            getattr(self, "translation_placeholders", None),
+        )
+        return english if english is not None else super().suggested_object_id
 
     @property
     def device_info(self) -> DeviceInfo:
