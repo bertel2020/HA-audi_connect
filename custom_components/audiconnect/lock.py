@@ -57,7 +57,7 @@ async def async_setup_entry(
 class AudiLock(AudiEntity, LockEntity):
     """Representation of an Audi lock."""
 
-    _attr_name = "Door lock"
+    _attr_translation_key = "door_lock"
 
     def __init__(
         self,

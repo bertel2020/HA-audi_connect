@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from types import SimpleNamespace as NS
+
 from custom_components.audiconnect.audi_models import VehicleDataResponse
 from custom_components.audiconnect.sensor import (
     SENSOR_DESCRIPTIONS,
     _climatisation_timer_attrs,
 )
 
+ROOT = Path(__file__).resolve().parents[1] / "custom_components/audiconnect"
 TS = "2026-11-10T14:00:00Z"
 
 
@@ -81,7 +85,7 @@ def test_new_sensor_keys_are_distinct_and_public():
         by_key["climatisation_timer_enabled_count"].capability == "climatisationTimers"
     )
     assert by_key["next_climatisation_timer_local"].capability == "climatisationTimers"
-    assert (
-        "vehicle local"
-        not in (by_key["next_climatisation_timer_local"].name or "").lower()
-    )
+    shown = json.loads((ROOT / "translations" / "en.json").read_text())["entity"][
+        "sensor"
+    ]["next_climatisation_timer_local"]["name"]
+    assert "vehicle local" not in shown.lower()

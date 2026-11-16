@@ -40,7 +40,7 @@ NUMBER_DESCRIPTIONS: tuple[AudiNumberEntityDescription, ...] = (
     AudiNumberEntityDescription(
         key="target_state_of_charge",
         attr_key="target_state_of_charge",
-        name="Global charge target",
+        translation_key="target_state_of_charge",
         icon="mdi:battery-charging-80",
         device_class=NumberDeviceClass.BATTERY,
         native_unit_of_measurement=PERCENTAGE,
@@ -55,7 +55,7 @@ NUMBER_DESCRIPTIONS: tuple[AudiNumberEntityDescription, ...] = (
     AudiNumberEntityDescription(
         key="active_charging_profile_target_soc",
         attr_key="active_charging_profile_target_soc",
-        name="Current location charge target",
+        translation_key="active_charging_profile_target_soc",
         icon="mdi:map-marker",
         device_class=NumberDeviceClass.BATTERY,
         native_unit_of_measurement=PERCENTAGE,
@@ -126,7 +126,8 @@ class AudiChargeTargetEntity(AudiEntity, NumberEntity):
         connection = self.coordinator.account.connection
         if not await set_value_fn(connection, self._vehicle.vin, int(value)):
             raise HomeAssistantError(
-                f"Failed to set {self.name}; see the log for details"
+                f"Failed to set {self.entity_id or self.unique_id}; "
+                "see the log for details"
             )
         await self.coordinator.async_request_refresh()
 
@@ -173,9 +174,10 @@ class AudiProfileChargeTarget(AudiChargeTargetEntity):
     ) -> None:
         super().__init__(coordinator, vehicle)
         self._profile_id = profile["id"]
-        self._attr_name = (
-            f"{profile.get('name') or f'Profile {self._profile_id}'} charge target"
-        )
+        self._attr_translation_key = "charge_profile_target"
+        self._attr_translation_placeholders = {
+            "profile": profile.get("name") or f"Profile {self._profile_id}"
+        }
         self._attr_unique_id = entity_unique_id(
             vehicle, "number", f"charge_profile_{self._profile_id}_target_soc"
         )

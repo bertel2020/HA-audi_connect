@@ -63,7 +63,7 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
     """
 
     _backing_attr = _ATTR_KEY
-    _attr_name = "Climatisation"
+    _attr_translation_key = "climatisation"
     _attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT_COOL]
     _attr_supported_features = (
         ClimateEntityFeature.TARGET_TEMPERATURE

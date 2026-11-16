@@ -330,5 +330,367 @@
         }
       }
     }
+  },
+  "entity": {
+    "sensor": {
+      "last_update_time": {
+        "name": "Last Update"
+      },
+      "shortterm_current": {
+        "name": "ShortTerm Trip Data"
+      },
+      "shortterm_reset": {
+        "name": "ShortTerm Trip User Reset"
+      },
+      "longterm_current": {
+        "name": "LongTerm Trip Data"
+      },
+      "longterm_reset": {
+        "name": "LongTerm Trip User Reset"
+      },
+      "model": {
+        "name": "Model"
+      },
+      "mileage": {
+        "name": "Mileage"
+      },
+      "service_adblue_distance": {
+        "name": "AdBlue range"
+      },
+      "range": {
+        "name": "Range"
+      },
+      "hybrid_range": {
+        "name": "hybrid Range"
+      },
+      "service_inspection_time": {
+        "name": "Service inspection time"
+      },
+      "service_inspection_distance": {
+        "name": "Service inspection distance"
+      },
+      "oil_change_time": {
+        "name": "Oil change time"
+      },
+      "oil_change_distance": {
+        "name": "Oil change distance"
+      },
+      "oil_level": {
+        "name": "Oil level"
+      },
+      "charging_state": {
+        "name": "Charging state"
+      },
+      "charging_mode": {
+        "name": "Charging mode"
+      },
+      "charging_scenario": {
+        "name": "Charging scenario"
+      },
+      "battery_care_mode": {
+        "name": "Battery care mode"
+      },
+      "climatisation_mode": {
+        "name": "Climatisation mode"
+      },
+      "charging_type": {
+        "name": "Charging type"
+      },
+      "energy_flow": {
+        "name": "Energy flow"
+      },
+      "max_charge_current": {
+        "name": "Max charge current"
+      },
+      "charging_current_limit_a": {
+        "name": "Charging AC current limit"
+      },
+      "charging_current_limit_mode": {
+        "name": "Charging current mode"
+      },
+      "charging_plug_auto_unlock": {
+        "name": "Unlock charging plug after charge"
+      },
+      "vehicle_reported_online": {
+        "name": "Vehicle reported connectivity"
+      },
+      "vehicle_reported_active": {
+        "name": "Vehicle reported activity"
+      },
+      "primary_engine_type": {
+        "name": "Primary engine type"
+      },
+      "secondary_engine_type": {
+        "name": "Secondary engine type"
+      },
+      "primary_engine_range": {
+        "name": "Primary engine range"
+      },
+      "secondary_engine_range": {
+        "name": "Secondary engine range"
+      },
+      "primary_engine_range_percent": {
+        "name": "Primary engine Percent"
+      },
+      "car_type": {
+        "name": "Car Type"
+      },
+      "secondary_engine_range_percent": {
+        "name": "Secondary engine Percent"
+      },
+      "charging_power": {
+        "name": "Charging power"
+      },
+      "actual_charge_rate": {
+        "name": "Charging rate"
+      },
+      "tank_level": {
+        "name": "Tank level"
+      },
+      "state_of_charge": {
+        "name": "State of charge"
+      },
+      "remaining_charging_time": {
+        "name": "Remaining charge time"
+      },
+      "charging_complete_time": {
+        "name": "Charging Complete Time"
+      },
+      "target_state_of_charge": {
+        "name": "Target State of charge"
+      },
+      "external_power": {
+        "name": "External Power"
+      },
+      "plug_led_color": {
+        "name": "Plug LED Color"
+      },
+      "doors_trunk_status": {
+        "name": "Doors/trunk state"
+      },
+      "climatisation_state": {
+        "name": "Climatisation state"
+      },
+      "outdoor_temperature": {
+        "name": "Outdoor Temperature"
+      },
+      "park_time": {
+        "name": "Park Time"
+      },
+      "position_last_updated": {
+        "name": "Position Last Updated"
+      },
+      "remaining_climatisation_time": {
+        "name": "Remaining Climatisation Time"
+      },
+      "preheater_duration": {
+        "name": "Preheater runtime"
+      },
+      "preheater_remaining": {
+        "name": "Preheater remaining"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Active Charging Profile Target SoC"
+      },
+      "active_charging_profile_name": {
+        "name": "Active Charging Profile"
+      },
+      "active_charging_profile_min_soc": {
+        "name": "Active Charging Profile Min SoC"
+      },
+      "preferred_charging_time_start": {
+        "name": "Preferred Charging Window Start"
+      },
+      "preferred_charging_time_end": {
+        "name": "Preferred Charging Window End"
+      },
+      "climatisation_timer_enabled_count": {
+        "name": "Climate Timers Enabled"
+      },
+      "next_climatisation_timer_local": {
+        "name": "Next Climate Timer (Car Local Time)"
+      },
+      "charging_timer_enabled_count": {
+        "name": "Charging Timers Enabled"
+      },
+      "vehicle_data_freshness": {
+        "name": "Vehicle data freshness"
+      },
+      "vehicle_data_age": {
+        "name": "Vehicle data age"
+      },
+      "cloud_last_successful_poll": {
+        "name": "Cloud last successful poll"
+      },
+      "dealer_local": {
+        "name": "Dealer (local)"
+      },
+      "service_overview": {
+        "name": "Service overview"
+      },
+      "api_requests_remaining": {
+        "name": "API requests remaining"
+      }
+    },
+    "binary_sensor": {
+      "plug_state": {
+        "name": "Plug state"
+      },
+      "plug_lock_state": {
+        "name": "Plug Lock state"
+      },
+      "glass_surface_heating": {
+        "name": "Glass Surface Heating"
+      },
+      "sun_roof": {
+        "name": "Sun roof"
+      },
+      "roof_cover": {
+        "name": "Roof Cover"
+      },
+      "parking_light": {
+        "name": "Parking light"
+      },
+      "any_window_open": {
+        "name": "Windows"
+      },
+      "any_door_unlocked": {
+        "name": "Doors lock"
+      },
+      "any_door_open": {
+        "name": "Doors"
+      },
+      "trunk_unlocked": {
+        "name": "Trunk lock"
+      },
+      "trunk_open": {
+        "name": "Trunk"
+      },
+      "hood_open": {
+        "name": "Hood"
+      },
+      "left_front_door_open": {
+        "name": "Left front door"
+      },
+      "right_front_door_open": {
+        "name": "Right front door"
+      },
+      "left_rear_door_open": {
+        "name": "Left rear door"
+      },
+      "right_rear_door_open": {
+        "name": "Right rear door"
+      },
+      "left_front_window_open": {
+        "name": "Left front window"
+      },
+      "right_front_window_open": {
+        "name": "Right front window"
+      },
+      "left_rear_window_open": {
+        "name": "Left rear window"
+      },
+      "right_rear_window_open": {
+        "name": "Right rear window"
+      },
+      "braking_status": {
+        "name": "Braking status"
+      },
+      "parking_brake": {
+        "name": "Parking brake"
+      },
+      "oil_level_binary": {
+        "name": "Oil Level Binary"
+      },
+      "is_moving": {
+        "name": "Is moving"
+      }
+    },
+    "button": {
+      "refresh_vehicle_data": {
+        "name": "Refresh vehicle data"
+      },
+      "flash_lights": {
+        "name": "Flash lights"
+      },
+      "start_charging_modern": {
+        "name": "Start charging (experimental)"
+      },
+      "stop_charging_modern": {
+        "name": "Stop charging (experimental)"
+      },
+      "start_window_heating_modern": {
+        "name": "Start window heating (experimental)"
+      },
+      "stop_window_heating_modern": {
+        "name": "Stop window heating (experimental)"
+      },
+      "wake_vehicle_modern": {
+        "name": "Wake vehicle (experimental)"
+      },
+      "start_engine": {
+        "name": "Start engine"
+      },
+      "stop_engine": {
+        "name": "Stop engine"
+      }
+    },
+    "number": {
+      "target_state_of_charge": {
+        "name": "Global charge target"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Current location charge target"
+      },
+      "charge_profile_target": {
+        "name": "{profile} charge target"
+      }
+    },
+    "switch": {
+      "preheater_active": {
+        "name": "Preheater"
+      },
+      "climatisation_window_heating": {
+        "name": "Window heating"
+      },
+      "climatisation_at_unlock": {
+        "name": "Climatisation at unlock"
+      },
+      "climatisation_zone_front_left": {
+        "name": "Climatisation zone front left"
+      },
+      "climatisation_zone_front_right": {
+        "name": "Climatisation zone front right"
+      },
+      "climatisation_zone_rear_left": {
+        "name": "Climatisation zone rear left"
+      },
+      "climatisation_zone_rear_right": {
+        "name": "Climatisation zone rear right"
+      },
+      "climate_quick_control": {
+        "name": "Climatisation ON/OFF"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Charge mode"
+      }
+    },
+    "climate": {
+      "climatisation": {
+        "name": "Climatisation"
+      }
+    },
+    "lock": {
+      "door_lock": {
+        "name": "Door lock"
+      }
+    },
+    "device_tracker": {
+      "position": {
+        "name": "Position"
+      }
+    }
   }
 }
