@@ -41,6 +41,8 @@ class AudiConnectVehicle(AudiVehicleProperties):
         self.support_trip_data = not uses_auth0
 
         self.charging_complete_time_frozen = None
+        # Last selectivestatus payload as received; only read by diagnostics.
+        self.last_status_payload: dict | None = None
 
     @property
     def vin(self):
@@ -122,6 +124,7 @@ class AudiConnectVehicle(AudiVehicleProperties):
 
         try:
             status = await self._audi_service.get_stored_vehicle_data(self._vehicle.vin)
+            self.last_status_payload = getattr(status, "raw", None)
             # #793: on a CARIAD outage this comes back 200, but every job is an
             # error object instead of a value, so it parses to nothing. Assigning
             # that would wipe every field and the entities quietly disappear, while
