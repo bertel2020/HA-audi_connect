@@ -10,6 +10,7 @@ from datetime import datetime, UTC
 
 from aiohttp import ClientResponseError
 
+from .audi_models import _charge_target_limits
 from .audi_services import AudiService
 from .audi_vehicle_properties import AudiVehicleProperties
 from .util import get_attr, log_exception, parse_datetime
@@ -41,6 +42,8 @@ class AudiConnectVehicle(AudiVehicleProperties):
         self.support_trip_data = not uses_auth0
         # The Auth0 session reads trips from the CARIAD backend instead.
         self.support_trip_summary = uses_auth0
+        # Capability parameters (charge target limits) are asked for once.
+        self._capability_parameters_loaded = not uses_auth0
 
         self.charging_complete_time_frozen = None
         # Last selectivestatus payload as received; only read by diagnostics.
@@ -103,6 +106,8 @@ class AudiConnectVehicle(AudiVehicleProperties):
             await self.call_update(self.update_vehicle_longterm, 3)
             info = "trips"
             await self.call_update(self.update_vehicle_trip_summary, 3)
+            info = "capability parameters"
+            await self.call_update(self.update_vehicle_capability_parameters, 3)
             info = "position"
             await self.call_update(self.update_vehicle_position, 3)
             info = "climater"
@@ -578,6 +583,32 @@ class AudiConnectVehicle(AudiVehicleProperties):
                 exception,
                 f"Unable to obtain the vehicle charger state for {self._redacted_vin}",
             )
+
+    async def update_vehicle_capability_parameters(self):
+        """Read the charge target limits from the car's capabilities, once.
+
+        They do not change, so one successful answer is enough. A failure is
+        tried again on the next poll; the slider keeps its default range until
+        then.
+        """
+        if self._capability_parameters_loaded:
+            return
+        try:
+            capabilities = await self._audi_service.get_capabilities(self._vehicle.vin)
+        except ClientResponseError as cre:
+            _LOGGER.debug(
+                "CAPABILITIES: status %s for VIN: %s", cre.status, self._redacted_vin
+            )
+            # 404 means the car has no such list; do not keep asking.
+            self._capability_parameters_loaded = cre.status == 404
+            return
+        charging = capabilities.get("charging")
+        limits = _charge_target_limits(
+            charging.get("parameters") if isinstance(charging, dict) else None
+        )
+        if limits:
+            self._vehicle.state["chargeTargetLimits"] = limits
+        self._capability_parameters_loaded = True
 
     # What is kept from a trip: the figures, not the trip id or anything else.
     _TRIP_FIELDS = (
