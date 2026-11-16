@@ -15,6 +15,7 @@ from tests.test_q8_charging_settings_preservation import VIN, service
 A6_SETTINGS = {
     "carCapturedTimestamp": "2026-11-10T12:00:00Z",
     "maxChargeCurrentAC": "invalid",
+    "autoUnlockPlugWhenCharged": "off",
     "autoUnlockPlugWhenChargedAC": "off",
     "targetSOC_pct": 100,
 }
@@ -25,13 +26,18 @@ def test_switching_on_changes_only_that_setting():
     asyncio.run(svc.set_plug_auto_unlock(VIN, True))
     method, url, payload = api.writes[0]
     assert method == "PUT" and url.endswith("/charging/settings")
-    assert payload == {"autoUnlockPlugWhenChargedAC": "permanent", "targetSOC_pct": 100}
+    assert payload == {
+        "autoUnlockPlugWhenCharged": "off",
+        "autoUnlockPlugWhenChargedAC": "on",
+        "targetSOC_pct": 100,
+    }
 
 
 def test_switching_off_sends_off_and_keeps_the_target():
-    svc, api = service({**A6_SETTINGS, "autoUnlockPlugWhenChargedAC": "permanent"})
+    svc, api = service({**A6_SETTINGS, "autoUnlockPlugWhenChargedAC": "on"})
     asyncio.run(svc.set_plug_auto_unlock(VIN, False))
     assert api.writes[0][2] == {
+        "autoUnlockPlugWhenCharged": "off",
         "autoUnlockPlugWhenChargedAC": "off",
         "targetSOC_pct": 100,
     }
@@ -82,3 +88,11 @@ def test_the_switch_is_experimental_and_follows_the_reported_state():
     assert description.value_fn("enabled") is True
     assert description.value_fn("disabled") is False
     assert description.value_fn(None) is False
+
+
+def test_the_real_a6_settings_do_not_block_a_charge_target_write():
+    """The A6 reports autoUnlockPlugWhenCharged next to the AC variant. Treating
+    it as an unknown setting made every charge-target write refuse on that car."""
+    svc, api = service(dict(A6_SETTINGS))
+    asyncio.run(svc.set_target_state_of_charge(VIN, 80))
+    assert api.writes[0][2]["targetSOC_pct"] == 80

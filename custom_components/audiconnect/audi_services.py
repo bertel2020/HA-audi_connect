@@ -922,6 +922,7 @@ class AudiService(AudiAuthMixin):
                 (
                     "maxChargeCurrentAC_A",
                     "maxChargeCurrentAC",
+                    "autoUnlockPlugWhenCharged",
                     "autoUnlockPlugWhenChargedAC",
                     "targetSOC_pct",
                 )
@@ -959,15 +960,15 @@ class AudiService(AudiAuthMixin):
     async def set_plug_auto_unlock(self, vin: str, enabled: bool):
         """Let the car release the charging plug once charging has finished.
 
-        The capability announces ``allowPlugUnlockACPermanent``, hence the value
-        "permanent" for on. Only the Auth0 path can write it: the legacy
-        endpoints are gone, and a blind write there would replace the rest of the
+        The values are "on" and "off", the two the open-source clients (WeConnect)
+        list as settable. Only the Auth0 path can write it: the legacy endpoints
+        are gone, and a blind write there would replace the rest of the
         settings.
         """
         if not self._uses_auth0:
             raise ValueError("Plug auto-unlock needs an Auth0 session")
         await self._put_charging_settings(
-            vin, {"autoUnlockPlugWhenChargedAC": "permanent" if enabled else "off"}
+            vin, {"autoUnlockPlugWhenChargedAC": "on" if enabled else "off"}
         )
 
     async def get_climatisation_settings_raw(self, vin: str) -> dict:
