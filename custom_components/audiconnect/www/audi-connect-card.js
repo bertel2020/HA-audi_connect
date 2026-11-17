@@ -130,7 +130,8 @@ input[type=range]{width:100%;margin:2px 0 0;accent-color:var(--primary-color)}
 details{border-top:1px solid var(--divider-color)}
 summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 18px;cursor:pointer;font-size:14px;color:var(--primary-text-color)}
 summary::-webkit-details-marker{display:none}
-summary:hover{background:var(--secondary-background-color)}
+@media (hover:hover){summary:hover{background:var(--secondary-background-color)}}
+summary:active{background:var(--secondary-background-color)}
 summary .t{font-weight:500;min-width:92px}
 summary .sm{flex:1;color:var(--secondary-text-color);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 summary ha-icon{--mdc-icon-size:20px;color:var(--secondary-text-color)}
@@ -161,9 +162,13 @@ details[open] summary .ch{transform:rotate(180deg)}
 .ctitle{flex:1}.ctitle b{display:block;font-size:16px;font-weight:500}.ctitle span{font-size:13px;color:var(--secondary-text-color)}
 select{background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color);border-radius:999px;padding:8px 12px;font-size:13px;font-family:inherit}
 .trow{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--primary-text-color)}
-.trow ha-icon{--mdc-icon-size:18px}.trow input{flex:1}.trow b{min-width:48px;text-align:right;font-weight:500}
+.trow ha-icon{--mdc-icon-size:18px}.trow input{flex:1;accent-color:var(--primary-color);cursor:pointer}.trow b{min-width:48px;text-align:right;font-weight:500}
 .pills{display:grid;gap:8px;margin-top:10px}
-.pill{background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color);border-radius:999px;padding:10px 0;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-family:inherit}
+.pill{background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color);border-radius:999px;padding:10px 0;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-family:inherit;transition:transform .12s,background .2s,border-color .2s,opacity .2s}
+@media (hover:hover){.pill:hover{border-color:var(--primary-color)}}
+.pill:active{transform:scale(.95);background:color-mix(in srgb,var(--primary-color) 28%,transparent)}
+.pill.wait{pointer-events:none;opacity:.7}
+.pill.wait ha-icon{animation:spin 1s linear infinite}
 .pill.on{background:color-mix(in srgb,var(--primary-color) 18%,transparent);color:var(--primary-color);border-color:var(--primary-color)}
 .pill ha-icon{--mdc-icon-size:18px}
 .ov{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-start;justify-content:center;padding:14px;z-index:5;overflow:auto}
@@ -186,7 +191,7 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 .c-ok{color:var(--success-color)}.c-warn{color:var(--warning-color)}.c-bad{color:var(--error-color)}.c-mute{color:var(--secondary-text-color)}
 .big{width:100%;margin-top:10px}
 .empty{padding:24px;text-align:center;color:var(--secondary-text-color)}
-@media (prefers-reduced-motion:reduce){.bar.charging::before,.pulse,.cstatus ha-icon{animation:none}}
+@media (prefers-reduced-motion:reduce){.bar.charging::before,.pulse,.cstatus ha-icon,.pill.wait ha-icon{animation:none}}
 `;
 
 // Positions inside the 200 x 300 top view.
@@ -676,7 +681,7 @@ class AudiConnectCard extends HTMLElement {
       ? `<div class="cstatus"><ha-icon icon="mdi:fan"></ha-icon><b>${esc(this._t(action))}</b>${left ? `<span>${esc(this._t("remaining"))} <b>${esc(left)}</b></span>` : ""}</div>`
       : "";
     const seatBtn = (tk, label) => this._has(tk)
-      ? `<button class="pill ${this._on(tk) ? "on" : ""}" data-toggle="${esc(this._id(tk))}"><ha-icon icon="mdi:car-seat-heater"></ha-icon>${esc(label)}</button>` : "";
+      ? `<button class="pill ${this._on(tk) ? "on" : ""}${this._waiting(this._id(tk)) ? " wait" : ""}" data-toggle="${esc(this._id(tk))}"><ha-icon icon="${this._waiting(this._id(tk)) ? "mdi:loading" : "mdi:car-seat-heater"}"></ha-icon>${esc(label)}</button>` : "";
     const seats = seatBtn("climatisation_zone_front_left", this._t("driver")) + seatBtn("climatisation_zone_front_right", this._t("passenger"));
     const id = esc(cl.entity_id);
     const sub = on ? `${this._t(action)}${left ? " · " + this._t("remaining") + " " + left : ""}` : this._t("climate_off") + outdoor;
@@ -695,8 +700,8 @@ class AudiConnectCard extends HTMLElement {
         ${temp !== undefined && temp !== null ? `<div class="trow"><ha-icon icon="mdi:thermometer"></ha-icon><input type="range" data-slider="temp" min="${a.min_temp ?? 16}" max="${a.max_temp ?? 28}" step="${a.target_temp_step ?? 0.5}" value="${temp}" aria-label="${esc(this._t("climate"))}"><b data-live="temp">${esc(this._temp(temp))}</b></div>` : ""}
         ${seats ? `<div class="pills" style="grid-template-columns:repeat(2,1fr)">${seats}</div>` : ""}
         <div class="pills" style="grid-template-columns:repeat(2,1fr)">
-          <button class="pill" data-act="climate-on">${esc(this._t("start"))}</button>
-          <button class="pill" data-act="climate-off">${esc(this._t("stop"))}</button>
+          <button class="pill${this._waiting("climate-on") ? " wait" : ""}" data-act="climate-on">${esc(this._t("start"))}</button>
+          <button class="pill${this._waiting("climate-off") ? " wait" : ""}" data-act="climate-off">${esc(this._t("stop"))}</button>
         </div>
         ${status}
       </div>
@@ -805,18 +810,32 @@ class AudiConnectCard extends HTMLElement {
     if (!el || !this._hass) return;
     if (el.dataset.more && t.closest("summary")) e.preventDefault();
     if (el.dataset.tabSet) { this._ui.tab = el.dataset.tabSet; this._sig = ""; this._update(); return; }
-    if (el.dataset.toggle) { this._hass.callService("homeassistant", "toggle", { entity_id: el.dataset.toggle }); return; }
+    if (el.dataset.toggle) { this._hass.callService("homeassistant", "toggle", { entity_id: el.dataset.toggle }); this._wait(el.dataset.toggle); return; }
     switch (el.dataset.act) {
       case "popup": this._ui.popup = true; this._ui.tab = el.dataset.tab; this._sig = ""; this._update(); return;
       case "close": this._ui.popup = null; this._sig = ""; this._update(); return;
       case "lock": this._toggleLock(); return;
       case "refresh": this._refresh(); return;
       case "open-integration": this._openIntegration(); return;
-      case "climate-on": this._hass.callService("climate", "turn_on", { entity_id: this._id("climatisation") }); return;
-      case "climate-off": this._hass.callService("climate", "turn_off", { entity_id: this._id("climatisation") }); return;
+      case "climate-on": this._hass.callService("climate", "turn_on", { entity_id: this._id("climatisation") }); this._wait("climate-on"); return;
+      case "climate-off": this._hass.callService("climate", "turn_off", { entity_id: this._id("climatisation") }); this._wait("climate-off"); return;
       default: break;
     }
     if (el.dataset.more) this._moreInfo(el.dataset.more);
+  }
+
+  // Shows a button as "working" until the car answers (or a few seconds pass).
+  _waiting(key) { return !!this._ui.wait?.[key]; }
+
+  _wait(key) {
+    (this._ui.wait ||= {})[key] = true;
+    this._sig = "";
+    this._update();
+    setTimeout(() => {
+      delete this._ui.wait[key];
+      this._sig = "";
+      this._update();
+    }, 5000);
   }
 
   _refresh() {
