@@ -146,9 +146,11 @@ details[open] summary .ch{transform:rotate(180deg)}
 .fact ha-icon{--mdc-icon-size:20px;color:var(--secondary-text-color)}
 .fact .fl{flex:1;color:var(--secondary-text-color)}
 .fact .fv{font-weight:500;text-align:right}
-.climate{border-top:1px solid var(--divider-color);padding:14px 16px 16px}
-.chead{display:flex;align-items:center;gap:12px}
+.climate .chead{gap:12px;padding:14px 16px}
+.cbody{padding:0 16px 16px}
+.mrow{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--secondary-text-color);margin-bottom:2px}
 .cicon{width:44px;height:44px;border-radius:50%;background:var(--secondary-background-color);display:flex;align-items:center;justify-content:center;flex:none}
+.cicon ha-icon{--mdc-icon-size:24px}
 .cicon.on ha-icon{color:var(--primary-color)}
 .cstatus{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--primary-color) 14%,transparent);color:var(--primary-text-color);font-size:14px}
 .cstatus ha-icon{--mdc-icon-size:22px;color:var(--primary-color);animation:spin 2s linear infinite}
@@ -676,20 +678,29 @@ class AudiConnectCard extends HTMLElement {
     const seatBtn = (tk, label) => this._has(tk)
       ? `<button class="pill ${this._on(tk) ? "on" : ""}" data-toggle="${esc(this._id(tk))}"><ha-icon icon="mdi:car-seat-heater"></ha-icon>${esc(label)}</button>` : "";
     const seats = seatBtn("climatisation_zone_front_left", this._t("driver")) + seatBtn("climatisation_zone_front_right", this._t("passenger"));
-    return `<div class="climate">
-      <div class="chead">
-        <div class="cicon ${on ? "on" : ""}"><ha-icon icon="mdi:air-conditioner"></ha-icon></div>
-        <div class="ctitle"><b>${esc(this._t("climate"))}</b><span>${esc(on ? this._t(action) : this._t("climate_off") + outdoor)}</span></div>
-        ${mode && modeOptions.length ? `<select data-select="${esc(mode.entity_id)}" aria-label="${esc(this._t("mode"))}">${modeOptions.map((o) => `<option value="${esc(o)}" ${o === mode.state ? "selected" : ""}>${esc(this._hass.formatEntityState ? this._hass.formatEntityState(mode, o) : o)}</option>`).join("")}</select>` : ""}
+    const id = esc(cl.entity_id);
+    const sub = on ? `${this._t(action)}${left ? " · " + this._t("remaining") + " " + left : ""}` : this._t("climate_off") + outdoor;
+    const modeRow = mode && modeOptions.length
+      ? `<div class="mrow"><span>${esc(this._t("mode"))}</span><select data-select="${esc(mode.entity_id)}" aria-label="${esc(this._t("mode"))}">${modeOptions.map((o) => `<option value="${esc(o)}" ${o === mode.state ? "selected" : ""}>${esc(this._hass.formatEntityState ? this._hass.formatEntityState(mode, o) : o)}</option>`).join("")}</select></div>`
+      : "";
+    // Tapping the icon or the title opens the entity; the rest of the row folds the section.
+    return `<details class="climate" data-id="climate" ${this._ui.open.climate ? "open" : ""}>
+      <summary class="chead">
+        <div class="cicon ${on ? "on" : ""}" data-more="${id}"><ha-icon icon="mdi:air-conditioner"></ha-icon></div>
+        <div class="ctitle" data-more="${id}"><b>${esc(this._t("climate"))}</b><span>${esc(sub)}</span></div>
+        <ha-icon class="ch" icon="mdi:chevron-down"></ha-icon>
+      </summary>
+      <div class="cbody">
+        ${modeRow}
+        ${temp !== undefined && temp !== null ? `<div class="trow"><ha-icon icon="mdi:thermometer"></ha-icon><input type="range" data-slider="temp" min="${a.min_temp ?? 16}" max="${a.max_temp ?? 28}" step="${a.target_temp_step ?? 0.5}" value="${temp}" aria-label="${esc(this._t("climate"))}"><b data-live="temp">${esc(this._temp(temp))}</b></div>` : ""}
+        ${seats ? `<div class="pills" style="grid-template-columns:repeat(2,1fr)">${seats}</div>` : ""}
+        <div class="pills" style="grid-template-columns:repeat(2,1fr)">
+          <button class="pill" data-act="climate-on">${esc(this._t("start"))}</button>
+          <button class="pill" data-act="climate-off">${esc(this._t("stop"))}</button>
+        </div>
+        ${status}
       </div>
-      ${temp !== undefined && temp !== null ? `<div class="trow"><ha-icon icon="mdi:thermometer"></ha-icon><input type="range" data-slider="temp" min="${a.min_temp ?? 16}" max="${a.max_temp ?? 28}" step="${a.target_temp_step ?? 0.5}" value="${temp}" aria-label="${esc(this._t("climate"))}"><b data-live="temp">${esc(this._temp(temp))}</b></div>` : ""}
-      ${seats ? `<div class="pills" style="grid-template-columns:repeat(2,1fr)">${seats}</div>` : ""}
-      <div class="pills" style="grid-template-columns:repeat(2,1fr)">
-        <button class="pill" data-act="climate-on">${esc(this._t("start"))}</button>
-        <button class="pill" data-act="climate-off">${esc(this._t("stop"))}</button>
-      </div>
-      ${status}
-    </div>`;
+    </details>`;
   }
 
   _renderPopup() {
@@ -792,6 +803,7 @@ class AudiConnectCard extends HTMLElement {
     if (bg && t === bg) { this._ui.popup = null; this._sig = ""; this._update(); return; }
     const el = t.closest?.("[data-act],[data-more],[data-toggle],[data-tab-set]");
     if (!el || !this._hass) return;
+    if (el.dataset.more && t.closest("summary")) e.preventDefault();
     if (el.dataset.tabSet) { this._ui.tab = el.dataset.tabSet; this._sig = ""; this._update(); return; }
     if (el.dataset.toggle) { this._hass.callService("homeassistant", "toggle", { entity_id: el.dataset.toggle }); return; }
     switch (el.dataset.act) {
