@@ -147,20 +147,19 @@ details[open] summary .ch{transform:rotate(180deg)}
 .fact ha-icon{--mdc-icon-size:20px;color:var(--secondary-text-color)}
 .fact .fl{flex:1;color:var(--secondary-text-color)}
 .fact .fv{font-weight:500;text-align:right}
-.climate .chead{gap:12px;padding:14px 16px}
 .cbody{padding:0 16px 16px}
 .mrow{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--secondary-text-color);margin-bottom:2px}
-.cicon{width:44px;height:44px;border-radius:50%;background:var(--secondary-background-color);display:flex;align-items:center;justify-content:center;flex:none}
-.cicon ha-icon{--mdc-icon-size:24px}
-.cicon.on ha-icon{color:var(--primary-color)}
 .cstatus{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--primary-color) 14%,transparent);color:var(--primary-text-color);font-size:14px}
 .cstatus ha-icon{--mdc-icon-size:22px;color:var(--primary-color);animation:spin 2s linear infinite}
 .cstatus b{font-weight:600}
 .cstatus span{margin-left:auto;color:var(--secondary-text-color)}
 .cstatus span b{color:var(--primary-text-color);font-weight:600}
 @keyframes spin{to{transform:rotate(360deg)}}
-.ctitle{flex:1}.ctitle b{display:block;font-size:16px;font-weight:500}.ctitle span{font-size:13px;color:var(--secondary-text-color)}
 select{background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color);border-radius:999px;padding:8px 12px;font-size:13px;font-family:inherit}
+.step{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.step b{font-size:22px;font-weight:500}
+.stp{width:40px;height:40px;border-radius:50%;background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .12s,background .2s}
+.stp:active{transform:scale(.92);background:color-mix(in srgb,var(--primary-color) 28%,transparent)}
 .trow{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--primary-text-color)}
 .trow ha-icon{--mdc-icon-size:18px}.trow input{flex:1;accent-color:var(--primary-color);cursor:pointer}.trow b{min-width:48px;text-align:right;font-weight:500}
 .pills{display:grid;gap:8px;margin-top:10px}
@@ -688,16 +687,11 @@ class AudiConnectCard extends HTMLElement {
     const modeRow = mode && modeOptions.length
       ? `<div class="mrow"><span>${esc(this._t("mode"))}</span><select data-select="${esc(mode.entity_id)}" aria-label="${esc(this._t("mode"))}">${modeOptions.map((o) => `<option value="${esc(o)}" ${o === mode.state ? "selected" : ""}>${esc(this._hass.formatEntityState ? this._hass.formatEntityState(mode, o) : o)}</option>`).join("")}</select></div>`
       : "";
-    // Tapping the icon or the title opens the entity; the rest of the row folds the section.
     return `<details class="climate" data-id="climate" ${this._ui.open.climate ? "open" : ""}>
-      <summary class="chead">
-        <div class="cicon ${on ? "on" : ""}" data-more="${id}"><ha-icon icon="mdi:air-conditioner"></ha-icon></div>
-        <div class="ctitle" data-more="${id}"><b>${esc(this._t("climate"))}</b><span>${esc(sub)}</span></div>
-        <ha-icon class="ch" icon="mdi:chevron-down"></ha-icon>
-      </summary>
+      <summary><ha-icon icon="mdi:air-conditioner"></ha-icon><span class="t">${esc(this._t("climate"))}</span><span class="sm">${esc(sub)}</span><ha-icon class="ch" icon="mdi:chevron-down"></ha-icon></summary>
       <div class="cbody">
         ${modeRow}
-        ${temp !== undefined && temp !== null ? `<div class="trow"><ha-icon icon="mdi:thermometer"></ha-icon><input type="range" data-slider="temp" min="${a.min_temp ?? 16}" max="${a.max_temp ?? 28}" step="${a.target_temp_step ?? 0.5}" value="${temp}" aria-label="${esc(this._t("climate"))}"><b data-live="temp">${esc(this._temp(temp))}</b></div>` : ""}
+        ${temp !== undefined && temp !== null ? `<div class="step"><button class="stp" data-step="-1" aria-label="-"><ha-icon icon="mdi:minus"></ha-icon></button><b data-live="temp">${esc(this._temp(this._ui.tempDraft ?? temp))}</b><button class="stp" data-step="1" aria-label="+"><ha-icon icon="mdi:plus"></ha-icon></button></div>` : ""}
         ${seats ? `<div class="pills" style="grid-template-columns:repeat(2,1fr)">${seats}</div>` : ""}
         <div class="pills" style="grid-template-columns:repeat(2,1fr)">
           <button class="pill${this._waiting("climate-on") ? " wait" : ""}" data-act="climate-on">${esc(this._t("start"))}</button>
@@ -806,9 +800,10 @@ class AudiConnectCard extends HTMLElement {
     const t = e.target;
     const bg = t.closest?.('[data-act="close-bg"]');
     if (bg && t === bg) { this._ui.popup = null; this._sig = ""; this._update(); return; }
-    const el = t.closest?.("[data-act],[data-more],[data-toggle],[data-tab-set]");
+    const el = t.closest?.("[data-act],[data-more],[data-toggle],[data-tab-set],[data-step]");
     if (!el || !this._hass) return;
     if (el.dataset.more && t.closest("summary")) e.preventDefault();
+    if (el.dataset.step) { this._stepTemp(Number(el.dataset.step)); return; }
     if (el.dataset.tabSet) { this._ui.tab = el.dataset.tabSet; this._sig = ""; this._update(); return; }
     if (el.dataset.toggle) { this._hass.callService("homeassistant", "toggle", { entity_id: el.dataset.toggle }); this._wait(el.dataset.toggle); return; }
     switch (el.dataset.act) {
@@ -822,6 +817,22 @@ class AudiConnectCard extends HTMLElement {
       default: break;
     }
     if (el.dataset.more) this._moreInfo(el.dataset.more);
+  }
+
+  // Plus/minus change a draft shown at once; the value is sent once the taps stop.
+  _stepTemp(dir) {
+    const a = this._s("climatisation").attributes;
+    const step = Number(a.target_temp_step ?? 0.5);
+    const cur = Number(this._ui.tempDraft ?? a.temperature);
+    const v = Math.min(Number(a.max_temp ?? 28), Math.max(Number(a.min_temp ?? 16), cur + dir * step));
+    this._ui.tempDraft = v;
+    const el = this._root.querySelector('[data-live="temp"]');
+    if (el) el.textContent = this._temp(v);
+    clearTimeout(this._tempTimer);
+    this._tempTimer = setTimeout(() => {
+      this._hass.callService("climate", "set_temperature", { entity_id: this._id("climatisation"), temperature: v });
+      setTimeout(() => { this._ui.tempDraft = null; this._sig = ""; this._update(); }, 3000);
+    }, 700);
   }
 
   // Shows a button as "working" until the car answers (or a few seconds pass).
