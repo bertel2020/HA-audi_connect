@@ -132,7 +132,7 @@ summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 18
 summary::-webkit-details-marker{display:none}
 @media (hover:hover){summary:hover{background:var(--secondary-background-color)}}
 summary:active{background:var(--secondary-background-color)}
-summary .t{font-weight:500;min-width:92px}
+summary .t{font-weight:500;min-width:112px}
 summary .sm{flex:1;color:var(--secondary-text-color);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 summary ha-icon{--mdc-icon-size:20px;color:var(--secondary-text-color)}
 summary .ch{transition:transform .15s}
@@ -147,7 +147,7 @@ details[open] summary .ch{transform:rotate(180deg)}
 .fact ha-icon{--mdc-icon-size:20px;color:var(--secondary-text-color)}
 .fact .fl{flex:1;color:var(--secondary-text-color)}
 .fact .fv{font-weight:500;text-align:right}
-.cbody{padding:0 16px 16px}
+.cbody{padding:6px 16px 16px}
 .mrow{display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--secondary-text-color);margin-bottom:2px}
 .cstatus{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--primary-color) 14%,transparent);color:var(--primary-text-color);font-size:14px}
 .cstatus ha-icon{--mdc-icon-size:22px;color:var(--primary-color);animation:spin 2s linear infinite}
@@ -156,7 +156,7 @@ details[open] summary .ch{transform:rotate(180deg)}
 .cstatus span b{color:var(--primary-text-color);font-weight:600}
 @keyframes spin{to{transform:rotate(360deg)}}
 select{background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color);border-radius:999px;padding:8px 12px;font-size:13px;font-family:inherit}
-.step{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+.step{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
 .step b{font-size:22px;font-weight:500}
 .stp{width:40px;height:40px;border-radius:50%;background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .12s,background .2s}
 .stp:active{transform:scale(.92);background:color-mix(in srgb,var(--primary-color) 28%,transparent)}
@@ -168,6 +168,8 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 .pill:active{transform:scale(.95);background:color-mix(in srgb,var(--primary-color) 28%,transparent)}
 .pill.wait{pointer-events:none;opacity:.7}
 .pill.wait ha-icon{animation:spin 1s linear infinite}
+.pill.go{background:var(--primary-color);border-color:var(--primary-color);color:var(--text-primary-color,#fff);font-weight:500}
+.pill.go:active{filter:brightness(.9);background:var(--primary-color)}
 .pill.on{background:color-mix(in srgb,var(--primary-color) 18%,transparent);color:var(--primary-color);border-color:var(--primary-color)}
 .pill ha-icon{--mdc-icon-size:18px}
 .ov{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-start;justify-content:center;padding:14px;z-index:5;overflow:auto}
@@ -189,6 +191,7 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 .li:last-of-type{border:0}
 .c-ok{color:var(--success-color)}.c-warn{color:var(--warning-color)}.c-bad{color:var(--error-color)}.c-mute{color:var(--secondary-text-color)}
 .big{width:100%;margin-top:10px}
+.pills .big{margin-top:0}
 .empty{padding:24px;text-align:center;color:var(--secondary-text-color)}
 @media (prefers-reduced-motion:reduce){.bar.charging::before,.pulse,.cstatus ha-icon,.pill.wait ha-icon{animation:none}}
 `;
@@ -693,9 +696,10 @@ class AudiConnectCard extends HTMLElement {
         ${modeRow}
         ${temp !== undefined && temp !== null ? `<div class="step"><button class="stp" data-step="-1" aria-label="-"><ha-icon icon="mdi:minus"></ha-icon></button><b data-live="temp">${esc(this._temp(this._ui.tempDraft ?? temp))}</b><button class="stp" data-step="1" aria-label="+"><ha-icon icon="mdi:plus"></ha-icon></button></div>` : ""}
         ${seats ? `<div class="pills" style="grid-template-columns:repeat(2,1fr)">${seats}</div>` : ""}
-        <div class="pills" style="grid-template-columns:repeat(2,1fr)">
-          <button class="pill${this._waiting("climate-on") ? " wait" : ""}" data-act="climate-on">${esc(this._t("start"))}</button>
-          <button class="pill${this._waiting("climate-off") ? " wait" : ""}" data-act="climate-off">${esc(this._t("stop"))}</button>
+        <div class="pills">
+          ${on
+            ? `<button class="pill big${this._waiting("climate-off") ? " wait" : ""}" data-act="climate-off"><ha-icon icon="${this._waiting("climate-off") ? "mdi:loading" : "mdi:stop"}"></ha-icon>${esc(this._t("stop"))}</button>`
+            : `<button class="pill big go${this._waiting("climate-on") ? " wait" : ""}" data-act="climate-on"><ha-icon icon="${this._waiting("climate-on") ? "mdi:loading" : "mdi:play"}"></ha-icon>${esc(this._t("start"))}</button>`}
         </div>
         ${status}
       </div>
