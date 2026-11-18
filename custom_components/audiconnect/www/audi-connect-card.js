@@ -596,7 +596,7 @@ class AudiConnectCard extends HTMLElement {
       const num = (k) => this._known(`${prefix}_${k}`) ? this._s(`${prefix}_${k}`).state : "–";
       const unit = (k, d) => this._s(`${prefix}_${k}`)?.attributes.unit_of_measurement || d;
       const sum = `${f("distance", "km")} · ${f("consumption", "kWh/100 km")}`;
-      const cell = (ic, k, label, d) => `<div><ha-icon icon="${ic}"></ha-icon><span class="v">${esc(this._known(`${prefix}_${k}`) ? this._rounded(`${prefix}_${k}`) : "–")}</span><span class="u">${esc(unit(k, d))}</span><span class="k">${esc(this._t(label))}</span></div>`;
+      const cell = (ic, k, label, d) => `<div class="tap" data-more="${esc(this._id(`${prefix}_${k}`))}"><ha-icon icon="${ic}"></ha-icon><span class="v">${esc(this._known(`${prefix}_${k}`) ? this._rounded(`${prefix}_${k}`) : "–")}</span><span class="u">${esc(unit(k, d))}</span><span class="k">${esc(this._t(label))}</span></div>`;
       return `<details data-id="${id}" ${this._ui.open[id] ? "open" : ""}>
         <summary><ha-icon icon="${icon}"></ha-icon><span class="t">${esc(title)}</span><span class="sm">${esc(sum)}</span><ha-icon class="ch" icon="mdi:chevron-down"></ha-icon></summary>
         <div class="trip">
@@ -795,7 +795,8 @@ class AudiConnectCard extends HTMLElement {
   }
 
   _openIntegration() {
-    history.pushState(null, "", `/config/integrations/integration/${DOMAIN}`);
+    const dev = this._deviceId();
+    history.pushState(null, "", dev ? `/config/devices/device/${dev}` : `/config/integrations/integration/${DOMAIN}`);
     window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
   }
 
