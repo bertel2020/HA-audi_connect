@@ -156,8 +156,8 @@ details[open] summary .ch{transform:rotate(180deg)}
 .cstatus span b{color:var(--primary-text-color);font-weight:600}
 @keyframes spin{to{transform:rotate(360deg)}}
 select{background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color);border-radius:999px;padding:8px 12px;font-size:13px;font-family:inherit}
-.step{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
-.step b{font-size:22px;font-weight:500}
+.step{display:flex;align-items:center;justify-content:center;gap:20px;margin-top:14px}
+.step b{font-size:22px;font-weight:500;min-width:84px;text-align:center}
 .stp{width:40px;height:40px;border-radius:50%;background:var(--secondary-background-color);color:var(--primary-text-color);border:1px solid var(--divider-color);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:transform .12s,background .2s}
 .stp:active{transform:scale(.92);background:color-mix(in srgb,var(--primary-color) 28%,transparent)}
 .trow{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--primary-text-color)}
