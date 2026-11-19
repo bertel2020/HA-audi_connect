@@ -70,6 +70,7 @@ from .const import (
     uses_auth0,
 )
 from .capability_jobs import BASE_SELECTIVE_JOBS
+from .audi_entity import _english_entity_names
 from .card import async_register_card
 from .coordinator import AudiDataUpdateCoordinator
 from .diagnostics_payload import redact
@@ -517,6 +518,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         await coordinator.async_config_entry_first_refresh()
 
     _async_cleanup_orphaned_devices(hass, config_entry)
+    # Entity ids are built from en.json; read it off the event loop once so the
+    # cached lookup is already warm when the platforms add their entities.
+    await hass.async_add_executor_job(_english_entity_names)
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     return True
 
