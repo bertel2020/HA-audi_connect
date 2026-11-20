@@ -1,8 +1,7 @@
 name: Release
 on:
+  # Manual only: a scheduled run would publish releases on its own.
   workflow_dispatch:
-  schedule:
-    - cron: "0 8 * * Wed,Sun"
 jobs:
   build:
     runs-on: ubuntu-latest

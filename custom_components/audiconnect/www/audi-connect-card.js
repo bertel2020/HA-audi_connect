@@ -999,7 +999,7 @@ if (!window.customCards.some((c) => c.type === "audi-connect-card")) {
     name: "Audi Connect",
     description: "Status, charging, trips and climate of your Audi, found automatically from the integration.",
     preview: false,
-    documentationURL: "https://github.com/audiconnect/audi_connect_ha",
+    documentationURL: "https://github.com/bertel2020/HA-audi_connect",
   });
 }
 console.info(`%c AUDI-CONNECT-CARD %c ${CARD_VERSION} `, "color:#fff;background:#bb0a30;font-weight:700", "color:#bb0a30");

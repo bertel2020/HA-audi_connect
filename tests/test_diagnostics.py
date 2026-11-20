@@ -12,7 +12,7 @@ from custom_components.audiconnect.diagnostics_payload import (
     redact,
 )
 
-VIN = "WAUZZZF2XPN012345"
+VIN = "WAUZZZF2XPN000001"
 
 PAYLOAD = {
     "access": {

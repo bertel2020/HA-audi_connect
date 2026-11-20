@@ -24,7 +24,7 @@ from yarl import URL
 
 from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
 
-VIN = "WAUZZZ4M1RD012345"
+VIN = "WAUZZZ4M1RD000001"
 
 
 class FakeVehicle:

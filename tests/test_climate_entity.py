@@ -301,3 +301,23 @@ def test_turn_on_and_off_are_advertised():
     assert entity.supported_features & ClimateEntityFeature.TURN_ON
     assert entity.supported_features & ClimateEntityFeature.TURN_OFF
     assert entity.hvac_modes == [HVACMode.OFF, HVACMode.HEAT_COOL]
+
+
+# --- a requested temperature wins over the car's stale one -----------------------
+
+
+def test_a_new_temperature_is_sent_even_when_the_car_reports_another():
+    """The car reports 22.0; asking for 19.5 must send 19.5, not echo 22.0 back."""
+    connection = RecordingConnection()
+    _, entity = build(
+        "heating", connection, climatisation_target_temperature=22.0
+    )
+    asyncio.run(entity.async_set_temperature(**{ATTR_TEMPERATURE: 19.5}))
+    assert connection.calls == [("start_climate_control", (VIN,), {"temp_c": 19.5})]
+    # Shown as asked while the car still reports the old value ...
+    assert entity.target_temperature == 19.5
+    # ... and the car's word counts again once it reports something new.
+    entity._vehicle.climatisation_target_temperature = 19.5
+    assert entity.target_temperature == 19.5
+    entity._vehicle.climatisation_target_temperature = 23.0
+    assert entity.target_temperature == 23.0

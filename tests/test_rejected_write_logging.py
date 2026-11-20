@@ -11,7 +11,7 @@ from aiohttp import ClientResponseError
 
 from custom_components.audiconnect.audi_api import AudiAPI
 
-VIN = "WAUZZZGH7SA009401"
+VIN = "WAUZZZGH7SA000001"
 URL = (
     f"https://emea.bff.cariad.digital/vehicle/v1/vehicles/{VIN}/climatisation/settings"
 )

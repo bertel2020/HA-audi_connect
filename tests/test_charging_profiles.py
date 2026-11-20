@@ -176,3 +176,25 @@ def test_position_pointing_at_an_unknown_profile(payload):
     assert states["activeChargingProfileId"] == 99
     assert states.get("activeChargingProfileTargetSoc") is None
     assert states["chargingProfileCount"] == 2
+
+
+# --- a value the report no longer backs is reset, not kept --------------------------
+
+
+def test_a_switched_off_timer_clears_the_next_departure(payload):
+    """The vehicle keeps the last value of every state name, so a parser that
+    merely leaves the departure out would show the old one for ever."""
+    vehicle_state = {}
+
+    def poll(data):
+        for s in VehicleDataResponse(data).states:
+            vehicle_state[s["name"]] = s["value"]
+
+    timers = payload["chargingTimers"]["chargingTimersStatus"]["value"]["timers"]
+    timers[0]["enabled"] = True
+    poll(payload)
+    assert vehicle_state["nextChargingTimerDeparture"] == "11:05"
+
+    timers[0]["enabled"] = False
+    poll(payload)
+    assert vehicle_state["nextChargingTimerDeparture"] is None
