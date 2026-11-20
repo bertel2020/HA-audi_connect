@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  # Called by the release workflow, so nothing is released from a red tree.
+  workflow_call:
 
 jobs:
   pytest:
