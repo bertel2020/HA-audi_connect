@@ -245,12 +245,6 @@ class AudiService(AudiAuthMixin):
         )
         return f"{base}/audi/{self._country.upper()}/vehicles/{vin.upper()}/{rest}"
 
-    async def get_charger(self, vin: str):
-        self._api.use_token(self.vwToken)
-        return await self._api.get(
-            f"{await self._get_home_region(vin.upper())}/fs-car/bs/batterycharge/v1/{self._type}/{self._country}/vehicles/{vin.upper()}/charger"
-        )
-
     async def get_climater(self, vin: str):
         self._api.use_token(self.vwToken)
         return await self._api.get(
