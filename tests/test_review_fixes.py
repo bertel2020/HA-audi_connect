@@ -290,3 +290,23 @@ def test_token_reauth_with_another_account_is_refused():
         refresh_token="t", account_identifier=lambda: "OWNER@example.com"
     )
     assert asyncio.run(flow._finish_token_login())["reason"] == "ok"
+
+
+def test_the_tracker_does_not_put_the_vin_into_state_attributes():
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    from custom_components.audiconnect.device_tracker import AudiDeviceTracker
+
+    vehicle = SimpleNamespace(
+        vin="WAUZZZF12345678AB",
+        csid="core-1",
+        model="Q8",
+        title="e-tron",
+        model_year=2024,
+        model_family="Q8",
+        position={"latitude": 1.0, "longitude": 2.0, "timestamp": None},
+    )
+    tracker = AudiDeviceTracker(MagicMock(), vehicle)
+    attrs = tracker.extra_state_attributes
+    assert "vin" not in attrs and "csid" not in attrs

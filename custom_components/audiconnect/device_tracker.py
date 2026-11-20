@@ -89,6 +89,8 @@ class AudiDeviceTracker(AudiEntity, TrackerEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         position = self._position()
         captured = position.get("timestamp")
+        # No VIN or csid here: attributes are written to the recorder, and the
+        # VIN is already the device identifier. Logs and diagnostics mask it too.
         attrs = {
             "position_source": "Audi last-known parked location, not live driving GPS",
             "position_captured_at": (
@@ -99,8 +101,6 @@ class AudiDeviceTracker(AudiEntity, TrackerEntity):
             "model": f"{self._vehicle.model or 'Unknown'}/{self._vehicle.title}",
             "model_year": getattr(self._vehicle, "model_year", None),
             "model_family": getattr(self._vehicle, "model_family", None),
-            "csid": getattr(self._vehicle, "csid", None),
-            "vin": getattr(self._vehicle, "vin", None),
         }
         return {k: v for k, v in attrs.items() if v is not None}
 
