@@ -323,7 +323,7 @@ class AudiVehicleProperties:
         _STATE,
         "climatisationTargetTemperatureC",
         _is_not_none,
-        doc="Return the target temperature the car is set to, in Celsius.\n\nReported by the car, so it does not have to be held locally. Note the\ncar stores half degrees even though the api_level 1 write truncates to\nwhole ones.",
+        doc="Return the target temperature the car is set to, in Celsius.\n\nReported by the car, so it does not have to be held locally. The\ncar stores half degrees, and the writes keep them.",
     )
     outdoor_temperature = _Field(_STATE, "outdoorTemperature", _truthy)
     glass_surface_heating = _Field(_STATE, "isMirrorHeatingActive", _is_not_none)
