@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import time
+from datetime import UTC, datetime
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -220,6 +221,25 @@ class AudiEntity(CoordinatorEntity[AudiDataUpdateCoordinator]):
     # The vehicle attribute this entity reads. Set by platforms whose entity
     # has no entity_description to carry it.
     _backing_attr: str | None = None
+
+    @staticmethod
+    def _command_started() -> datetime:
+        """Take before sending a command; see ``_refresh_after_command``."""
+        return datetime.now(UTC)
+
+    async def _refresh_after_command(self, started: datetime) -> None:
+        """Refresh the cloud data, unless the command already did.
+
+        Most commands schedule their own refresh once the car has had time to
+        take them (the account's notify step). A second request here would be
+        held back by the coordinator's cooldown and run as another full poll
+        right after the first. A poll that began after the command started is
+        that refresh, so nothing more is asked for.
+        """
+        attempt = getattr(self.coordinator, "last_cloud_poll_attempt", None)
+        if isinstance(attempt, datetime) and attempt >= started:
+            return
+        await self.coordinator.async_request_refresh()
 
     @property
     def available(self) -> bool:

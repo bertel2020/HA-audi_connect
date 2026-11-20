@@ -195,21 +195,23 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
                 if quick_start and modern_api and not force_temperature
                 else self.native_target_temperature
             )
+        started = self._command_started()
         if not await connection.start_climate_control(
             self._vehicle.vin, temp_c=temperature
         ):
             raise HomeAssistantError(
                 "Failed to start climatisation; see the log for details"
             )
-        await self.coordinator.async_request_refresh()
+        await self._refresh_after_command(started)
 
     async def async_turn_off(self) -> None:
         connection = self.coordinator.account.connection
+        started = self._command_started()
         if not await connection.set_vehicle_climatisation(self._vehicle.vin, False):
             raise HomeAssistantError(
                 "Failed to stop climatisation; see the log for details"
             )
-        await self.coordinator.async_request_refresh()
+        await self._refresh_after_command(started)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
@@ -224,13 +226,14 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
         # does not start the climatisation. Without a way to write the setting
         # the value stays here and is used at the next start.
         if not self._is_running and getattr(service, "uses_auth0", False):
+            started = self._command_started()
             if not await connection.set_climatisation_setting(
                 self._vehicle.vin, "targetTemperature", float(temperature)
             ):
                 raise HomeAssistantError(
                     "Failed to set the target temperature; see the log for details"
                 )
-            await self.coordinator.async_request_refresh()
+            await self._refresh_after_command(started)
             return
         # Re-send only if it is already running, so setting a temperature while
         # off does not start the car climatising.

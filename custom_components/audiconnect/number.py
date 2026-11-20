@@ -162,13 +162,14 @@ class AudiChargeTargetEntity(AssumedValueMixin, AudiEntity, NumberEntity):
         value: float,
     ) -> None:
         connection = self.coordinator.account.connection
+        started = self._command_started()
         if not await set_value_fn(connection, self._vehicle.vin, int(value)):
             raise HomeAssistantError(
                 f"Failed to set {self.entity_id or self.unique_id}; "
                 "see the log for details"
             )
         self._assume(float(int(value)))
-        await self.coordinator.async_request_refresh()
+        await self._refresh_after_command(started)
 
 
 class AudiNumber(AudiChargeTargetEntity):

@@ -158,12 +158,13 @@ class AudiChargeModeSelect(AssumedValueMixin, AudiEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         connection = self.coordinator.account.connection
+        started = self._command_started()
         if not await connection.set_charge_mode(self._vehicle.vin, option):
             raise HomeAssistantError(
                 f"Failed to set charge mode to {option}; see the log for details"
             )
         self._assume(option)
-        await self.coordinator.async_request_refresh()
+        await self._refresh_after_command(started)
 
 
 class AudiClimatisationModeSelect(AssumedValueMixin, AudiEntity, SelectEntity):
@@ -208,6 +209,7 @@ class AudiClimatisationModeSelect(AssumedValueMixin, AudiEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         connection = self.coordinator.account.connection
+        started = self._command_started()
         if not await connection.set_climatisation_setting(
             self._vehicle.vin, "climatisationMode", option
         ):
@@ -215,7 +217,7 @@ class AudiClimatisationModeSelect(AssumedValueMixin, AudiEntity, SelectEntity):
                 f"Failed to set climatisation mode to {option}; see the log for details"
             )
         self._assume(option)
-        await self.coordinator.async_request_refresh()
+        await self._refresh_after_command(started)
 
 
 class AudiProfileCurrentSelect(AssumedValueMixin, AudiEntity, SelectEntity):
@@ -253,6 +255,7 @@ class AudiProfileCurrentSelect(AssumedValueMixin, AudiEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         connection = self.coordinator.account.connection
+        started = self._command_started()
         if not await connection.set_profile_charging_current(
             self._vehicle.vin, None, option
         ):
@@ -261,7 +264,7 @@ class AudiProfileCurrentSelect(AssumedValueMixin, AudiEntity, SelectEntity):
                 "see the log for details"
             )
         self._assume(option)
-        await self.coordinator.async_request_refresh()
+        await self._refresh_after_command(started)
 
 
 __all__ = [

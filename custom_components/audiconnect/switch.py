@@ -312,6 +312,7 @@ class AudiSwitch(AudiEntity, SwitchEntity):
         self, fn: Callable[[Any, str], Coroutine[Any, Any, bool]], target: bool
     ) -> None:
         connection = self.coordinator.account.connection
+        started = self._command_started()
         if not await fn(connection, self._vehicle.vin):
             raise HomeAssistantError(
                 f"Failed to switch {self.entity_id or self.unique_id}; "
@@ -326,7 +327,7 @@ class AudiSwitch(AudiEntity, SwitchEntity):
         self._reported_at_write = self._reported()
         self._assumed = target
         self.async_write_ha_state()
-        await self.coordinator.async_request_refresh()
+        await self._refresh_after_command(started)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self._run(self.entity_description.turn_on_fn, True)
