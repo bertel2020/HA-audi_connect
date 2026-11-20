@@ -283,6 +283,7 @@ test_climatisation_write:
             - single_field
             - full_json
             - app_dto
+            - app_full
     method:
       selector:
         select:

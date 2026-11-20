@@ -319,8 +319,39 @@ def test_app_dto_uses_the_apps_field_names_and_unit():
     assert "targetTemperature_C" not in body
 
 
+def test_app_full_sends_all_twelve_fields_with_null_where_the_car_reports_none():
+    body = build_climatisation_settings_update(
+        A6_SETTINGS, variant="app_full", targetTemperature=21.5
+    )
+    assert body == {
+        "activeVentilationSettings": None,
+        "auxiliaryHeatingSettings": None,
+        "climatisationWithoutExternalPower": None,
+        "climatizationAtUnlock": False,
+        "windowHeatingEnabled": False,
+        "zoneFrontLeftEnabled": True,
+        "zoneFrontRightEnabled": True,
+        "zoneRearLeftEnabled": False,
+        "zoneRearRightEnabled": False,
+        "climatisationMode": "economy",
+        "targetTemperature": 21.5,
+        "targetTemperatureUnit": "celsius",
+    }
+    assert len(body) == 12
+    assert "targetTemperature_C" not in body
+
+
+def test_app_full_keeps_the_stored_temperature_when_it_is_not_changed():
+    body = build_climatisation_settings_update(
+        A6_SETTINGS, variant="app_full", climatizationAtUnlock=True
+    )
+    assert body["targetTemperature"] == 22.5
+    assert body["climatizationAtUnlock"] is True
+
+
 def test_json_variants_send_a_json_content_type_and_the_others_do_not():
     for variant, expected in (
+        ("app_full", True),
         ("app_dto", True),
         ("full_json", True),
         ("full", False),

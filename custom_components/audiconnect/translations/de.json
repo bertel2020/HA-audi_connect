@@ -352,7 +352,7 @@
         },
         "variant": {
           "name": "Body-Variante",
-          "description": "full: alle Einstellungen; without_window_heating: ohne Scheibenheizung; single_field: nur das geänderte Feld; full_json: wie full mit Content-Type JSON; app_dto: Felder und Namen wie in der myAudi-App, mit Content-Type JSON."
+          "description": "full: alle Einstellungen; without_window_heating: ohne Scheibenheizung; single_field: nur das geänderte Feld; full_json: wie full mit Content-Type JSON; app_dto: Felder und Namen wie in der myAudi-App, mit Content-Type JSON; app_full: wie app_dto, aber mit allen zwölf Feldern der App-Anfrage, null wo das Auto nichts meldet."
         },
         "method": {
           "name": "HTTP-Methode",

@@ -44,10 +44,11 @@ CLIMATISATION_WRITE_VARIANTS = (
     "single_field",
     "full_json",
     "app_dto",
+    "app_full",
 )
 # Variants sent with Content-Type application/json. The myAudi app always does,
 # our other writes carry aiohttp's default text/plain for a string body.
-JSON_CONTENT_VARIANTS = frozenset({"full_json", "app_dto"})
+JSON_CONTENT_VARIANTS = frozenset({"full_json", "app_dto", "app_full"})
 
 # Fields the myAudi app's request object carries (SetClimatisationSettings,
 # read from app 5.9.0). All twelve are always part of it; it names the target
@@ -61,6 +62,13 @@ _APP_DTO_FIELDS = (
     "zoneRearLeftEnabled",
     "zoneRearRightEnabled",
     "climatisationMode",
+)
+
+# "app_full" sends all twelve fields of the app's request object, as the app does:
+# the two the car does not report as settings (and any other it reports as nothing)
+# go out as null, where "app_dto" leaves them out.
+_APP_FULL_FIELDS = ("activeVentilationSettings", "auxiliaryHeatingSettings") + (
+    _APP_DTO_FIELDS
 )
 
 
@@ -93,6 +101,13 @@ def build_climatisation_settings_update(
 
     if variant == "single_field":
         return dict(changes)
+    if variant == "app_full":
+        body = {k: value.get(k) for k in _APP_FULL_FIELDS}
+        temperature = value.get("targetTemperature_C", value.get("targetTemperature"))
+        body["targetTemperature"] = temperature
+        body["targetTemperatureUnit"] = "celsius"
+        body.update(changes)
+        return body
     if variant == "app_dto":
         body = {k: value[k] for k in _APP_DTO_FIELDS if value.get(k) is not None}
         temperature = value.get("targetTemperature_C", value.get("targetTemperature"))

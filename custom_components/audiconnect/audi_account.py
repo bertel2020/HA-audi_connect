@@ -166,7 +166,14 @@ SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA = vol.Schema(
         # A flag for the on/off settings, a number for the target temperature.
         vol.Required("value"): vol.Any(bool, vol.Coerce(float)),
         vol.Required("variant"): vol.In(
-            ["full", "without_window_heating", "single_field", "full_json", "app_dto"]
+            [
+                "full",
+                "without_window_heating",
+                "single_field",
+                "full_json",
+                "app_dto",
+                "app_full",
+            ]
         ),
         vol.Optional("method", default="PUT"): vol.In(["PUT", "POST"]),
     }
