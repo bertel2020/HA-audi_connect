@@ -1,49 +1,55 @@
-# Audi Connect Integration for Home Assistant
+<h1 align="center">Audi Connect</h1>
 
-[![GitHub Activity][commits-shield]][commits]
-[![License][license-shield]](LICENSE.md)
-[![Code Style][blackbadge]][black]
-[![hacs][hacsbadge]](hacs)
+<p align="center">
+  Home Assistant integration for Audi Connect (myAudi) – vehicle status, remote actions and climatisation, fully configurable from the UI.
+</p>
 
-## Notices
+<p align="center">
+  <a href="https://github.com/hacs/integration"><img src="https://img.shields.io/badge/HACS-Custom-41BDF5.svg" alt="HACS Custom"></a>
+  <a href="https://www.home-assistant.io/"><img src="https://img.shields.io/badge/Home%20Assistant-Custom%20Integration-18BCF2.svg?logo=home-assistant&logoColor=white" alt="Home Assistant"></a>
+  <a href="https://github.com/bertel2020/HA-audi_connect/releases"><img src="https://img.shields.io/github/v/release/bertel2020/HA-audi_connect?sort=semver&include_prereleases" alt="Release"></a>
+  <a href="https://github.com/bertel2020/HA-audi_connect/actions/workflows/validate.yml"><img src="https://github.com/bertel2020/HA-audi_connect/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/bertel2020/HA-audi_connect" alt="License"></a>
+</p>
 
-> [!Important]
+<p align="center">
+  <a href="https://buymeacoffee.com/bertel2020"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00?logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee"></a>
+  <a href="https://ko-fi.com/bertel2020"><img src="https://img.shields.io/badge/Ko--fi-support-FF5E5B?logo=ko-fi&logoColor=white" alt="Ko-fi"></a>
+  <a href="https://paypal.me/RobertoMartins"><img src="https://img.shields.io/badge/PayPal-donate-00457C?logo=paypal&logoColor=white" alt="PayPal"></a>
+</p>
+
+<p align="center"><em><a href="README.md">🇩🇪 Deutsche Version</a></em></p>
+
+> [!IMPORTANT]
 > **Authentication status.** Audi's legacy device and refresh flows are blocked in affected regions. The integration now uses the interactive myAudi Auth0/PKCE flow there. Existing entries that fail with `invalid assertion headers` will request reauthentication. See [#903](https://github.com/audiconnect/audi_connect_ha/issues/903) for background.
 
-Due to API changes, **currently not all functionality is available**. Please open a issue to report the topics you are missing.
+Due to API changes, **currently not all functionality is available**. Please open an [issue](https://github.com/bertel2020/HA-audi_connect/issues/new/choose) to report the topics you are missing.
 
-> [!Caution]
-> Excessive use of certain features in this integration may result in temporary or permanent suspension of your Audi Connect account. Please use responsibly — abuse or misuse could potentially impact access for the entire community. Use at your own risk.
-
-## Maintainers Wanted
-
-- Looking for maintainers for Translation documents.
-- Always looking for more help from the community. If you can resolve an issue, please submit a PR or reach out to the maintainers with the working code.
-
-## Description
+> [!CAUTION]
+> Excessive use of certain features in this integration may result in temporary or permanent suspension of your Audi Connect account. Please use responsibly. Use at your own risk.
 
 The `audiconnect` component provides an integration with the Audi Connect cloud service. It adds presence detection, sensors such as range, mileage, and fuel level, and provides car actions such as locking/unlocking and setting the pre-heater.
 
-**Note:** Certain functions require special permissions from Audi, such as position update via GPS.
+This is a fork of [audiconnect/audi_connect_ha](https://github.com/audiconnect/audi_connect_ha). **Note:** Certain functions require special permissions from Audi, such as position update via GPS.
 
-Credit for initial API discovery go to the guys at the ioBroker VW-Connect forum, who were able to figure out how the API and the PIN hashing works. Also some implementation credit to davidgiga1993 of the original [AudiAPI](https://github.com/davidgiga1993/AudiAPI) Python package, on which some of this code is loosely based.
-
-Full credit for this integration goes to @arjenvrh for their outstanding work in putting it all together. We wouldn’t have this without their contributions.
+Credit for initial API discovery goes to the people at the ioBroker VW-Connect forum, who figured out how the API and the PIN hashing work. Some implementation credit goes to davidgiga1993 of the original [AudiAPI](https://github.com/davidgiga1993/AudiAPI) Python package, on which part of this code is loosely based. Full credit for the original integration goes to @arjenvrh.
 
 ## Installation
 
-There are two ways this integration can be installed into [Home Assistant](https://www.home-assistant.io).
+### Via HACS (recommended)
 
-The easiest and recommended way is to install the integration using [HACS](https://hacs.xyz), which makes future updates easy to track and install.
+[![Open the HACS repository in My Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=bertel2020&repository=HA-audi_connect&category=integration)
+[![Add Audi Connect to My Home Assistant](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=audiconnect)
 
-Alternatively, installation can be done manually by copying the files in this repository into the `custom_components` directory in the Home Assistant configuration directory:
+1. Use the first button to open the Audi Connect repository in HACS.
+2. Download **Audi Connect** and restart Home Assistant.
+3. Use the second button to add the integration. Alternatively, open **Settings → Devices & services → Add integration → Audi Connect** in Home Assistant.
 
-1. Open the configuration directory of your Home Assistant installation.
-2. If you do not have a `custom_components` directory, create it.
-3. In the `custom_components` directory, create a new directory called `audiconnect`.
-4. Copy all files from the `custom_components/audiconnect/` directory in this repository into the `audiconnect` directory.
-5. Restart Home Assistant.
-6. Add the integration to Home Assistant (see **Configuration**).
+If the first button does not work, add `https://github.com/bertel2020/HA-audi_connect` in HACS under **Integrations → Custom repositories** as category **Integration**.
+
+### Manual
+
+Copy the directory `custom_components/audiconnect` to `/config/custom_components/audiconnect` and restart Home Assistant. Then add the integration (see **Configuration**).
 
 ## Configuration
 
@@ -368,3 +374,17 @@ What it shows:
 Entities are found through the vehicle's device and each entity's translation key, so they are picked up whatever you named them. Parts the car does not have are left out.
 
 The card is available in English and German and follows your Home Assistant language. If it does not show up in the card list, reload the browser once so the frontend loads it.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Disclaimer
+
+This is an independent, community-developed integration. It is not affiliated with, endorsed or supported by Audi, Volkswagen Group or CARIAD. The API was reverse-engineered and can change or stop working at any time. It can send commands to a real vehicle. It is provided **"as is", without warranty of any kind** (see [LICENSE](LICENSE)); use it at your own risk.
+
+"Audi", "myAudi" and all other product and company names mentioned in this repository are trademarks or registered trademarks of their respective owners. They are used only to describe which service this integration works with. "Home Assistant" is a trademark of the Open Home Foundation.
+
+## Copyright & License
+
+Copyright © 2019 Arjen van Rhijn (@arjenvrh), modifications © 2026 bertel2020. Licensed under the [MIT License](LICENSE).
