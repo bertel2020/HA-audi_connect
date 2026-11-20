@@ -309,9 +309,7 @@ def test_turn_on_and_off_are_advertised():
 def test_a_new_temperature_is_sent_even_when_the_car_reports_another():
     """The car reports 22.0; asking for 19.5 must send 19.5, not echo 22.0 back."""
     connection = RecordingConnection()
-    _, entity = build(
-        "heating", connection, climatisation_target_temperature=22.0
-    )
+    _, entity = build("heating", connection, climatisation_target_temperature=22.0)
     asyncio.run(entity.async_set_temperature(**{ATTR_TEMPERATURE: 19.5}))
     assert connection.calls == [("start_climate_control", (VIN,), {"temp_c": 19.5})]
     # Shown as asked while the car still reports the old value ...

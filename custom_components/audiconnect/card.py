@@ -35,7 +35,9 @@ def list_www_images(www: Path) -> list[dict[str, str]]:
     if not www.is_dir():
         return found
     for root, dirs, files in os.walk(www):
-        dirs[:] = sorted(d for d in dirs if not d.startswith(".") and d not in _SKIP_DIRS)
+        dirs[:] = sorted(
+            d for d in dirs if not d.startswith(".") and d not in _SKIP_DIRS
+        )
         for name in sorted(files):
             if name.startswith(".") or Path(name).suffix.lower() not in _IMAGE_SUFFIXES:
                 continue
@@ -61,7 +63,9 @@ async def async_register_card(hass: HomeAssistant) -> None:
             return
         # The file's age is the cache buster, so a new card version is picked up
         # without clearing the browser cache.
-        mtime = await hass.async_add_executor_job(lambda: int(CARD_FILE.stat().st_mtime))
+        mtime = await hass.async_add_executor_job(
+            lambda: int(CARD_FILE.stat().st_mtime)
+        )
         await hass.http.async_register_static_paths(
             [StaticPathConfig(CARD_URL, str(CARD_FILE), False)]
         )
@@ -69,7 +73,9 @@ async def async_register_card(hass: HomeAssistant) -> None:
         _register_image_list(hass)
         hass.data[_REGISTERED] = True
     except Exception:  # noqa: BLE001 - the card is optional
-        _LOGGER.warning("Could not register the Audi Connect dashboard card", exc_info=True)
+        _LOGGER.warning(
+            "Could not register the Audi Connect dashboard card", exc_info=True
+        )
 
 
 def _register_image_list(hass: HomeAssistant) -> None:

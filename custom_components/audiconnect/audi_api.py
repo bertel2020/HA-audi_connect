@@ -46,8 +46,9 @@ _SECRET_BODY_KEYS = frozenset(
     }
 )
 _SECRET_TEXT = re.compile(
-    r"""(["']?(?:%s)["']?\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,&}]+)"""
-    % "|".join(sorted(_SECRET_BODY_KEYS)),
+    r"""(["']?(?:{})["']?\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,&}}]+)""".format(
+        "|".join(sorted(_SECRET_BODY_KEYS))
+    ),
     re.IGNORECASE,
 )
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, UTC
 
 import pytest
 
@@ -12,7 +12,11 @@ from custom_components.audiconnect.audi_services import _utc_offset_of
 
 def test_spin_and_tokens_are_redacted_in_dicts():
     out = _redact_secrets(
-        {"spin": "1234", "a": {"securityPinHash": "x", "keep": 1}, "l": [{"token": "t"}]}
+        {
+            "spin": "1234",
+            "a": {"securityPinHash": "x", "keep": 1},
+            "l": [{"token": "t"}],
+        }
     )
     assert out == {
         "spin": "<redacted>",
@@ -39,7 +43,7 @@ def test_utc_offset_accepts_datetime_and_string():
 def test_service_end_accepts_a_bare_date():
     from custom_components.audiconnect.audi_models import _service_end
 
-    assert _service_end("2033-09-30") == datetime(2033, 9, 30, tzinfo=timezone.utc)
+    assert _service_end("2033-09-30") == datetime(2033, 9, 30, tzinfo=UTC)
 
 
 # --- masking, zero values, S-PIN ---------------------------------------------------

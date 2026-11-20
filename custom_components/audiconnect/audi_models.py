@@ -535,13 +535,17 @@ class VehicleDataResponse:
             return
         self.states.append({"name": name, "value": value, "measure_time": ts})
 
-    def _clearStates(self, *names: str) -> None:
+    def _clearStates(self, *names: str, only_if: Any = True) -> None:
         """Reset derived states the latest report no longer backs.
 
         The vehicle keeps the last value of every state name, so a parser that
         merely leaves a value out would keep showing the previous one: the home
         charging profile after the car drove away, a timer that was switched off.
+        ``only_if`` carries the block's capture time: without one the block is
+        incomplete and says nothing about what is gone.
         """
+        if not only_if:
+            return
         for name in names:
             self.states.append({"name": name, "value": None, "measure_time": None})
 
@@ -691,6 +695,7 @@ class VehicleDataResponse:
                 "preferredChargingTimeStart",
                 "preferredChargingTimeEnd",
                 "preferredChargingTimeEnabled",
+                only_if=ts,
             )
             return
 
@@ -791,7 +796,7 @@ class VehicleDataResponse:
                 "nextChargingTimerDeparture", active[0].get("departureTimeLocal"), ts
             )
         else:
-            self._clearStates("nextChargingTimerDeparture")
+            self._clearStates("nextChargingTimerDeparture", only_if=ts)
 
     def _parseClimatisationTimers(self, data: dict[str, Any]) -> None:
         """Expose the Q8's real climate timers without pretending local time is UTC.
@@ -851,7 +856,7 @@ class VehicleDataResponse:
         if enabled_starts:
             self._appendState("nextClimatisationTimerLocal", enabled_starts[0], ts)
         else:
-            self._clearStates("nextClimatisationTimerLocal")
+            self._clearStates("nextClimatisationTimerLocal", only_if=ts)
 
     def _tryAppendStateWithTs(
         self, json: dict[str, Any], name: str, tsoff: int, loc: list[str]
