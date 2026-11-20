@@ -389,6 +389,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="range",
+        state_class=SensorStateClass.MEASUREMENT,
         attr_key="range",
         translation_key="range",
         icon="mdi:map-marker-distance",
@@ -574,6 +575,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="primary_engine_range",
+        state_class=SensorStateClass.MEASUREMENT,
         requires="has_non_electric_engine",
         attr_key="primary_engine_range",
         translation_key="primary_engine_range",
@@ -584,6 +586,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="secondary_engine_range",
+        state_class=SensorStateClass.MEASUREMENT,
         requires="has_non_electric_engine",
         attr_key="secondary_engine_range",
         translation_key="secondary_engine_range",
@@ -610,6 +613,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="charging_power",
+        state_class=SensorStateClass.MEASUREMENT,
         attr_key="charging_power",
         translation_key="charging_power",
         icon="mdi:flash",
@@ -625,6 +629,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="tank_level",
+        state_class=SensorStateClass.MEASUREMENT,
         attr_key="tank_level",
         translation_key="tank_level",
         icon="mdi:gauge",
@@ -632,6 +637,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="state_of_charge",
+        state_class=SensorStateClass.MEASUREMENT,
         attr_key="state_of_charge",
         translation_key="state_of_charge",
         native_unit_of_measurement=PERCENTAGE,
@@ -678,6 +684,7 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     ),
     AudiSensorEntityDescription(
         key="outdoor_temperature",
+        state_class=SensorStateClass.MEASUREMENT,
         attr_key="outdoor_temperature",
         translation_key="outdoor_temperature",
         icon="mdi:temperature-celsius",
