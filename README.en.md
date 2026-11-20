@@ -59,6 +59,8 @@ To add the integration, go to **Settings ➤ Devices & Services ➤ Integrations
 
 For Auth0 regions, Home Assistant displays an Audi login link. Open it in a private browser window and sign in. Audi redirects to its registered `http://localhost:8080/myaudi-callback` URL; an unable-to-connect page is expected because no local server is required. Copy the complete URL from the browser address bar and paste it into the Home Assistant form. Home Assistant validates the OAuth state and exchanges the one-time code using PKCE.
 
+Region, S-PIN and API level can be changed later through **Reconfigure** on the integration entry. If Audi rejects the stored login, Home Assistant starts the reauthentication flow.
+
 ### Configuration Variables
 
 | Name            | Type     | Default | Description                                                                                                                                                                                                                          |
@@ -81,12 +83,15 @@ Find configuration options under **Settings ➤ Devices & Services ➤ Integrati
 | `Cloud Refresh Delay`               | `int`  | `5`     | Seconds to wait after a service action before refreshing cloud data. A longer delay gives the vehicle more time to report its updated state to the cloud.                                                                                                                                                           |
 | `Scan Interval`                     | `int`  | `15`    | Defines polling frequency in minutes (minimum 15).                                                                                                                                                                                                                                                                  |
 | `Excluded VINs`                     | `str`  | –       | Comma-separated VIN list to exclude from setup and updates.                                                                                                                                                                                                                                                         |
+| `Quick start climate using car-stored settings` | `bool` | `False` | When the climate entity is switched on, send a bodyless CARIAD start request that uses the settings stored in the car. The temperature shown in Home Assistant is not sent. Optional workaround for newer cars. |
+| `Enable experimental vehicle controls` | `bool` | `False` | Shows the window-heating start/stop buttons and the plug release switch. Verify real operation; HTTP 200 is not proof the vehicle acted. |
+| `Edit dealer and local service details` | `bool` | `False` | Opens a form for dealer, service appointment and warranty details that stay in Home Assistant. No Audi API requests are made. |
 
 _Note: The integration will reload automatically upon clicking `Submit`, but a Home Assistant restart is suggested._
 
 ## Controls
 
-Each vehicle's device page exposes its actions directly, so the common ones no longer need a service call. Availability depends on what the vehicle reports and, for the lock and engine controls, on an S-PIN being configured.
+Each vehicle's device page exposes its actions directly, so the common ones no longer need a service call. Availability depends on what the vehicle reports and, for the lock and engine controls, on an S-PIN being configured. Entities are grouped on the device page; the full list of sensors and binary sensors (range, mileage, charging, doors and windows, trips, service intervals, data freshness and more) follows what the car reports.
 
 | Control                        | Type    | Replaces                                              |
 | ------------------------------ | ------- | ----------------------------------------------------- |
@@ -100,6 +105,13 @@ Each vehicle's device page exposes its actions directly, so the common ones no l
 | `Flash lights`                 | Button  | n/a, new                                              |
 | `Charge mode`                  | Select  | `set_charge_mode`                                     |
 | `Refresh vehicle data`         | Button  | `refresh_vehicle_data`                                |
+| `Wake vehicle`                 | Button  | n/a, new; needs a reported wake-up capability         |
+| `Honk and flash`               | Button  | n/a, new; disabled by default                         |
+| `Climatisation ON/OFF`         | Switch  | n/a, Auth0 vehicles                                   |
+| `Window heating`, `Climatisation at unlock`, seat zones | Switch | n/a, the car's stored climatisation settings |
+| `Climatisation mode`           | Select  | `start_climate_control` with `climatisation_mode`     |
+| `Start/Stop window heating (experimental)` | Button | `execute_vehicle_action` with `start_/stop_window_heating` |
+| `Release plug after charging (experimental)` | Switch | n/a                                       |
 
 ### Feature status and API compatibility
 
@@ -113,7 +125,9 @@ state before relying on remote commands in automations.
 | Standard, capability-dependent       | Door lock/unlock and flash lights                                   | Require the corresponding vehicle permission; verify the actual vehicle state                                                           |
 | Standard on supported Auth0 vehicles | **Climatisation ON/OFF** switch                                     | Uses the climate settings already stored in the car and reads the car's reported state; does not replace the climate temperature entity |
 | Legacy / model-dependent             | **Preheater** and the original **Climatisation** climate entity     | Retained for compatibility; older routes may be unavailable or rejected on newer Auth0-backed accounts                                  |
-| Experimental, opt-in                 | Charging start/stop, window heating start/stop, manual vehicle wake | Disabled by default; enable _experimental vehicle controls_ under Configure, where a reported capability permits the action             |
+| Experimental, opt-in                 | Window-heating start/stop buttons and the plug release switch       | Disabled by default; enable _experimental vehicle controls_ under Configure, where a reported capability permits the action             |
+| Capability-dependent                 | **Wake vehicle** and **Honk and flash** buttons                     | Wake vehicle needs a reported wake-up capability; Honk and flash is disabled in the entity registry by default                          |
+| Service only                         | Start, timed start and stop of charging                             | Available through `execute_vehicle_action`; there is no entity for them (see below)                                                      |
 | Model-dependent                      | Charge mode and target SOC changes                                  | Audi may accept an HTTP request while rejecting or not applying the setting                                                             |
 
 _Legacy_ describes an older interface; it does not announce removal.
@@ -148,7 +162,7 @@ API generation and verified model-specific behavior, without assuming that a
 model name grants permission or that a missing capability is definitive proof
 of absence.
 
-**Experimental wake / sleeping vehicle:** The explicit `Wake vehicle` action
+**Wake / sleeping vehicle:** The `Wake vehicle` button (shown when the car reports a wake-up capability)
 uses the Auth0/CARIAD `vehiclewakeuptrigger` route; a HTTP 2xx/204 acknowledgement
 is **not proof** that the physical vehicle woke. Initial Q8 observations suggest
 that a wake request may help recover delayed sleeping-vehicle and charging-status
@@ -162,6 +176,8 @@ cooldowns and request/energy budgets, and confirm freshness after a bounded
 delayed readback before presenting wake or charging status as current.
 This work remains experimental pending measurements of status improvement,
 actual wake response, and parked-vehicle battery impact.
+
+`Refresh vehicle data` uses a separate route (`vehiclewakeup`) and waits up to 100 seconds for the car to answer. A car that does not answer in time is logged as a warning, not an error: it may be asleep or out of coverage.
 
 Optional local dealer/service details, where configured, are kept in Home
 Assistant options; they are **not** retrieved from Audi's cloud and must not be
@@ -181,7 +197,7 @@ The service actions below still work and remain the way to reach the parameteris
 
 ### Starting and stopping a charge
 
-Neither is exposed by default, because neither has been consistently verified. Optional experimental start/stop charging controls are available only with an explicit opt-in and a reported vehicle capability; they may still be rejected or have no physical effect.
+Neither is exposed as an entity, because neither has been consistently verified. Both stay reachable through `execute_vehicle_action` (`start_charger`, `stop_charger`, `start_timed_charger`); the car may reject them or they may have no physical effect.
 
 Stopping is accepted by the API and confirmed by the car, and the charge continues. Sent twice from a settled state on a live vehicle, which carried on drawing 6.5 kW both times.
 
@@ -205,6 +221,10 @@ Each toggle sends the whole settings object back with one field changed, because
 
 `start_auxiliary_heating` (duration) stays service-only for the same reason.
 
+On Auth0 vehicles the **Climatisation ON/OFF** switch starts and stops climatisation with the settings stored in the car and follows the car's reported state. The option _Quick start climate using car-stored settings_ makes the climate entity do the same instead of sending the temperature shown in Home Assistant. The `Climatisation mode` select (comfort or economy) appears where the car reports a mode.
+
+Climatisation timers in the car are reported by sensors (number of enabled timers, next timer in local time). They are created, switched and deleted with the timer service actions below.
+
 ## Why an entity sometimes disappears
 
 Entities are created when the integration sets up, and until now that decision asked whether the value was present in the poll it happened to be holding. A partial or rate-limited poll therefore removed controls: on one vehicle a `429 Too Many Requests` took sixteen entities away, including a parking-position sensor for a car that plainly has parking position. They returned only after a reload.
@@ -213,11 +233,11 @@ The car reports what it can do, separately from what any one poll contains, and 
 
 Vehicles that do not report a capability list are unaffected and keep the previous behaviour.
 
-### Flash lights
+### Flash and honk
 
-Flashes the vehicle's lights for ten seconds. The car must have reported a position, because the API requires one; the control refuses rather than sending a request that would be rejected.
+`Flash` flashes the vehicle's lights for ten seconds. The car must have reported a position, because the API requires one; the control refuses rather than sending a request that would be rejected.
 
-The horn is not exposed. The endpoint that flashes the lights also sounds them together, one string apart, and the integration sends only the flash mode with no way for a caller to reach the other.
+`Honk and flash` also sounds the horn. It is a separate button and disabled in the entity registry by default because it is loud. Both use the same endpoint, but `Flash` sends only the flash mode, so it can never sound the horn.
 
 ## Service Actions
 
@@ -225,11 +245,11 @@ The horn is not exposed. The endpoint that flashes the lights also sounds them t
 
 `audiconnect.refresh_vehicle_data`
 
-Normal updates retrieve data from the Audi Connect cloud service, and don't interact directly with the vehicle. _This_ service action triggers an update request from the vehicle itself. When data is retrieved successfully, Home Assistant is automatically updated. The service action requires a vehicle identification number (VIN) as a parameter.
+Normal updates retrieve data from the Audi Connect cloud service, and don't interact directly with the vehicle. _This_ service action triggers an update request from the vehicle itself. When data is retrieved successfully, Home Assistant is automatically updated. The service action requires the vehicle (device) as a parameter.
 
 #### Parameters
 
-- **`vehicle`**: The Audi vehicle to perform the action on.
+- **`device_id`**: The Audi vehicle (device) to perform the action on.
 
 > [!CAUTION]
 > **This service action counts against your daily API rate limit.** Repeated use may exhaust your limit. Use sparingly and monitor your remaining API calls via the **"API Requests Remaining"** diagnostic sensor or **Settings → System → Repairs & System Information**.
@@ -256,11 +276,11 @@ _This_ service action triggers an update request from the cloud.
 
 `audiconnect.execute_vehicle_action`
 
-This service action allows you to perform actions on your Audi vehicle, specified by the vehicle identification number (VIN) and the desired action.
+This service action allows you to perform actions on your Audi vehicle, specified by the vehicle and the desired action.
 
 #### Service Parameters
 
-- **`vehicle`**: The Audi vehicle to perform the action on.
+- **`device_id`**: The Audi vehicle (device) to perform the action on.
 - **`action`**: The specific action to perform on the vehicle. Available actions include:
   - **`lock`**: Lock the vehicle.
   - **`unlock`**: Unlock the vehicle.
@@ -276,7 +296,7 @@ This service action allows you to perform actions on your Audi vehicle, specifie
 
 #### Usage Example
 
-To initiate the lock action for a vehicle with VIN `WAUZZZ4G7EN123456`, use the following service call:
+To lock a vehicle, use the following service call:
 
 ```yaml
 service: audiconnect.execute_vehicle_action
@@ -298,7 +318,7 @@ This service action allows you to start the climate control with options for tem
 
 #### Parameters
 
-- **`vehicle`**: The Audi vehicle to perform the action on.
+- **`device_id`**: The Audi vehicle (device) to perform the action on.
 - **`temp_f`** (_optional_): Desired temperature in Fahrenheit. Default is `70`.
 - **`temp_c`** (_optional_): Desired temperature in Celsius. Default is `21`.
 - **`glass_heating`** (_optional_): Enable (`True`) or disable (`False`) glass heating. Default is `False`.
@@ -306,10 +326,12 @@ This service action allows you to start the climate control with options for tem
 - **`seat_fr`** (_optional_): Enable (`True`) or disable (`False`) the front-right seat heater. Default is `False`.
 - **`seat_rl`** (_optional_): Enable (`True`) or disable (`False`) the rear-left seat heater. Default is `False`.
 - **`seat_rr`** (_optional_): Enable (`True`) or disable (`False`) the rear-right seat heater. Default is `False`.
+- **`climatisation_at_unlock`** (_optional_): Let climatisation continue when the vehicle is unlocked.
+- **`climatisation_mode`** (_optional_): `comfort` (default) or `economy`.
 
 #### Usage Example
 
-To start the climate control for a vehicle with VIN `WAUZZZ4G7EN123456` with a temperature of 72°F, enable glass heating, and activate both front seat heaters, use the following service call:
+To start the climate control with a temperature of 72°F, enable glass heating, and activate both front seat heaters, use the following service call:
 
 ```yaml
 service: audiconnect.start_climate_control
@@ -335,12 +357,12 @@ This service action allows you to start auxiliary heating the vehicle, with opti
 
 #### Parameters
 
-- **`vehicle`**: The Audi vehicle to perform the action on.
+- **`device_id`**: The Audi vehicle (device) to perform the action on.
 - **`duration`** (_optional_): The number of minutes the auxiliary heater should run before turning off. Default is `20` minutes if not provided.
 
 #### Usage Example
 
-To start the auxiliary heater for a vehicle with VIN `WAUZZZ4G7EN123456`, and a duration of 40 minutes, use the following service call action:
+To start the auxiliary heater for 40 minutes, use the following service call action:
 
 ```yaml
 service: audiconnect.start_auxiliary_heating
@@ -353,6 +375,69 @@ data:
 
 - Requires the S-PIN to be set in the configuration.
 - After a successful action, the integration waits for the configured **Cloud Refresh Delay** and then performs a cloud data refresh. If **Refresh Vehicle Data After Action** is enabled, a vehicle refresh is also sent before the delay.
+
+### Audi Connect: Set Target State of Charge
+
+`audiconnect.set_target_soc`
+
+Sets the global target state of charge (20-100 %, steps of 5). See **Charge targets** for what this value does and does not govern.
+
+- **`device_id`**: The Audi vehicle.
+- **`target_soc`**: Target charge level in percent.
+
+### Audi Connect: Set Location Charge Target
+
+`audiconnect.set_location_charge_target`
+
+Sets the target state of charge of a location profile (20-100 %, steps of 5). This persistent setting is what governs where a charge stops at that location.
+
+- **`device_id`**: The Audi vehicle.
+- **`profile_id`** (_optional_): The profile to change. Leave empty to change the profile the car is currently parked in.
+- **`target_soc`**: Target charge level for this location.
+
+### Audi Connect: Set Charge Mode
+
+`audiconnect.set_charge_mode`
+
+Sets the charge mode preference. It does not start or stop a charge in progress.
+
+- **`device_id`**: The Audi vehicle.
+- **`charge_mode`**: `manual` charges whenever plugged in; `timer` charges only during the car's scheduled times.
+
+### Audi Connect: Start Engine / Stop Engine
+
+`audiconnect.start_engine`, `audiconnect.stop_engine`
+
+Remotely start or stop the engine. Starting requires the S-PIN. Subject to the capability rules under **Feature status and API compatibility**.
+
+- **`device_id`**: The Audi vehicle.
+
+### Audi Connect: Climatisation timers
+
+`audiconnect.create_climatisation_timer`, `audiconnect.set_climatisation_timer_enabled`, `audiconnect.delete_climatisation_timer`
+
+Manage the car's climatisation timers. Times are in the car's local time. The timer number is shown in the attributes of the climate timer sensors.
+
+- **`device_id`**: The Audi vehicle.
+- Create: **`time`** (for example `07:30`), **`days`** (a single timer takes exactly one day), **`repeat`** (every week, default on), **`enabled`** (default on).
+- Switch: **`timer_id`**, **`enabled`**.
+- Delete: **`timer_id`**.
+
+### Audi Connect: Set Local Dealer
+
+`audiconnect.set_local_dealer`
+
+Stores dealer, service appointment and warranty details in Home Assistant. No Audi API requests are made. Fields you leave out keep their previous values, empty text removes a field, and `clear` removes the vehicle's whole local record. The same data can be edited under **Configure**.
+
+### Diagnostics
+
+The following service actions are for troubleshooting. Use them only when investigating missing data, because they count against the API limit.
+
+- `audiconnect.probe_api` sends a read-only request (selectivestatus `jobs`, a `path` below the vehicle URL, or a fixed `graphql` query) and returns the redacted answer.
+- `audiconnect.probe_api_paths` checks eight known read-only endpoints (`extended` adds four experimental ones). The result appears in the next **Download diagnostics** export. Running it again with a different mode within 15 minutes is rejected.
+- `audiconnect.test_climatisation_write` is experimental. It writes one climatisation setting with a chosen request body variant (`app_dto` is the default; `app_full` sends all twelve fields of the app's request) and **changes the setting stored in the car**.
+
+The diagnostic sensors `Vehicle data freshness`, `Vehicle data age`, `Cloud last successful poll` and `API Requests Remaining` show how current the data is. For detailed logs set `custom_components.audiconnect: debug` under `logger:` in `configuration.yaml`.
 
 ## Dashboard Card
 

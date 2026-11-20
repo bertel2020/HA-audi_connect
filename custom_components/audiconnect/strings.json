@@ -107,7 +107,7 @@
           "scan_interval": "Minutes between cloud polling updates.",
           "filter_vins": "Comma-separated VIN list to exclude from setup and updates.",
           "edit_local_dealer": "Open the form to save dealership, service appointment and warranty details locally, without any Audi API requests.",
-          "experimental_commands": "Show additional user-triggered CARIAD charging, window heating and wake-up actions. Off by default. Verify real operation; HTTP 200 is not proof the vehicle acted."
+          "experimental_commands": "Show additional user-triggered CARIAD window heating actions and the charging plug release switch. Off by default. Verify real operation; HTTP 200 is not proof the vehicle acted."
         }
       },
       "dealer_vehicle": {

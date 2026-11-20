@@ -70,6 +70,20 @@ REQUEST_FAILED = "request_failed"
 _LOGGER = logging.getLogger(__name__)
 
 
+def _utc_offset_of(stamp: Any) -> timedelta | None:
+    """The UTC offset of a timestamp the car reported.
+
+    ``json_loads`` already turns ISO strings into ``datetime`` objects, so the
+    value arrives as either; neither may be guessed when it is naive.
+    """
+    try:
+        if isinstance(stamp, datetime):
+            return stamp.utcoffset()
+        return datetime.fromisoformat(stamp).utcoffset()
+    except (TypeError, ValueError):
+        return None
+
+
 class AudiService(AudiAuthMixin):
     def __init__(
         self, api: AudiAPI, country: str, spin: str | None, api_level: int
@@ -1113,10 +1127,7 @@ class AudiService(AudiAuthMixin):
         stamp = get_attr(
             raw, "departureTimers.climatisationTimersStatus.value.timeInCar"
         )
-        try:
-            offset = datetime.fromisoformat(stamp).utcoffset()
-        except (TypeError, ValueError):
-            offset = None
+        offset = _utc_offset_of(stamp)
         if offset is None:
             raise ValueError("The car did not report its local time; refusing to guess")
         return int(offset.total_seconds() // 60)
@@ -1171,10 +1182,7 @@ class AudiService(AudiAuthMixin):
         )
         status = get_attr(raw, "departureTimers.climatisationTimersStatus.value") or {}
         stamp = status.get("timeInCar") if isinstance(status, dict) else None
-        try:
-            offset_delta = datetime.fromisoformat(stamp).utcoffset()
-        except (TypeError, ValueError):
-            offset_delta = None
+        offset_delta = _utc_offset_of(stamp)
         if offset_delta is None:
             raise ValueError("The car did not report its local time; refusing to guess")
         body = build_climatisation_timers_update(

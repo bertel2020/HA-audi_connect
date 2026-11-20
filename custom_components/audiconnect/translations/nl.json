@@ -78,7 +78,7 @@
         "data_description": {
           "scan_interval": "(Minuten) Opnieuw opstarten vereist om het nieuwe scaninterval van kracht te laten worden.",
           "edit_local_dealer": "Open een extra scherm om dealer, onderhoud en garantie lokaal in te stellen. Geen Audi API-aanroepen.",
-          "experimental_commands": "Toont optionele, door de gebruiker te bedienen CARIAD-functies zoals laden, ruitverwarming en wagen wekken. Standaard uit. Verifieer acties fysiek; API HTTP 200 is geen bewijs van uitvoering."
+          "experimental_commands": "Toont optionele, door de gebruiker te bedienen CARIAD-functies voor ruitverwarming en de schakelaar voor het vrijgeven van de laadstekker. Standaard uit. Verifieer acties fysiek; API HTTP 200 is geen bewijs van uitvoering."
         }
       },
       "dealer_vehicle": {

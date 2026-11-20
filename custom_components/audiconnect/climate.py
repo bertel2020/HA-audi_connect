@@ -89,6 +89,15 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
         super().__init__(coordinator, vehicle)
         self._attr_unique_id = entity_unique_id(vehicle, "climate", "climatisation")
         self._attr_native_target_temperature = _DEFAULT_TEMP_C
+        # A value we asked for, shown until the car reports something other than
+        # what it reported when we asked.
+        self._requested_temperature: float | None = None
+        self._reported_at_request: float | None = None
+
+    @property
+    def _reported_temperature(self) -> float | None:
+        reported = getattr(self._vehicle, "climatisation_target_temperature", None)
+        return float(reported) if isinstance(reported, (int, float)) else None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -115,10 +124,14 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
 
     @property
     def native_target_temperature(self) -> float | None:
-        """Prefer what the car reports over what we last asked for."""
-        reported = getattr(self._vehicle, "climatisation_target_temperature", None)
-        if isinstance(reported, (int, float)):
-            return float(reported)
+        """What we just asked for, until the car reports a change; else the car's."""
+        reported = self._reported_temperature
+        if self._requested_temperature is not None:
+            if reported == self._reported_at_request:
+                return self._requested_temperature
+            self._requested_temperature = None
+        if reported is not None:
+            return reported
         return self._attr_native_target_temperature
 
     @property
@@ -162,7 +175,9 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
         else:
             await self.async_turn_on()
 
-    async def async_turn_on(self, *, force_temperature: bool = False) -> None:
+    async def async_turn_on(
+        self, *, force_temperature: bool = False, temperature: float | None = None
+    ) -> None:
         connection = self.coordinator.account.connection
         # Some CARIAD cars accept start only with no body: use stored car
         # settings when explicitly enabled. Never silently override user temp.
@@ -174,11 +189,12 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
         modern_api = (
             bool(getattr(service, "uses_auth0", False)) or data.get("api_level", 0) == 1
         )
-        temperature = (
-            None
-            if quick_start and modern_api and not force_temperature
-            else self.native_target_temperature
-        )
+        if temperature is None:
+            temperature = (
+                None
+                if quick_start and modern_api and not force_temperature
+                else self.native_target_temperature
+            )
         if not await connection.start_climate_control(
             self._vehicle.vin, temp_c=temperature
         ):
@@ -199,6 +215,8 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             return
         self._attr_native_target_temperature = float(temperature)
+        self._requested_temperature = float(temperature)
+        self._reported_at_request = self._reported_temperature
         self.async_write_ha_state()
         connection = self.coordinator.account.connection
         service = getattr(connection, "_audi_service", None)
@@ -219,7 +237,9 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
         if self._is_running:
             # An explicit temperature change must never be silently discarded
             # by the optional bodyless quick-start mode.
-            await self.async_turn_on(force_temperature=True)
+            await self.async_turn_on(
+                force_temperature=True, temperature=float(temperature)
+            )
 
 
 __all__ = ["AudiClimate", "async_setup_entry"]

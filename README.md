@@ -65,6 +65,8 @@ Unter **Einstellungen ➤ Geräte & Dienste ➤ Integrationen** auf **➕ Integr
 
 In Auth0-Regionen zeigt Home Assistant einen Audi-Anmeldelink. Öffne ihn in einem privaten Browserfenster und melde dich an. Audi leitet dann auf die registrierte Adresse `http://localhost:8080/myaudi-callback` weiter; eine Seite „Verbindung nicht möglich“ ist erwartet, weil kein lokaler Server nötig ist. Kopiere die vollständige URL aus der Adressleiste und füge sie in das Formular von Home Assistant ein. Home Assistant prüft den OAuth-State und tauscht den einmaligen Code per PKCE ein.
 
+Region, S-PIN und API-Level lassen sich später über **Neu konfigurieren** am Integrationseintrag ändern. Lehnt Audi die gespeicherte Anmeldung ab, startet Home Assistant die erneute Anmeldung.
+
 ### Konfigurationsvariablen
 
 | Name            | Typ      | Standard | Beschreibung                                                                                                                                                                                                                              |
@@ -87,12 +89,15 @@ Die Optionen findest du unter **Einstellungen ➤ Geräte & Dienste ➤ Integrat
 | `Cloud Refresh Delay`               | `int`  | `5`      | Sekunden, die nach einer Service-Aktion bis zur Cloud-Abfrage gewartet wird. Eine längere Verzögerung gibt dem Fahrzeug mehr Zeit, seinen neuen Zustand zu melden.                                                                                                                                                                  |
 | `Scan Interval`                     | `int`  | `15`     | Abfrageintervall in Minuten (mindestens 15).                                                                                                                                                                                                                                                                                       |
 | `Excluded VINs`                     | `str`  | –        | Kommagetrennte FIN-Liste (VIN) von Fahrzeugen, die von Einrichtung und Updates ausgenommen werden.                                                                                                                                                                                                                                 |
+| `Quick start climate using car-stored settings` | `bool` | `False` | Beim Einschalten der Climate-Entity wird eine CARIAD-Startanfrage ohne Parameter gesendet, die die im Auto gespeicherten Einstellungen nutzt. Die in Home Assistant angezeigte Temperatur wird nicht übertragen. Optionaler Umweg für neuere Fahrzeuge. |
+| `Enable experimental vehicle controls` | `bool` | `False` | Zeigt die Buttons zum Starten/Stoppen der Scheibenheizung und den Schalter zur Freigabe des Ladesteckers. Das tatsächliche Verhalten prüfen; HTTP 200 ist kein Beweis, dass das Fahrzeug gehandelt hat. |
+| `Edit dealer and local service details` | `bool` | `False` | Öffnet ein Formular für Händler-, Servicetermin- und Garantiedaten, die in Home Assistant bleiben. Es werden keine Audi-API-Anfragen gesendet. |
 
 _Hinweis: Die Integration lädt nach einem Klick auf `Senden` automatisch neu, ein Neustart von Home Assistant wird trotzdem empfohlen._
 
 ## Bedienelemente
 
-Die Geräteseite jedes Fahrzeugs bietet die Aktionen direkt an, die häufigen brauchen also keinen Service-Aufruf mehr. Was verfügbar ist, hängt davon ab, was das Fahrzeug meldet, und bei Schloss und Motor davon, dass eine S-PIN eingerichtet ist.
+Die Geräteseite jedes Fahrzeugs bietet die Aktionen direkt an, die häufigen brauchen also keinen Service-Aufruf mehr. Was verfügbar ist, hängt davon ab, was das Fahrzeug meldet, und bei Schloss und Motor davon, dass eine S-PIN eingerichtet ist. Die Entities sind auf der Geräteseite gruppiert; die vollständige Liste der Sensoren und Binärsensoren (Reichweite, Kilometerstand, Laden, Türen und Fenster, Fahrten, Serviceintervalle, Datenaktualität und mehr) richtet sich danach, was das Auto meldet.
 
 | Bedienelement                  | Typ     | Ersetzt                                               |
 | ------------------------------ | ------- | ----------------------------------------------------- |
@@ -106,6 +111,13 @@ Die Geräteseite jedes Fahrzeugs bietet die Aktionen direkt an, die häufigen br
 | `Flash lights`                 | Button  | –, neu                                                |
 | `Charge mode`                  | Select  | `set_charge_mode`                                     |
 | `Refresh vehicle data`         | Button  | `refresh_vehicle_data`                                |
+| `Wake vehicle`                 | Button  | –, neu; braucht eine gemeldete Wecken-Fähigkeit       |
+| `Honk and flash`               | Button  | –, neu; standardmäßig deaktiviert                     |
+| `Climatisation ON/OFF`         | Switch  | –, Auth0-Fahrzeuge                                    |
+| `Window heating`, `Climatisation at unlock`, Sitzzonen | Switch | –, die im Auto gespeicherten Klima-Einstellungen |
+| `Climatisation mode`           | Select  | `start_climate_control` mit `climatisation_mode`      |
+| `Start/Stop window heating (experimental)` | Button | `execute_vehicle_action` mit `start_/stop_window_heating` |
+| `Release plug after charging (experimental)` | Switch | –                                         |
 
 ### Funktionsstatus und API-Kompatibilität
 
@@ -116,7 +128,9 @@ Nicht alle Audi-Fahrzeuge und -Regionen bieten dieselben Funktionen. Die Integra
 | Standard, abhängig von Fähigkeiten        | Ver-/Entriegeln und Lichthupe                                            | Brauchen die jeweilige Fahrzeugberechtigung; den tatsächlichen Fahrzeugzustand prüfen                                                              |
 | Standard bei unterstützten Auth0-Fahrzeugen | Schalter **Climatisation ON/OFF**                                      | Nutzt die im Auto gespeicherten Klima-Einstellungen und liest den vom Auto gemeldeten Zustand; ersetzt nicht die Klima-Temperatur-Entity           |
 | Veraltet / modellabhängig                 | **Preheater** und die ursprüngliche **Climatisation**-Climate-Entity     | Aus Kompatibilitätsgründen behalten; ältere Routen können bei neueren Auth0-Konten fehlen oder abgelehnt werden                                    |
-| Experimentell, per Opt-in                 | Laden starten/stoppen, Scheibenheizung starten/stoppen, manuelles Wecken | Standardmäßig aus; unter Konfigurieren als _experimentelle Fahrzeugsteuerung_ aktivierbar, wenn eine gemeldete Fähigkeit die Aktion erlaubt         |
+| Experimentell, per Opt-in                 | Buttons Scheibenheizung starten/stoppen und Schalter zur Steckerfreigabe | Standardmäßig aus; unter Konfigurieren als _experimentelle Fahrzeugsteuerung_ aktivierbar, wenn eine gemeldete Fähigkeit die Aktion erlaubt |
+| Abhängig von Fähigkeiten                  | Buttons **Wake vehicle** und **Honk and flash**                          | Wecken braucht eine gemeldete Wecken-Fähigkeit; Hupen und Blinken ist in der Entity-Registry standardmäßig deaktiviert                     |
+| Nur als Service                           | Laden starten, zeitgesteuert starten und stoppen                         | Über `execute_vehicle_action` verfügbar; es gibt dafür keine Entity (siehe unten)                                                         |
 | Modellabhängig                            | Lademodus und Ziel-Ladestand ändern                                      | Audi kann eine HTTP-Anfrage annehmen, die Einstellung aber ablehnen oder nicht anwenden                                                            |
 
 _Veraltet_ bezeichnet eine ältere Schnittstelle, keine angekündigte Entfernung. Die Integration behält vorhandene Unique-IDs und Service-Aufrufe, soweit möglich. Verfügbarkeit und Funktionsumfang müssen pro Fahrzeug geprüft werden, nicht aus einem einzelnen erfolgreichen Befehl oder einer Fähigkeitenliste abgeleitet. Eine unvollständige Cloud-Antwort kann eine Entity **nicht verfügbar** machen, statt sie zu entfernen.
@@ -129,7 +143,9 @@ _Veraltet_ bezeichnet eine ältere Schnittstelle, keine angekündigte Entfernung
 
 **Q8-Klima:** Beim getesteten Audi Q8 PHEV funktioniert Klima EIN/AUS über den separaten modernen Auth0/CARIAD-Befehlsweg mit den im Auto gespeicherten Einstellungen. Eine Temperatur an die alte Klima-Schnittstelle zu übergeben hat bei diesem Fahrzeug nicht funktioniert. Das belegt keine Unterstützung für andere Audi-Typen oder Regionen. Ein künftiges Fähigkeitenmodell sollte gemeldete Funktionen mit Fahrzeugtyp, API-Generation und geprüftem modellspezifischem Verhalten kombinieren, ohne anzunehmen, dass ein Modellname eine Berechtigung gewährt oder eine fehlende Fähigkeit ein endgültiger Gegenbeweis ist.
 
-**Experimentell: Wecken / schlafendes Fahrzeug:** Die ausdrückliche Aktion `Wake vehicle` nutzt die Auth0/CARIAD-Route `vehiclewakeuptrigger`; eine HTTP-Antwort 2xx/204 ist **kein Beweis**, dass das Fahrzeug wirklich aufgewacht ist. Erste Q8-Beobachtungen deuten darauf hin, dass eine Wecken-Anfrage verzögerte Werte schlafender Fahrzeuge und des Ladestatus wiederherstellen kann, das ist aber nicht als allgemeine Lösung belegt. Ein geparktes Fahrzeug zu wecken kann außerdem Energie aus der 12-V- und/oder Traktionsbatterie kosten. Deshalb darf die automatische Abfrage das Fahrzeug **nie** in jedem Zyklus wecken, und die aktuelle Integration tut das nicht. Künftig sollten passiver Cloud-Refresh und aktives Wecken getrennt bleiben, ausdrückliche Nutzerabsicht oder geprüfte Lade-/Sitzungswechsel als mögliche Auslöser dienen, pro Fahrzeug Abkühlzeiten und Anfrage-/Energiebudgets gelten und die Aktualität nach einem begrenzten, verzögerten Rücklesen bestätigt werden, bevor Wecken oder Ladestatus als aktuell dargestellt werden. Das bleibt experimentell, bis Messungen zu Statusverbesserung, tatsächlicher Weckreaktion und Auswirkung auf die Batterie des geparkten Fahrzeugs vorliegen.
+**Wecken / schlafendes Fahrzeug:** Der Button `Wake vehicle` (sichtbar, wenn das Auto eine Wecken-Fähigkeit meldet) nutzt die Auth0/CARIAD-Route `vehiclewakeuptrigger`; eine HTTP-Antwort 2xx/204 ist **kein Beweis**, dass das Fahrzeug wirklich aufgewacht ist. Erste Q8-Beobachtungen deuten darauf hin, dass eine Wecken-Anfrage verzögerte Werte schlafender Fahrzeuge und des Ladestatus wiederherstellen kann, das ist aber nicht als allgemeine Lösung belegt. Ein geparktes Fahrzeug zu wecken kann außerdem Energie aus der 12-V- und/oder Traktionsbatterie kosten. Deshalb darf die automatische Abfrage das Fahrzeug **nie** in jedem Zyklus wecken, und die aktuelle Integration tut das nicht. Künftig sollten passiver Cloud-Refresh und aktives Wecken getrennt bleiben, ausdrückliche Nutzerabsicht oder geprüfte Lade-/Sitzungswechsel als mögliche Auslöser dienen, pro Fahrzeug Abkühlzeiten und Anfrage-/Energiebudgets gelten und die Aktualität nach einem begrenzten, verzögerten Rücklesen bestätigt werden, bevor Wecken oder Ladestatus als aktuell dargestellt werden. Das bleibt experimentell, bis Messungen zu Statusverbesserung, tatsächlicher Weckreaktion und Auswirkung auf die Batterie des geparkten Fahrzeugs vorliegen.
+
+`Refresh vehicle data` nutzt eine andere Route (`vehiclewakeup`) und wartet bis zu 100 Sekunden auf die Antwort des Autos. Antwortet das Auto nicht rechtzeitig, steht eine Warnung im Log, kein Fehler: Es kann schlafen oder außer Reichweite sein.
 
 Optionale lokale Händler-/Service-Angaben werden, falls eingerichtet, in den Home-Assistant-Optionen gehalten; sie werden **nicht** aus Audis Cloud abgerufen und dürfen nicht mit Service-Daten des Herstellers verwechselt werden.
 
@@ -147,7 +163,7 @@ Die Service-Aktionen weiter unten funktionieren weiterhin und bleiben der Weg zu
 
 ### Laden starten und stoppen
 
-Beides ist standardmäßig nicht verfügbar, weil beides nicht durchgängig bestätigt ist. Optionale experimentelle Steuerungen zum Starten/Stoppen der Ladung gibt es nur mit ausdrücklichem Opt-in und einer gemeldeten Fahrzeugfähigkeit; sie können weiterhin abgelehnt werden oder keine physische Wirkung haben.
+Beides gibt es nicht als Entity, weil beides nicht durchgängig bestätigt ist. Beides bleibt über `execute_vehicle_action` erreichbar (`start_charger`, `stop_charger`, `start_timed_charger`); das Auto kann es ablehnen, oder es hat keine physische Wirkung.
 
 Stoppen wird von der API angenommen und vom Auto bestätigt, und die Ladung läuft weiter. Zweimal aus ruhigem Zustand an einem Live-Fahrzeug gesendet, das beide Male weiter 6,5 kW zog.
 
@@ -171,6 +187,10 @@ Jeder Schalter sendet das ganze Einstellungsobjekt mit einem geänderten Feld zu
 
 `start_auxiliary_heating` (Dauer) bleibt aus demselben Grund nur als Service-Aktion verfügbar.
 
+Bei Auth0-Fahrzeugen startet und stoppt der Schalter **Climatisation ON/OFF** die Klimatisierung mit den im Auto gespeicherten Einstellungen und folgt dem vom Auto gemeldeten Zustand. Die Option _Quick start climate using car-stored settings_ lässt die Climate-Entity dasselbe tun, statt die in Home Assistant angezeigte Temperatur zu senden. Die Auswahl `Climatisation mode` (Komfort oder Eco) erscheint, wenn das Auto einen Modus meldet.
+
+Klima-Timer im Auto melden Sensoren (Anzahl aktiver Timer, nächster Timer in Ortszeit). Angelegt, geschaltet und gelöscht werden sie mit den Timer-Service-Aktionen weiter unten.
+
 ## Warum eine Entity manchmal verschwindet
 
 Entities werden beim Einrichten der Integration angelegt, und bisher fragte diese Entscheidung, ob der Wert in der gerade gehaltenen Abfrage vorhanden war. Eine unvollständige oder ratenbegrenzte Abfrage hat deshalb Bedienelemente entfernt: Bei einem Fahrzeug nahm ein `429 Too Many Requests` sechzehn Entities mit, darunter einen Parkpositions-Sensor für ein Auto, das offensichtlich eine Parkposition hat. Sie kamen erst nach einem Neuladen zurück.
@@ -179,11 +199,11 @@ Das Auto meldet getrennt von jeder einzelnen Abfrage, was es kann, und die Integ
 
 Fahrzeuge, die keine Fähigkeitenliste melden, sind nicht betroffen und behalten das bisherige Verhalten.
 
-### Lichthupe
+### Blinken und Hupen
 
-Lässt die Fahrzeugbeleuchtung zehn Sekunden blinken. Das Auto muss eine Position gemeldet haben, weil die API eine verlangt; das Bedienelement lehnt ab, statt eine Anfrage zu senden, die abgelehnt würde.
+`Flash` lässt die Fahrzeugbeleuchtung zehn Sekunden blinken. Das Auto muss eine Position gemeldet haben, weil die API eine verlangt; das Bedienelement lehnt ab, statt eine Anfrage zu senden, die abgelehnt würde.
 
-Die Hupe ist nicht verfügbar. Der Endpunkt, der die Lichter blinken lässt, lässt sie auch zusammen hupen, eine Zeichenkette entfernt, und die Integration sendet nur den Blink-Modus, ohne dass ein Aufrufer den anderen erreichen kann.
+`Honk and flash` lässt zusätzlich die Hupe ertönen. Es ist ein eigener Button und in der Entity-Registry standardmäßig deaktiviert, weil er laut ist. Beide nutzen denselben Endpunkt, aber `Flash` sendet nur den Blink-Modus und kann die Hupe deshalb nie auslösen.
 
 ## Service-Aktionen
 
@@ -191,11 +211,11 @@ Die Hupe ist nicht verfügbar. Der Endpunkt, der die Lichter blinken lässt, lä
 
 `audiconnect.refresh_vehicle_data`
 
-Normale Updates holen Daten vom Audi-Connect-Cloud-Dienst und sprechen nicht direkt mit dem Fahrzeug. _Diese_ Service-Aktion löst eine Aktualisierungsanfrage beim Fahrzeug selbst aus. Werden die Daten erfolgreich abgerufen, aktualisiert sich Home Assistant automatisch. Die Service-Aktion braucht als Parameter das Fahrzeug.
+Normale Updates holen Daten vom Audi-Connect-Cloud-Dienst und sprechen nicht direkt mit dem Fahrzeug. _Diese_ Service-Aktion löst eine Aktualisierungsanfrage beim Fahrzeug selbst aus. Werden die Daten erfolgreich abgerufen, aktualisiert sich Home Assistant automatisch. Die Service-Aktion braucht als Parameter das Fahrzeug (Gerät).
 
 #### Parameter
 
-- **`vehicle`**: Das Audi-Fahrzeug, auf das die Aktion angewendet wird.
+- **`device_id`**: Das Audi-Fahrzeug (Gerät), auf das die Aktion angewendet wird.
 
 > [!CAUTION]
 > **Diese Service-Aktion zählt gegen dein tägliches API-Limit.** Häufiges Ausführen kann das Limit aufbrauchen. Sparsam nutzen und die verbleibenden API-Aufrufe über den Diagnosesensor **„API Requests Remaining“** oder **Einstellungen → System → Reparaturen & Systeminformationen** im Blick behalten.
@@ -226,7 +246,7 @@ Mit dieser Service-Aktion führst du Aktionen an deinem Audi aus, angegeben durc
 
 #### Parameter
 
-- **`vehicle`**: Das Audi-Fahrzeug, auf das die Aktion angewendet wird.
+- **`device_id`**: Das Audi-Fahrzeug (Gerät), auf das die Aktion angewendet wird.
 - **`action`**: Die auszuführende Aktion. Verfügbar sind:
   - **`lock`**: Fahrzeug verriegeln.
   - **`unlock`**: Fahrzeug entriegeln.
@@ -264,7 +284,7 @@ Mit dieser Service-Aktion startest du die Klimatisierung mit Optionen für Tempe
 
 #### Parameter
 
-- **`vehicle`**: Das Audi-Fahrzeug, auf das die Aktion angewendet wird.
+- **`device_id`**: Das Audi-Fahrzeug (Gerät), auf das die Aktion angewendet wird.
 - **`temp_f`** (_optional_): Gewünschte Temperatur in Fahrenheit. Standard ist `70`.
 - **`temp_c`** (_optional_): Gewünschte Temperatur in Celsius. Standard ist `21`.
 - **`glass_heating`** (_optional_): Scheibenheizung ein (`True`) oder aus (`False`). Standard ist `False`.
@@ -272,6 +292,8 @@ Mit dieser Service-Aktion startest du die Klimatisierung mit Optionen für Tempe
 - **`seat_fr`** (_optional_): Sitzheizung vorne rechts ein (`True`) oder aus (`False`). Standard ist `False`.
 - **`seat_rl`** (_optional_): Sitzheizung hinten links ein (`True`) oder aus (`False`). Standard ist `False`.
 - **`seat_rr`** (_optional_): Sitzheizung hinten rechts ein (`True`) oder aus (`False`). Standard ist `False`.
+- **`climatisation_at_unlock`** (_optional_): Klimatisierung läuft weiter, wenn das Fahrzeug entriegelt wird.
+- **`climatisation_mode`** (_optional_): `comfort` (Standard) oder `economy`.
 
 #### Anwendungsbeispiel
 
@@ -301,7 +323,7 @@ Mit dieser Service-Aktion startest du die Standheizung, optional mit Dauer.
 
 #### Parameter
 
-- **`vehicle`**: Das Audi-Fahrzeug, auf das die Aktion angewendet wird.
+- **`device_id`**: Das Audi-Fahrzeug (Gerät), auf das die Aktion angewendet wird.
 - **`duration`** (_optional_): Minuten, die die Standheizung läuft, bevor sie sich ausschaltet. Ohne Angabe sind es `20` Minuten.
 
 #### Anwendungsbeispiel
@@ -319,6 +341,69 @@ data:
 
 - Braucht die in der Einrichtung hinterlegte S-PIN.
 - Nach einer erfolgreichen Aktion wartet die Integration die eingestellte **Cloud Refresh Delay** ab und führt dann eine Cloud-Abfrage durch. Ist **Refresh Vehicle Data After Action** aktiv, wird vor der Verzögerung zusätzlich ein Fahrzeug-Refresh gesendet.
+
+### Audi Connect: Set Target State of Charge
+
+`audiconnect.set_target_soc`
+
+Setzt das globale Ladeziel (20-100 %, in 5er-Schritten). Was dieser Wert bestimmt und was nicht, steht unter **Ladeziele**.
+
+- **`device_id`**: Das Audi-Fahrzeug.
+- **`target_soc`**: Ladeziel in Prozent.
+
+### Audi Connect: Set Location Charge Target
+
+`audiconnect.set_location_charge_target`
+
+Setzt das Ladeziel eines Standortprofils (20-100 %, in 5er-Schritten). Diese dauerhafte Einstellung bestimmt, wo eine Ladung an diesem Standort endet.
+
+- **`device_id`**: Das Audi-Fahrzeug.
+- **`profile_id`** (_optional_): Das zu ändernde Profil. Leer lassen, um das Profil zu ändern, in dem das Auto gerade steht.
+- **`target_soc`**: Ladeziel für diesen Standort.
+
+### Audi Connect: Set Charge Mode
+
+`audiconnect.set_charge_mode`
+
+Setzt die Ladebetriebsart als Vorgabe. Eine laufende Ladung wird weder gestartet noch gestoppt.
+
+- **`device_id`**: Das Audi-Fahrzeug.
+- **`charge_mode`**: `manual` lädt, sobald angesteckt; `timer` lädt nur zu den geplanten Zeiten des Autos.
+
+### Audi Connect: Start Engine / Stop Engine
+
+`audiconnect.start_engine`, `audiconnect.stop_engine`
+
+Startet oder stoppt den Motor aus der Ferne. Starten braucht die S-PIN. Es gelten die Fähigkeitsregeln unter **Funktionsstatus und API-Kompatibilität**.
+
+- **`device_id`**: Das Audi-Fahrzeug.
+
+### Audi Connect: Klima-Timer
+
+`audiconnect.create_climatisation_timer`, `audiconnect.set_climatisation_timer_enabled`, `audiconnect.delete_climatisation_timer`
+
+Verwaltet die Klima-Timer des Autos. Zeiten gelten in der Ortszeit des Autos. Die Timer-Nummer steht in den Attributen der Klima-Timer-Sensoren.
+
+- **`device_id`**: Das Audi-Fahrzeug.
+- Anlegen: **`time`** (zum Beispiel `07:30`), **`days`** (ein Timer nimmt genau einen Tag), **`repeat`** (jede Woche, Standard an), **`enabled`** (Standard an).
+- Schalten: **`timer_id`**, **`enabled`**.
+- Löschen: **`timer_id`**.
+
+### Audi Connect: Set Local Dealer
+
+`audiconnect.set_local_dealer`
+
+Speichert Händler-, Servicetermin- und Garantiedaten in Home Assistant. Es werden keine Audi-API-Anfragen gesendet. Nicht angegebene Felder behalten ihren Wert, leerer Text entfernt ein Feld, und `clear` entfernt den ganzen lokalen Eintrag des Fahrzeugs. Dieselben Daten lassen sich unter **Konfigurieren** bearbeiten.
+
+### Diagnose
+
+Die folgenden Service-Aktionen dienen der Fehlersuche. Nutze sie nur, wenn du fehlenden Daten nachgehst, denn sie zählen gegen das API-Limit.
+
+- `audiconnect.probe_api` sendet eine reine Leseanfrage (selectivestatus-`jobs`, einen `path` unterhalb der Fahrzeug-URL oder eine feste `graphql`-Abfrage) und gibt die geschwärzte Antwort zurück.
+- `audiconnect.probe_api_paths` prüft acht bekannte Lese-Endpunkte (`extended` fügt vier experimentelle hinzu). Das Ergebnis erscheint im nächsten Export unter **Diagnose herunterladen**. Ein erneuter Lauf mit anderem Modus innerhalb von 15 Minuten wird abgelehnt.
+- `audiconnect.test_climatisation_write` ist experimentell. Es schreibt eine Klima-Einstellung mit einer wählbaren Variante des Anfragekörpers (`app_dto` ist der Standard; `app_full` sendet alle zwölf Felder der App-Anfrage) und **ändert die im Auto gespeicherte Einstellung**.
+
+Die Diagnosesensoren `Vehicle data freshness`, `Vehicle data age`, `Cloud last successful poll` und `API Requests Remaining` zeigen, wie aktuell die Daten sind. Für ausführliche Logs `custom_components.audiconnect: debug` unter `logger:` in der `configuration.yaml` setzen.
 
 ## Dashboard-Karte
 

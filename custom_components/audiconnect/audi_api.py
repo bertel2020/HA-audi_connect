@@ -27,6 +27,53 @@ TIMEOUT = 30
 _LOGGER = logging.getLogger(__name__)
 _WRITE_METHODS = frozenset({METH_POST, METH_PUT})
 _ERROR_BODY_CHARS = 300
+_VIN_PATTERN = re.compile(r"[A-HJ-NPR-Z0-9]{17}")
+# Request-body keys that carry a secret or a position; matched lower-cased.
+_SECRET_BODY_KEYS = frozenset(
+    {
+        "spin",
+        "securitypin",
+        "securitypinhash",
+        "securitytoken",
+        "securedactivationdata",
+        "userpromptproof",
+        "challenge",
+        "token",
+        "password",
+        "userposition",
+        "accesstoken",
+        "refreshtoken",
+    }
+)
+_SECRET_TEXT = re.compile(
+    r"""(["']?(?:%s)["']?\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,&}]+)"""
+    % "|".join(sorted(_SECRET_BODY_KEYS)),
+    re.IGNORECASE,
+)
+
+
+def _redact_secrets(value: Any) -> Any:
+    """Return ``value`` with PINs, tokens and positions replaced by a marker."""
+    if isinstance(value, dict):
+        return {
+            k: "<redacted>"
+            if str(k).lower().replace("_", "") in _SECRET_BODY_KEYS
+            else _redact_secrets(v)
+            for k, v in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [_redact_secrets(v) for v in value]
+    if isinstance(value, (bytes, bytearray)):
+        value = value.decode("utf-8", "replace")
+    if isinstance(value, str):
+        stripped = value.lstrip()
+        if stripped[:1] in "{[":
+            try:
+                return _redact_secrets(json.loads(value))
+            except ValueError:
+                pass
+        return _SECRET_TEXT.sub(r"\1<redacted>", value)
+    return value
 
 
 class AudiAPI:
@@ -58,8 +105,8 @@ class AudiAPI:
 
         The status line alone ("502 Bad Gateway") cannot tell a rejected body
         from a sleeping car. The reply body usually can, and the body we sent
-        says what was asked. Settings are logged, headers never are: the VIN is
-        masked and the length capped.
+        says what was asked. Settings are logged, headers never are: PINs, tokens and
+        positions are redacted, the VIN is masked and the length capped.
         """
         try:
             text = await response.text()
@@ -76,7 +123,7 @@ class AudiAPI:
             response.status,
             response.reason,
             reply or "(empty reply)",
-            re.sub(r"[A-HJ-NPR-Z0-9]{17}", "<vin>", str(sent))[:_ERROR_BODY_CHARS],
+            _VIN_PATTERN.sub("<vin>", str(_redact_secrets(sent)))[:_ERROR_BODY_CHARS],
         )
 
     async def request(

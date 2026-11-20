@@ -462,6 +462,14 @@ def _async_cleanup_orphaned_devices(
         if vehicle_data.vehicle and vehicle_data.vehicle.vin:
             active_vins.add(vehicle_data.vehicle.vin.lower())
 
+    # No vehicle known means no poll has succeeded (startup refresh disabled, or
+    # the account answered with an empty list once). That says nothing about
+    # which devices are gone, and removing them would also drop the user's
+    # renames, areas and disabled entities.
+    if not active_vins:
+        _LOGGER.debug("Skipping device cleanup: no vehicle is known yet")
+        return
+
     device_registry = dr.async_get(hass)
     devices = dr.async_entries_for_config_entry(device_registry, config_entry.entry_id)
 
