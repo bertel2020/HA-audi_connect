@@ -5,7 +5,8 @@
       "reauth_successful": "Uudelleentodennus onnistui",
       "reconfigure_successful": "Uudelleenmääritys onnistui",
       "device_auth_failed": "Laitekirjautumista Audiin ei voitu aloittaa. Yritä myöhemmin uudelleen.",
-      "auth0_auth_failed": "Selainkirjautumista Audiin ei voitu aloittaa. Yritä myöhemmin uudelleen."
+      "auth0_auth_failed": "Selainkirjautumista Audiin ei voitu aloittaa. Yritä myöhemmin uudelleen.",
+      "wrong_account": "Tämä on eri myAudi-tili kuin tähän määritetty. Kirjaudu alkuperäisellä tilillä tai lisää tälle uusi kohde."
     },
     "create_entry": {},
     "error": {

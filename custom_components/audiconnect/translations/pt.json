@@ -5,7 +5,8 @@
       "reauth_successful": "A reautenticação foi bem-sucedida",
       "reconfigure_successful": "A reconfiguração foi bem-sucedida",
       "device_auth_failed": "Não foi possível iniciar o início de sessão do dispositivo com a Audi. Tente novamente mais tarde.",
-      "auth0_auth_failed": "Não foi possível iniciar o início de sessão no navegador com a Audi. Tente novamente mais tarde."
+      "auth0_auth_failed": "Não foi possível iniciar o início de sessão no navegador com a Audi. Tente novamente mais tarde.",
+      "wrong_account": "Esta é uma conta myAudi diferente da que está configurada aqui. Inicie sessão com a conta original ou adicione uma nova entrada para esta."
     },
     "create_entry": {},
     "error": {

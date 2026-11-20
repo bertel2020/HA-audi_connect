@@ -212,10 +212,28 @@ class AudiConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    def _is_other_account(self, identifier: str | None, *, email_only: bool) -> bool:
+        """True when a reauth signed in with a different account than the entry's.
+
+        Reauth only renews the credential of the entry that asked for it. Taking
+        another account's would silently point this entry's devices, history and
+        automations at someone else's cars. With ``email_only`` the entry's id is
+        only compared when it is an e-mail address: an older entry may hold an
+        opaque subject id that a user name can never equal.
+        """
+        if self._reauth_entry is None or not identifier:
+            return False
+        known = (self._reauth_entry.unique_id or "").lower()
+        if not known or (email_only and "@" not in known):
+            return False
+        return identifier.lower() != known
+
     async def _finish_password_login(
         self, username: str, password: str
     ) -> ConfigFlowResult:
         """Persist a username/password entry (or update it on reauth)."""
+        if self._is_other_account(username, email_only=True):
+            return self.async_abort(reason="wrong_account")
         if self._reauth_entry is not None:
             # Schedule the reload ourselves: async_update_reload_and_abort is
             # deprecated (HA 2026.12) for entries that register an update
@@ -365,6 +383,10 @@ class AudiConfigFlow(ConfigFlow, domain=DOMAIN):
             # Approved but no refresh token issued; do not persist a dead entry.
             return self.async_abort(reason="device_auth_failed")
 
+        identifier = self._connection.account_identifier()
+        if self._is_other_account(identifier, email_only=False):
+            return self.async_abort(reason="wrong_account")
+
         if self._reauth_entry is not None:
             # Schedule the reload ourselves (see _finish_password_login). A
             # token reauth only changes the refresh token, which the
@@ -379,7 +401,6 @@ class AudiConfigFlow(ConfigFlow, domain=DOMAIN):
                 },
             )
 
-        identifier = self._connection.account_identifier()
         if identifier:
             await self.async_set_unique_id(identifier.lower())
             self._abort_if_unique_id_configured()

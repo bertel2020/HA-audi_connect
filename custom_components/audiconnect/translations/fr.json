@@ -5,7 +5,8 @@
       "reauth_successful": "Réauthentification réussie",
       "reconfigure_successful": "Reconfiguration réussie",
       "device_auth_failed": "Impossible de démarrer la connexion par code avec Audi. Veuillez réessayer plus tard.",
-      "auth0_auth_failed": "Impossible de démarrer la connexion par navigateur avec Audi. Veuillez réessayer plus tard."
+      "auth0_auth_failed": "Impossible de démarrer la connexion par navigateur avec Audi. Veuillez réessayer plus tard.",
+      "wrong_account": "Il s'agit d'un autre compte myAudi que celui configuré ici. Connectez-vous avec le compte d'origine ou ajoutez une nouvelle entrée pour celui-ci."
     },
     "create_entry": {},
     "error": {

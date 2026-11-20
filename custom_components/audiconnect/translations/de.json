@@ -5,7 +5,8 @@
       "reauth_successful": "Die erneute Authentifizierung war erfolgreich",
       "reconfigure_successful": "Die Neukonfiguration war erfolgreich",
       "device_auth_failed": "Die Geräteanmeldung bei Audi konnte nicht gestartet werden. Bitte versuchen Sie es später erneut.",
-      "auth0_auth_failed": "Die Browseranmeldung bei Audi konnte nicht gestartet werden. Bitte versuchen Sie es später erneut."
+      "auth0_auth_failed": "Die Browseranmeldung bei Audi konnte nicht gestartet werden. Bitte versuchen Sie es später erneut.",
+      "wrong_account": "Dies ist ein anderes myAudi-Konto als das hier eingerichtete. Melden Sie sich mit dem ursprünglichen Konto an oder legen Sie für dieses einen neuen Eintrag an."
     },
     "create_entry": {},
     "error": {

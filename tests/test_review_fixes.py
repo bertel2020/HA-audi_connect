@@ -194,7 +194,9 @@ def test_password_reauth_drops_the_refresh_token_that_just_failed():
 
     flow = AudiConfigFlow()
     flow._reauth_entry = SimpleNamespace(
-        entry_id="e", data={CONF_REFRESH_TOKEN: "old", "region": "US"}
+        entry_id="e",
+        unique_id="user@example.com",
+        data={CONF_REFRESH_TOKEN: "old", "region": "US"},
     )
     flow.hass = SimpleNamespace(
         config_entries=SimpleNamespace(async_schedule_reload=lambda _id: None)
@@ -229,3 +231,62 @@ def test_every_service_in_services_yaml_has_texts():
         for name, spec in services.items():
             for field in (spec or {}).get("fields", {}):
                 assert field in texts[name].get("fields", {}), (lang, name, field)
+
+
+# --- reauth must stay on the same account -------------------------------------------
+
+
+def _reauth_flow(unique_id):
+    from types import SimpleNamespace
+
+    from custom_components.audiconnect.config_flow import AudiConfigFlow
+
+    flow = AudiConfigFlow()
+    flow._reauth_entry = SimpleNamespace(
+        entry_id="e", unique_id=unique_id, data={"region": "DE"}
+    )
+    flow.hass = SimpleNamespace(
+        config_entries=SimpleNamespace(async_schedule_reload=lambda _id: None)
+    )
+    flow.async_abort = lambda reason: {"type": "abort", "reason": reason}
+    flow.async_update_and_abort = lambda _entry, data: {"type": "abort", "reason": "ok"}
+    return flow
+
+
+def test_password_reauth_with_another_account_is_refused():
+    import asyncio
+
+    flow = _reauth_flow("owner@example.com")
+    result = asyncio.run(flow._finish_password_login("someone@example.com", "pw"))
+    assert result["reason"] == "wrong_account"
+
+
+def test_password_reauth_accepts_the_same_account_in_any_case():
+    import asyncio
+
+    flow = _reauth_flow("owner@example.com")
+    result = asyncio.run(flow._finish_password_login("Owner@Example.com", "pw"))
+    assert result["reason"] == "ok"
+
+
+def test_password_reauth_does_not_compare_against_an_opaque_subject_id():
+    import asyncio
+
+    flow = _reauth_flow("a1b2c3-subject")
+    result = asyncio.run(flow._finish_password_login("owner@example.com", "pw"))
+    assert result["reason"] == "ok"
+
+
+def test_token_reauth_with_another_account_is_refused():
+    import asyncio
+    from types import SimpleNamespace
+
+    flow = _reauth_flow("owner@example.com")
+    flow._connection = SimpleNamespace(
+        refresh_token="t", account_identifier=lambda: "someone@example.com"
+    )
+    assert asyncio.run(flow._finish_token_login())["reason"] == "wrong_account"
+    flow._connection = SimpleNamespace(
+        refresh_token="t", account_identifier=lambda: "OWNER@example.com"
+    )
+    assert asyncio.run(flow._finish_token_login())["reason"] == "ok"

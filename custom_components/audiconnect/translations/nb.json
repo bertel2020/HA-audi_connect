@@ -5,7 +5,8 @@
       "reauth_successful": "Ny autentisering var vellykket",
       "reconfigure_successful": "Rekonfigurering var vellykket",
       "device_auth_failed": "Kunne ikke starte enhetsinnlogging med Audi. Prøv igjen senere.",
-      "auth0_auth_failed": "Kunne ikke starte nettleserinnlogging med Audi. Prøv igjen senere."
+      "auth0_auth_failed": "Kunne ikke starte nettleserinnlogging med Audi. Prøv igjen senere.",
+      "wrong_account": "Dette er en annen myAudi-konto enn den som er satt opp her. Logg inn med den opprinnelige kontoen, eller legg til en ny oppføring for denne."
     },
     "create_entry": {},
     "error": {

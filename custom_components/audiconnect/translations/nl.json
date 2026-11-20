@@ -5,7 +5,8 @@
       "reauth_successful": "Herauthenticatie is geslaagd",
       "reconfigure_successful": "Herconfiguratie is geslaagd",
       "device_auth_failed": "Kan de apparaataanmelding bij Audi niet starten. Probeer het later opnieuw.",
-      "auth0_auth_failed": "Kan de browseraanmelding bij Audi niet starten. Probeer het later opnieuw."
+      "auth0_auth_failed": "Kan de browseraanmelding bij Audi niet starten. Probeer het later opnieuw.",
+      "wrong_account": "Dit is een ander myAudi-account dan het account dat hier is ingesteld. Meld je aan met het oorspronkelijke account of voeg een nieuwe invoer toe voor dit account."
     },
     "create_entry": {},
     "error": {

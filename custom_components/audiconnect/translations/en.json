@@ -5,7 +5,8 @@
       "reauth_successful": "Re-authentication was successful",
       "reconfigure_successful": "Reconfiguration was successful",
       "device_auth_failed": "Could not start device sign-in with Audi. Please try again later.",
-      "auth0_auth_failed": "Could not start browser sign-in with Audi. Please try again later."
+      "auth0_auth_failed": "Could not start browser sign-in with Audi. Please try again later.",
+      "wrong_account": "This is a different myAudi account than the one set up here. Sign in with the original account, or add a new entry for this one."
     },
     "create_entry": {},
     "error": {
