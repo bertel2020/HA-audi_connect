@@ -113,7 +113,7 @@ def test_an_unusable_max_current_is_not_shown():
             }
         },
     }
-    assert "activeChargingProfileMaxCurrent" not in states(payload)
+    assert states(payload).get("activeChargingProfileMaxCurrent") is None
 
 
 def test_the_entities_exist_and_read_the_values():

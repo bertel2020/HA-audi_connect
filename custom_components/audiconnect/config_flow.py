@@ -224,8 +224,15 @@ class AudiConfigFlow(ConfigFlow, domain=DOMAIN):
             self.hass.config_entries.async_schedule_reload(self._reauth_entry.entry_id)
             return self.async_update_and_abort(
                 self._reauth_entry,
+                # Drop a stored refresh token: it is the credential that just
+                # failed, and with it kept the entry would use it again instead
+                # of the new password and fall straight back into reauth.
                 data={
-                    **self._reauth_entry.data,
+                    **{
+                        k: v
+                        for k, v in self._reauth_entry.data.items()
+                        if k != CONF_REFRESH_TOKEN
+                    },
                     CONF_USERNAME: username,
                     CONF_PASSWORD: password,
                 },
@@ -426,7 +433,7 @@ class AudiConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_update_and_abort(
                 reconfigure_entry,
                 data_updates={
-                    CONF_SPIN: user_input.get(CONF_SPIN),
+                    CONF_SPIN: user_input.get(CONF_SPIN) or None,
                     CONF_REGION: REGION_OPTIONS[user_input[CONF_REGION]],
                     CONF_API_LEVEL: int(user_input[CONF_API_LEVEL]),
                 },

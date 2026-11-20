@@ -545,7 +545,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     AudiSensorEntityDescription(
         key="vehicle_reported_online",
         attr_key="vehicle_reported_online",
-        capability="readiness",
         translation_key="vehicle_reported_online",
         icon="mdi:car-connected",
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -553,7 +552,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     AudiSensorEntityDescription(
         key="vehicle_reported_active",
         attr_key="vehicle_reported_active",
-        capability="readiness",
         translation_key="vehicle_reported_active",
         icon="mdi:car-clock",
         entity_category=EntityCategory.DIAGNOSTIC,

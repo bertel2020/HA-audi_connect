@@ -65,6 +65,9 @@ class AudiConnectAccount:
         self._username = username
         self._password = password
         self._loggedin = False
+        # One login or token refresh at a time: they share a refresh token that
+        # the server may rotate, so a second caller would present a spent one.
+        self._session_lock = asyncio.Lock()
         self._support_vehicle_refresh = True
         self._logintime: float = 0
 
@@ -185,6 +188,26 @@ class AudiConnectAccount:
     async def login(self):
         if not self._refresh_token and not self.uses_password_login:
             raise AudiAuthError("No stored authorization; reauthentication is required")
+        async with self._session_lock:
+            if self._loggedin:
+                return  # a concurrent caller has just signed in
+            await self._login_locked()
+
+    async def _ensure_fresh_session(self) -> None:
+        """Renew the access token if it is about to expire.
+
+        The poll does this too, but a command can arrive between polls, and with
+        a long scan interval the token may have lapsed by then.
+        """
+        async with self._session_lock:
+            if not self._loggedin:
+                return
+            elapsed_sec = time.time() - self._logintime
+            if await self._audi_service.refresh_token_if_necessary(elapsed_sec):
+                self._logintime = time.time()
+                self._sync_refresh_token()
+
+    async def _login_locked(self):
         for i in range(self._connect_retries):
             self._loggedin = await self.try_login(i == self._connect_retries - 1)
             if self._loggedin is True:
@@ -246,11 +269,7 @@ class AudiConnectAccount:
         if not self._loggedin:
             return False
 
-        elapsed_sec = time.time() - self._logintime
-        if await self._audi_service.refresh_token_if_necessary(elapsed_sec):
-            # Store current timestamp when refresh was performed and successful
-            self._logintime = time.time()
-            self._sync_refresh_token()
+        await self._ensure_fresh_session()
 
         try:
             if len(self._audi_vehicles) > 0:
@@ -436,6 +455,10 @@ class AudiConnectAccount:
             await self.login()
         if not self._loggedin:
             return False
+        try:
+            await self._ensure_fresh_session()
+        except Exception as exception:  # noqa: BLE001 - the command may still work
+            _LOGGER.debug("Token refresh before a command failed: %s", exception)
 
         try:
             _LOGGER.debug("Sending command to %s", description)

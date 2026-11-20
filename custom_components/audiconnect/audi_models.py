@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from .util import get_attr
@@ -100,6 +100,9 @@ def _service_end(value: Any) -> datetime | None:
             value = datetime.fromisoformat(value)
         except ValueError:
             return None
+        # A bare date ("2033-09-30") carries no zone; the car's dates are UTC.
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=UTC)
     if (
         isinstance(value, datetime)
         and value.tzinfo is not None
@@ -532,6 +535,16 @@ class VehicleDataResponse:
             return
         self.states.append({"name": name, "value": value, "measure_time": ts})
 
+    def _clearStates(self, *names: str) -> None:
+        """Reset derived states the latest report no longer backs.
+
+        The vehicle keeps the last value of every state name, so a parser that
+        merely leaves a value out would keep showing the previous one: the home
+        charging profile after the car drove away, a timer that was switched off.
+        """
+        for name in names:
+            self.states.append({"name": name, "value": None, "measure_time": None})
+
     def _parseWindowPositions(self, data: dict[str, Any]) -> None:
         """How far each window is open, in percent, from the access job.
 
@@ -613,6 +626,8 @@ class VehicleDataResponse:
             self.states.append(
                 {"name": "chargeTargetLimits", "value": limits, "measure_time": None}
             )
+        if not impaired:
+            self._clearStates("userCapabilitiesImpaired")
         if impaired:
             self.states.append(
                 {
@@ -667,6 +682,16 @@ class VehicleDataResponse:
         self._appendState("activeChargingProfileId", active_id, ts)
 
         if active is None:
+            self._clearStates(
+                "activeChargingProfileName",
+                "activeChargingProfileTargetSoc",
+                "activeChargingProfileMinSoc",
+                "activeChargingProfileMaxCurrent",
+                "activeChargingProfileUsesPreferredTimes",
+                "preferredChargingTimeStart",
+                "preferredChargingTimeEnd",
+                "preferredChargingTimeEnabled",
+            )
             return
 
         self._appendState("activeChargingProfileName", active.get("name"), ts)
@@ -765,6 +790,8 @@ class VehicleDataResponse:
             self._appendState(
                 "nextChargingTimerDeparture", active[0].get("departureTimeLocal"), ts
             )
+        else:
+            self._clearStates("nextChargingTimerDeparture")
 
     def _parseClimatisationTimers(self, data: dict[str, Any]) -> None:
         """Expose the Q8's real climate timers without pretending local time is UTC.
@@ -823,6 +850,8 @@ class VehicleDataResponse:
         )
         if enabled_starts:
             self._appendState("nextClimatisationTimerLocal", enabled_starts[0], ts)
+        else:
+            self._clearStates("nextClimatisationTimerLocal")
 
     def _tryAppendStateWithTs(
         self, json: dict[str, Any], name: str, tsoff: int, loc: list[str]

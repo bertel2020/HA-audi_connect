@@ -338,6 +338,10 @@ class AudiAuthMixin:
                 _raise_refresh_rejected(
                     "IDK refresh rejected", refreshed, bearer_token_rsptxt
                 )
+            # A reply without a new refresh token means "keep using the old one".
+            refreshed.setdefault(
+                "refresh_token", self._bearer_token_json.get("refresh_token")
+            )
             self._bearer_token_json = refreshed
 
             # AZS token
@@ -745,6 +749,7 @@ class AudiAuthMixin:
         result = json.loads(rsptxt)
         if "access_token" not in result:
             _raise_refresh_rejected("Token refresh rejected", result, rsptxt)
+        result.setdefault("refresh_token", refresh_token)
         self._bearer_token_json = result
         await self._finalize_session()
         return self._bearer_token_json.get("refresh_token", refresh_token)
@@ -916,7 +921,7 @@ class AudiAuthMixin:
             self.vwToken = mbboauth_auth_json
 
     def _generate_security_pin_hash(self, challenge: str) -> str:
-        if self._spin is None:
+        if not self._spin:
             raise Exception("sPin is required to perform this action")
 
         pin = to_byte_array(self._spin)

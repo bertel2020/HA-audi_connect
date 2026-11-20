@@ -30,7 +30,7 @@ def _spin_configured(vehicle: Any) -> bool:
     keeps the engine buttons out of the rescue.
     """
     service = getattr(vehicle, "_audi_service", None)
-    return getattr(service, "_spin", None) is not None
+    return bool(getattr(service, "_spin", None))
 
 
 async def async_setup_entry(

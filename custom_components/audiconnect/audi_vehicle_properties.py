@@ -248,16 +248,16 @@ class AudiVehicleProperties:
     charging_power = _Field(_STATE, "chargingPower", _not_none, _float_or_minus_one)
     primary_engine_type = _Field(_STATE, "engineTypeFirstEngine", _truthy_known)
     secondary_engine_type = _Field(_STATE, "engineTypeSecondEngine", _truthy_known)
-    primary_engine_range = _Field(_STATE, "primaryEngineRange", _truthy_known)
+    primary_engine_range = _Field(_STATE, "primaryEngineRange", _known_not_none)
     primary_engine_range_percent = _Field(
-        _STATE, "primaryEngineRangePercent", _truthy_known
+        _STATE, "primaryEngineRangePercent", _known_not_none
     )
     secondary_engine_range = _Field(_STATE, "secondaryEngineRange", _known_not_none)
     car_type = _Field(_STATE, "carType", _truthy_known)
     secondary_engine_range_percent = _Field(
-        _STATE, "secondaryEngineRangePercent", _truthy_known
+        _STATE, "secondaryEngineRangePercent", _known_not_none
     )
-    hybrid_range = _Field(_STATE, "hybridRange", _truthy_known)
+    hybrid_range = _Field(_STATE, "hybridRange", _known_not_none)
 
     @property
     def has_non_electric_engine(self) -> bool:
@@ -325,7 +325,7 @@ class AudiVehicleProperties:
         _is_not_none,
         doc="Return the target temperature the car is set to, in Celsius.\n\nReported by the car, so it does not have to be held locally. The\ncar stores half degrees, and the writes keep them.",
     )
-    outdoor_temperature = _Field(_STATE, "outdoorTemperature", _truthy)
+    outdoor_temperature = _Field(_STATE, "outdoorTemperature", _not_none)
     glass_surface_heating = _Field(_STATE, "isMirrorHeatingActive", _is_not_none)
     door_lock_status = _Field(
         _STATE,
@@ -884,7 +884,7 @@ class AudiVehicleProperties:
         function, which is always truthy, and created the lock on every car
         including those with no S-PIN and no way to know the state (#861)."""
         return bool(
-            self._audi_service._spin is not None
+            self._audi_service._spin
             and (self.door_lock_status_supported or self.doors_trunk_status_supported)
         )
 

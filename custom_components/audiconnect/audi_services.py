@@ -1741,7 +1741,7 @@ class AudiService(AudiAuthMixin):
         await self.check_bff_request_succeeded(vin, res["data"]["requestID"])
 
     async def start_engine(self, vin: str) -> None:
-        if self._spin is None:
+        if not self._spin:
             raise Exception("S-PIN is required to start the engine")
 
         headers = {

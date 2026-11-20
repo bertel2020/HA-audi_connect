@@ -32,3 +32,9 @@ def test_utc_offset_accepts_datetime_and_string():
     assert _utc_offset_of("2026-11-16T20:52:55+01:00") == timedelta(hours=1)
     assert _utc_offset_of(None) is None
     assert _utc_offset_of("2026-11-16T20:52:55") is None
+
+
+def test_service_end_accepts_a_bare_date():
+    from custom_components.audiconnect.audi_models import _service_end
+
+    assert _service_end("2033-09-30") == datetime(2033, 9, 30, tzinfo=timezone.utc)

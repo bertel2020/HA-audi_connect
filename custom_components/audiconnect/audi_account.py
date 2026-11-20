@@ -97,8 +97,12 @@ SERVICE_START_CLIMATE_CONTROL = "start_climate_control"
 SERVICE_START_CLIMATE_CONTROL_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_DEVICE_ID): _single_device_id,
-        vol.Optional(CONF_CLIMATE_TEMP_F): cv.positive_int,
-        vol.Optional(CONF_CLIMATE_TEMP_C): cv.positive_int,
+        vol.Optional(CONF_CLIMATE_TEMP_F): vol.All(
+            vol.Coerce(float), vol.Range(min=59, max=86)
+        ),
+        vol.Optional(CONF_CLIMATE_TEMP_C): vol.All(
+            vol.Coerce(float), vol.Range(min=15, max=30)
+        ),
         vol.Optional(CONF_CLIMATE_GLASS): cv.boolean,
         vol.Optional(CONF_CLIMATE_SEAT_FL): cv.boolean,
         vol.Optional(CONF_CLIMATE_SEAT_FR): cv.boolean,
@@ -336,13 +340,17 @@ class AudiAccount(AudiConnectObserver):
                 'The "Start Preheater (Legacy)" action is deprecated and will be removed in a future release. '
                 'Please use the "Start Auxiliary Heating" service instead.'
             )
-            await self.connection.set_vehicle_pre_heater(vin, True)
+            result = await self.connection.set_vehicle_pre_heater(vin, True)
+            self._raise_on_failed_command(result, action)
         elif action == "stop_preheater":
-            await self.connection.set_vehicle_pre_heater(vin, False)
+            result = await self.connection.set_vehicle_pre_heater(vin, False)
+            self._raise_on_failed_command(result, action)
         elif action == "start_window_heating":
-            await self.connection.set_vehicle_window_heating(vin, True)
+            result = await self.connection.set_vehicle_window_heating(vin, True)
+            self._raise_on_failed_command(result, action)
         elif action == "stop_window_heating":
-            await self.connection.set_vehicle_window_heating(vin, False)
+            result = await self.connection.set_vehicle_window_heating(vin, False)
+            self._raise_on_failed_command(result, action)
         else:
             raise HomeAssistantError(f"Unknown Audi vehicle action: {action}")
 
@@ -392,11 +400,12 @@ class AudiAccount(AudiConnectObserver):
 
     async def start_auxiliary_heating(self, vin: str, service: ServiceCall) -> None:
         """Start auxiliary heating for a vehicle by VIN."""
-        await self.connection.set_vehicle_pre_heater(
+        result = await self.connection.set_vehicle_pre_heater(
             vin=vin.lower(),
             activate=True,
             duration=service.data.get(CONF_DURATION),
         )
+        self._raise_on_failed_command(result, "start_auxiliary_heating")
 
     async def set_location_charge_target(self, vin: str, service: ServiceCall) -> None:
         """Set a location profile's target SoC, the value that governs charging
