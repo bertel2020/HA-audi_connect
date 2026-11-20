@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import json
+import time
 from functools import cache
 from pathlib import Path
 from typing import Any
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -51,6 +52,60 @@ def english_object_name(
         return name.format(**(placeholders or {}))
     except (KeyError, IndexError, ValueError):
         return None
+
+
+# How long a written value is shown before the car's own reading counts again.
+# Longer than the default poll interval, so a car that never confirms the write
+# (it was refused, or changed back) does not leave a stale guess on screen.
+ASSUMED_VALUE_TTL = 20 * 60
+
+
+class AssumedValueMixin:
+    """Show what was just written until the car reports something else.
+
+    The car acknowledges a write before it reports the new value, so the refresh
+    that follows usually reads the old one and the entity would snap back for up
+    to a poll interval, which looks like the command failed. The guess is dropped
+    as soon as the car reports anything other than what it said at the time of
+    the write (even if that differs from what was asked: another client may have
+    changed it), and after ASSUMED_VALUE_TTL.
+
+    Put it before the entity base in the class list and implement
+    ``_reported_value``.
+    """
+
+    _assumed_active = False
+    _assumed_value: Any = None
+    _reported_at_write: Any = None
+    _assumed_at = 0.0
+
+    def _reported_value(self) -> Any:
+        raise NotImplementedError
+
+    def _shown_value(self) -> Any:
+        if self._assumed_active:
+            if time.monotonic() - self._assumed_at < ASSUMED_VALUE_TTL:
+                return self._assumed_value
+            self._drop_assumption()
+        return self._reported_value()
+
+    def _assume(self, value: Any) -> None:
+        self._reported_at_write = self._reported_value()
+        self._assumed_value = value
+        self._assumed_at = time.monotonic()
+        self._assumed_active = True
+        self.async_write_ha_state()
+
+    def _drop_assumption(self) -> None:
+        self._assumed_active = False
+        self._assumed_value = None
+        self._reported_at_write = None
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        if self._assumed_active and self._reported_value() != self._reported_at_write:
+            self._drop_assumption()
+        super()._handle_coordinator_update()
 
 
 def entity_unique_id(vehicle: Any, platform: str, key: str) -> str:

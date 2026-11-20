@@ -57,6 +57,8 @@ def build(vehicle, connection=None):
     entities = [
         AudiProfileChargeTarget(coordinator, vehicle, p) for p in _profiles(vehicle)
     ]
+    for entity in entities:
+        entity.async_write_ha_state = lambda: None  # not added to a hass here
     return coordinator, entities
 
 

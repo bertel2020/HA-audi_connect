@@ -11,7 +11,12 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AudiRuntimeData
-from .audi_entity import AudiEntity, entity_unique_id, should_create_entity
+from .audi_entity import (
+    AssumedValueMixin,
+    AudiEntity,
+    entity_unique_id,
+    should_create_entity,
+)
 from .coordinator import AudiDataUpdateCoordinator
 
 _ATTR_KEY = "preferred_charge_mode"
@@ -119,7 +124,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class AudiChargeModeSelect(AudiEntity, SelectEntity):
+class AudiChargeModeSelect(AssumedValueMixin, AudiEntity, SelectEntity):
     """The charge mode the car is set to.
 
     Reads preferredChargeMode, not the chargeMode of the charge in progress:
@@ -144,9 +149,12 @@ class AudiChargeModeSelect(AudiEntity, SelectEntity):
     def options(self) -> list[str]:
         return _options_for(self._vehicle)
 
+    def _reported_value(self) -> str | None:
+        return _current_mode(self._vehicle)
+
     @property
     def current_option(self) -> str | None:
-        return _current_mode(self._vehicle)
+        return self._shown_value()
 
     async def async_select_option(self, option: str) -> None:
         connection = self.coordinator.account.connection
@@ -154,10 +162,11 @@ class AudiChargeModeSelect(AudiEntity, SelectEntity):
             raise HomeAssistantError(
                 f"Failed to set charge mode to {option}; see the log for details"
             )
+        self._assume(option)
         await self.coordinator.async_request_refresh()
 
 
-class AudiClimatisationModeSelect(AudiEntity, SelectEntity):
+class AudiClimatisationModeSelect(AssumedValueMixin, AudiEntity, SelectEntity):
     """Comfort or economy for the climatisation, stored in the car.
 
     Written with the same request as the zones and the target temperature, so
@@ -187,12 +196,15 @@ class AudiClimatisationModeSelect(AudiEntity, SelectEntity):
             options.append(current)
         return options
 
-    @property
-    def current_option(self) -> str | None:
+    def _reported_value(self) -> str | None:
         value = getattr(self._vehicle, "climatisation_mode", None)
         if not isinstance(value, str) or value.lower() in _NOT_A_MODE:
             return None
         return value.lower()
+
+    @property
+    def current_option(self) -> str | None:
+        return self._shown_value()
 
     async def async_select_option(self, option: str) -> None:
         connection = self.coordinator.account.connection
@@ -202,10 +214,11 @@ class AudiClimatisationModeSelect(AudiEntity, SelectEntity):
             raise HomeAssistantError(
                 f"Failed to set climatisation mode to {option}; see the log for details"
             )
+        self._assume(option)
         await self.coordinator.async_request_refresh()
 
 
-class AudiProfileCurrentSelect(AudiEntity, SelectEntity):
+class AudiProfileCurrentSelect(AssumedValueMixin, AudiEntity, SelectEntity):
     """The charging current of the profile the car stands in: maximum or reduced.
 
     Written into the profile the car is parked in, with the whole profile sent
@@ -228,12 +241,15 @@ class AudiProfileCurrentSelect(AudiEntity, SelectEntity):
             vehicle, "select", "profile_charging_current"
         )
 
-    @property
-    def current_option(self) -> str | None:
+    def _reported_value(self) -> str | None:
         value = getattr(self._vehicle, "active_charging_profile_max_current", None)
         if isinstance(value, str) and value.lower() in _PROFILE_CURRENTS:
             return value.lower()
         return None
+
+    @property
+    def current_option(self) -> str | None:
+        return self._shown_value()
 
     async def async_select_option(self, option: str) -> None:
         connection = self.coordinator.account.connection
@@ -244,6 +260,7 @@ class AudiProfileCurrentSelect(AudiEntity, SelectEntity):
                 f"Failed to set the profile charging current to {option}; "
                 "see the log for details"
             )
+        self._assume(option)
         await self.coordinator.async_request_refresh()
 
 

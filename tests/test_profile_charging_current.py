@@ -42,7 +42,9 @@ def make(current="max", ok=True):
         return_value=ok
     )
     coordinator.async_request_refresh = AsyncMock()
-    return AudiProfileCurrentSelect(coordinator, vehicle), coordinator
+    select = AudiProfileCurrentSelect(coordinator, vehicle)
+    select.async_write_ha_state = lambda: None  # not added to a hass here
+    return select, coordinator
 
 
 def test_only_the_current_changes_and_everything_else_is_sent_back():

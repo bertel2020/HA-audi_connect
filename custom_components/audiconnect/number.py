@@ -19,7 +19,12 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AudiRuntimeData
-from .audi_entity import AudiEntity, entity_unique_id, should_create_entity
+from .audi_entity import (
+    AssumedValueMixin,
+    AudiEntity,
+    entity_unique_id,
+    should_create_entity,
+)
 from .coordinator import AudiDataUpdateCoordinator
 
 # The Cariad API rejects anything outside 20-100 and only accepts 5% steps.
@@ -140,7 +145,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class AudiChargeTargetEntity(AudiEntity, NumberEntity):
+class AudiChargeTargetEntity(AssumedValueMixin, AudiEntity, NumberEntity):
     """Shared slider behaviour for the charge-target numbers."""
 
     _attr_device_class = NumberDeviceClass.BATTERY
@@ -162,6 +167,7 @@ class AudiChargeTargetEntity(AudiEntity, NumberEntity):
                 f"Failed to set {self.entity_id or self.unique_id}; "
                 "see the log for details"
             )
+        self._assume(float(int(value)))
         await self.coordinator.async_request_refresh()
 
 
@@ -194,10 +200,13 @@ class AudiNumber(AudiChargeTargetEntity):
             return _SOC_STEP
         return _limit(self._vehicle, "charge_target_step", _SOC_STEP)
 
-    @property
-    def native_value(self) -> float | None:
+    def _reported_value(self) -> float | None:
         value = getattr(self._vehicle, self.entity_description.attr_key, None)
         return None if value is None else float(value)
+
+    @property
+    def native_value(self) -> float | None:
+        return self._shown_value()
 
     async def async_set_native_value(self, value: float) -> None:
         await self._write(self.entity_description.set_value_fn, value)
@@ -241,13 +250,16 @@ class AudiProfileChargeTarget(AudiChargeTargetEntity):
         # stale target for a location that no longer exists.
         return super().available and self._profile is not None
 
-    @property
-    def native_value(self) -> float | None:
+    def _reported_value(self) -> float | None:
         profile = self._profile
         if profile is None:
             return None
         value = profile.get("targetSOC_pct")
         return None if value is None else float(value)
+
+    @property
+    def native_value(self) -> float | None:
+        return self._shown_value()
 
     async def async_set_native_value(self, value: float) -> None:
         await self._write(

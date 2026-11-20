@@ -57,9 +57,9 @@ class RecordingConnection:
 
 def build(preferred="manual", available=None, connection=None):
     coordinator = StubCoordinator(connection)
-    return coordinator, AudiChargeModeSelect(
-        coordinator, StubVehicle(preferred, available)
-    )
+    entity = AudiChargeModeSelect(coordinator, StubVehicle(preferred, available))
+    entity.async_write_ha_state = lambda: None  # not added to a hass here
+    return coordinator, entity
 
 
 # --- the two fields are not the same ----------------------------------------------

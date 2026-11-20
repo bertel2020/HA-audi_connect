@@ -32,7 +32,9 @@ def make(mode="economy", ok=True):
         return_value=ok
     )
     coordinator.async_request_refresh = AsyncMock()
-    return AudiClimatisationModeSelect(coordinator, vehicle), coordinator
+    select = AudiClimatisationModeSelect(coordinator, vehicle)
+    select.async_write_ha_state = lambda: None  # not added to a hass here
+    return select, coordinator
 
 
 def test_the_current_mode_and_both_choices_are_offered():
