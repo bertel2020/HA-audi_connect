@@ -12,7 +12,7 @@ from aiohttp import ClientConnectionError, ClientResponseError, ClientSession
 from .audi_api import AudiAPI
 from .audi_connect_vehicle import AudiConnectVehicle
 from .audi_services import AudiAuthError, AudiService
-from .util import log_exception
+from .util import log_exception, mask_vins
 import builtins
 
 __all__ = ["AudiConnectAccount", "AudiConnectObserver", "AudiConnectVehicle"]
@@ -461,12 +461,12 @@ class AudiConnectAccount:
             _LOGGER.debug("Token refresh before a command failed: %s", exception)
 
         try:
-            _LOGGER.debug("Sending command to %s", description)
+            _LOGGER.debug("Sending command to %s", mask_vins(description))
             await call()
-            _LOGGER.debug("Command succeeded: %s", description)
+            _LOGGER.debug("Command succeeded: %s", mask_vins(description))
             return True
         except Exception as exception:
-            log_exception(exception, f"Unable to {description}")
+            log_exception(exception, f"Unable to {mask_vins(description)}")
             return False
         finally:
             if notify_action is not None:

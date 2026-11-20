@@ -417,6 +417,62 @@
           "description": "On = switched on, off = switched off."
         }
       }
+    },
+    "probe_api_paths": {
+      "name": "Probe known read-only Audi API paths",
+      "description": "On-demand, rate-limited check of eight known read-only CARIAD endpoints for one vehicle. No remote control actions. The results appear in the next diagnostics download. Only run it when investigating missing vehicle data. Extended mode adds five experimental read-only checks, including climate timers, measurements, inspection and trip statistics. Running it again with a different mode within 15 minutes is rejected.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The Audi vehicle."
+        },
+        "extended": {
+          "name": "Extended",
+          "description": "Also run the experimental read-only checks."
+        }
+      }
+    },
+    "set_local_dealer": {
+      "name": "Set local dealer and service information",
+      "description": "Optional details kept locally in Home Assistant. No Audi API requests. Fields not supplied keep their previous values. Empty text removes a field. Clear removes the whole local record for this vehicle.",
+      "fields": {
+        "device_id": {
+          "name": "Vehicle",
+          "description": "The Audi vehicle."
+        },
+        "dealer_name": {
+          "name": "Dealer name",
+          "description": "Name of the dealer."
+        },
+        "dealer_city": {
+          "name": "City",
+          "description": "City of the dealer."
+        },
+        "dealer_address": {
+          "name": "Address",
+          "description": "Street address of the dealer."
+        },
+        "dealer_phone": {
+          "name": "Phone",
+          "description": "Phone number of the dealer."
+        },
+        "dealer_website": {
+          "name": "Website",
+          "description": "Website of the dealer."
+        },
+        "next_service_date": {
+          "name": "Next service",
+          "description": "Date of the next service."
+        },
+        "warranty_expiry": {
+          "name": "Warranty expiry",
+          "description": "Date the warranty ends."
+        },
+        "clear": {
+          "name": "Clear",
+          "description": "Remove the whole local record for this vehicle."
+        }
+      }
     }
   },
   "entity": {

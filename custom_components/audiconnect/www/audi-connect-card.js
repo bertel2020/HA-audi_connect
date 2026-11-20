@@ -422,6 +422,10 @@ class AudiConnectCard extends HTMLElement {
         return s ? s.state + "|" + s.last_updated : "-";
       }).join(",") + JSON.stringify(this._config) + Math.floor(Date.now() / 60000);
     if (sig === this._sig) return;
+    // Do not replace the DOM under a slider being dragged or a dropdown being
+    // used: that would cancel the gesture. The next update renders instead.
+    const focused = this._root.activeElement;
+    if (focused && (focused.tagName === "INPUT" || focused.tagName === "SELECT")) return;
     this._sig = sig;
     this._root.innerHTML = this._render();
   }
@@ -508,7 +512,8 @@ class AudiConnectCard extends HTMLElement {
     const tState = this._s("target_state_of_charge");
     const charging = this._isCharging();
     const pct = soc === undefined ? 0 : Math.max(0, Math.min(100, soc));
-    const active = charging && target !== undefined && pct < target;
+    // Charging is what the car says it is doing; the target is only where the mark sits.
+    const active = charging;
 
     let slider = "";
     if (tState && target !== undefined && !useTank) {
@@ -533,7 +538,7 @@ class AudiConnectCard extends HTMLElement {
   _temp(v) {
     const n = Number(v);
     if (!Number.isFinite(n)) return String(v);
-    return `${n.toLocaleString(this._hass?.language || undefined, { minimumFractionDigits: n % 1 ? 1 : 0, maximumFractionDigits: 1 })} °C`;
+    return `${n.toLocaleString(this._hass?.language || undefined, { minimumFractionDigits: n % 1 ? 1 : 0, maximumFractionDigits: 1 })} ${this._hass?.config?.unit_system?.temperature || "°C"}`;
   }
 
   // Power, range gained per hour and when it is done: only while charging, and only what the car reports.
@@ -805,6 +810,8 @@ class AudiConnectCard extends HTMLElement {
   }
 
   _openIntegration() {
+    // The device page is an admin page; anyone else would land on a refusal.
+    if (this._hass?.user && this._hass.user.is_admin === false) return;
     const dev = this._deviceId();
     history.pushState(null, "", dev ? `/config/devices/device/${dev}` : `/config/integrations/integration/${DOMAIN}`);
     window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));

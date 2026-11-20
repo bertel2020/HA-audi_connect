@@ -2,5 +2,5 @@
   "name": "Audi Connect",
   "content_in_root": false,
   "render_readme": true,
-  "homeassistant": "0.110.0"
+  "homeassistant": "2024.11.0"
 }

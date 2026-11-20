@@ -417,6 +417,62 @@
           "description": "An = eingeschaltet, aus = ausgeschaltet."
         }
       }
+    },
+    "probe_api_paths": {
+      "name": "Bekannte schreibgeschützte Audi-API-Pfade prüfen",
+      "description": "Bedarfsgesteuerte, ratenbegrenzte Prüfung von acht bekannten schreibgeschützten CARIAD-Endpunkten für ein Fahrzeug. Keine Fernsteuerung. Die Ergebnisse erscheinen im nächsten Diagnose-Download. Nur ausführen, wenn Fahrzeugdaten fehlen. Der erweiterte Modus ergänzt fünf experimentelle lesende Prüfungen, darunter Klimatimer, Messwerte, Inspektion und Fahrtstatistik. Ein erneuter Lauf mit anderem Modus innerhalb von 15 Minuten wird abgelehnt.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Audi-Fahrzeug."
+        },
+        "extended": {
+          "name": "Erweitert",
+          "description": "Auch die experimentellen lesenden Prüfungen ausführen."
+        }
+      }
+    },
+    "set_local_dealer": {
+      "name": "Lokale Händler- und Serviceangaben setzen",
+      "description": "Optionale Angaben, die nur lokal in Home Assistant gespeichert werden. Keine Anfragen an die Audi-API. Nicht angegebene Felder behalten ihren Wert. Leerer Text entfernt ein Feld. „Löschen“ entfernt den ganzen lokalen Eintrag dieses Fahrzeugs.",
+      "fields": {
+        "device_id": {
+          "name": "Fahrzeug",
+          "description": "Das Audi-Fahrzeug."
+        },
+        "dealer_name": {
+          "name": "Händlername",
+          "description": "Name des Händlers."
+        },
+        "dealer_city": {
+          "name": "Ort",
+          "description": "Ort des Händlers."
+        },
+        "dealer_address": {
+          "name": "Adresse",
+          "description": "Straße und Hausnummer des Händlers."
+        },
+        "dealer_phone": {
+          "name": "Telefon",
+          "description": "Telefonnummer des Händlers."
+        },
+        "dealer_website": {
+          "name": "Webseite",
+          "description": "Webseite des Händlers."
+        },
+        "next_service_date": {
+          "name": "Nächster Service",
+          "description": "Datum des nächsten Service."
+        },
+        "warranty_expiry": {
+          "name": "Garantieende",
+          "description": "Datum, an dem die Garantie endet."
+        },
+        "clear": {
+          "name": "Löschen",
+          "description": "Den ganzen lokalen Eintrag dieses Fahrzeugs entfernen."
+        }
+      }
     }
   },
   "entity": {

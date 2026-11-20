@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, UTC
 from functools import reduce
 from typing import Any
@@ -60,7 +61,16 @@ def parse_datetime(time_value: Any) -> datetime | None:
     return None
 
 
+_VIN = re.compile(r"\b[A-HJ-NPR-Z0-9]{13}([A-HJ-NPR-Z0-9]{4})\b", re.IGNORECASE)
+
+
+def mask_vins(text: str) -> str:
+    """Hide all but the last four characters of any VIN in a log message."""
+    return _VIN.sub(lambda m: "*" * 13 + m.group(1), text)
+
+
 __all__ = [
+    "mask_vins",
     "get_attr",
     "log_exception",
     "parse_datetime",

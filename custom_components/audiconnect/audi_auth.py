@@ -418,7 +418,7 @@ class AudiAuthMixin:
 
         self._authorizationServerBaseURLLive = self._get_cariad_url("/login/v1/audi")
 
-        if "authorizationServerBaseURLLive" in marketcfg_json:
+        if "myAudiAuthorizationServerProxyServiceURLProduction" in marketcfg_json:
             self._authorizationServerBaseURLLive = marketcfg_json[
                 "myAudiAuthorizationServerProxyServiceURLProduction"
             ]

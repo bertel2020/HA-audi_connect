@@ -22,7 +22,7 @@ Feel free to contact the maintainers if that's a concern.
 
 ## Coding Style
 
-This project uses [black](https://github.com/ambv/black) to ensure the code follows a consistent style.
+This project uses [ruff](https://docs.astral.sh/ruff/) (`ruff check` and `ruff format`, run by pre-commit) to ensure the code follows a consistent style.
 
 ## Report bugs using Github's issues
 

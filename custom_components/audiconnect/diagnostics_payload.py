@@ -34,6 +34,10 @@ _REDACT_KEYS = frozenset(
         "licenseplate",
         "nickname",
         "vehiclenickname",
+        "mappingvin",
+        "csid",
+        "commissionnumber",
+        "vehiclecoreid",
     }
 )
 

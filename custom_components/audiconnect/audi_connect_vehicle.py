@@ -147,7 +147,7 @@ class AudiConnectVehicle(AudiVehicleProperties):
                 _LOGGER.warning(
                     "Vehicle status report for %s came back with only errors "
                     "(transient CARIAD outage); keeping the last known values.",
-                    self._vehicle.vin,
+                    self._redacted_vin,
                 )
                 return
             if not status.data_fields and not status.states:
@@ -211,7 +211,7 @@ class AudiConnectVehicle(AudiVehicleProperties):
                 _LOGGER.debug(
                     "Received status 502 while obtaining the vehicle status report "
                     "of %s. This is typically transient and may resolve on its own.",
-                    self._vehicle.vin,
+                    self._redacted_vin,
                 )
             else:
                 self.log_exception_once(
