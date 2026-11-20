@@ -105,3 +105,6 @@ venv.bak/
 
 # internal notes, not published
 /docs/
+
+# Card tests (tests/js)
+node_modules/

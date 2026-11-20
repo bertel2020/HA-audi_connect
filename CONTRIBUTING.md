@@ -24,6 +24,11 @@ Feel free to contact the maintainers if that's a concern.
 
 This project uses [ruff](https://docs.astral.sh/ruff/) (`ruff check` and `ruff format`, run by pre-commit) to ensure the code follows a consistent style.
 
+## Tests
+
+Python tests: `pip install -r requirements-test.txt && pytest`.
+The dashboard card has its own tests (jsdom): `cd tests/js && npm install && npm test`.
+
 ## Report bugs using Github's issues
 
 GitHub issues are used to track public bugs. Report a bug by [opening a new issue](../../issues/new/choose)

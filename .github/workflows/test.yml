@@ -25,3 +25,22 @@ jobs:
 
       - name: Run tests
         run: pytest
+
+  card:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: tests/js/package-lock.json
+
+      - name: Install card test dependencies
+        working-directory: tests/js
+        run: npm ci
+
+      - name: Test the dashboard card
+        working-directory: tests/js
+        run: npm test
