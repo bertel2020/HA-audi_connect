@@ -28,7 +28,7 @@ const TEXT = {
     all_closed_unlocked: "All closed, not locked", all_closed_unknown: "Lock state unknown", n_openings: "{n} openings open",
     one_opening: "1 opening open", open: "open", closed: "closed",
     closed_locked: "closed · locked", closed_unlocked: "closed · unlocked",
-    lock: "Lock", unlock: "Unlock", close: "Close",
+    lock: "Lock", unlock: "Unlock", close: "Close", temp_down: "Lower temperature", temp_up: "Raise temperature",
     hood: "Hood", trunk: "Trunk", fl: "Front left", fr: "Front right", rl: "Rear left", rr: "Rear right",
     confirm_lock: "Lock the vehicle?", confirm_unlock: "Unlock the vehicle?",
     no_vehicle: "No Audi Connect vehicle found. Pick one in the card settings.",
@@ -55,7 +55,7 @@ const TEXT = {
     all_closed_unlocked: "Alles zu, nicht verriegelt", all_closed_unknown: "Schlosszustand unbekannt", n_openings: "{n} Öffnungen offen",
     one_opening: "1 Öffnung offen", open: "offen", closed: "zu",
     closed_locked: "zu · verriegelt", closed_unlocked: "zu · entriegelt",
-    lock: "Verriegeln", unlock: "Entriegeln", close: "Schließen",
+    lock: "Verriegeln", unlock: "Entriegeln", close: "Schließen", temp_down: "Temperatur senken", temp_up: "Temperatur erhöhen",
     hood: "Motorhaube", trunk: "Heckklappe", fl: "Vorne links", fr: "Vorne rechts", rl: "Hinten links", rr: "Hinten rechts",
     confirm_lock: "Fahrzeug verriegeln?", confirm_unlock: "Fahrzeug entriegeln?",
     no_vehicle: "Kein Audi-Connect-Fahrzeug gefunden. Wähle eines in den Karteneinstellungen.",
@@ -81,6 +81,9 @@ const WINDOW_PCT = {
   fl: "window_open_pct_front_left", fr: "window_open_pct_front_right",
   rl: "window_open_pct_rear_left", rr: "window_open_pct_rear_right",
 };
+
+const NATIVE = "button,a,input,select,summary,textarea";
+const FOCUSABLE = 'button,[role="button"],input,select,summary,[tabindex="0"]';
 
 const STYLE = `
 :host{display:block}
@@ -193,6 +196,13 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 .big{width:100%;margin-top:10px}
 .pills .big{margin-top:0}
 .empty{padding:24px;text-align:center;color:var(--secondary-text-color)}
+[role="button"]:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}
+[role="button"]{cursor:pointer}
+@supports not (color:color-mix(in srgb,red,blue)){
+.band,.cstatus,.pill.on,.stp:active,.pill:active,.note.bad{background:var(--secondary-background-color)}
+.cell+.cell{border-left-color:var(--divider-color)}
+.seg.open,.seg.lk,.seg.ul,.gl,.gl.open{fill:var(--secondary-background-color)}
+}
 @media (prefers-reduced-motion:reduce){.bar.charging::before,.pulse,.cstatus ha-icon,.pill.wait ha-icon{animation:none}}
 `;
 
@@ -233,6 +243,7 @@ class AudiConnectCard extends HTMLElement {
     this._root.addEventListener("contextmenu", (e) => {
       if (e.target.closest?.("[data-press]")) e.preventDefault();
     });
+    this._root.addEventListener("keydown", (e) => this._onKey(e));
     this._root.addEventListener("toggle", (e) => {
       const d = e.target.closest?.("details[data-id]");
       if (d) this._ui.open[d.dataset.id] = d.open;
@@ -424,10 +435,59 @@ class AudiConnectCard extends HTMLElement {
     if (sig === this._sig) return;
     // Do not replace the DOM under a slider being dragged or a dropdown being
     // used: that would cancel the gesture. The next update renders instead.
-    const focused = this._root.activeElement;
+    const focused = this.shadowRoot.activeElement;
     if (focused && (focused.tagName === "INPUT" || focused.tagName === "SELECT")) return;
+    // Keep keyboard focus on the same control across the re-render.
+    const popup = !!this._ui.popup;
+    const sameMode = popup === !!this._lastPopup;
+    const index = focused && sameMode ? [...this._root.querySelectorAll(FOCUSABLE)].indexOf(focused) : -1;
     this._sig = sig;
     this._root.innerHTML = this._render();
+    this._a11y();
+    this._lastPopup = popup;
+    if (popup && !sameMode) this._root.querySelector(".x")?.focus();
+    else if (index >= 0) this._root.querySelectorAll(FOCUSABLE)[index]?.focus();
+  }
+
+  // Clickable divs, spans and SVG shapes become buttons for keyboards and screen readers.
+  _a11y() {
+    for (const el of this._root.querySelectorAll("[data-more],[data-act],[data-toggle]")) {
+      if (el.matches(NATIVE) || el.dataset.act === "close-bg") continue;
+      el.setAttribute("role", "button");
+      el.setAttribute("tabindex", "0");
+      if (!el.hasAttribute("aria-label") && !(el.textContent || "").trim()) {
+        const st = this._hass?.states[el.dataset.more];
+        const name = st?.attributes?.friendly_name;
+        if (name) el.setAttribute("aria-label", name);
+      }
+    }
+    const dlg = this._root.querySelector(".dlg");
+    if (dlg) {
+      dlg.setAttribute("role", "dialog");
+      dlg.setAttribute("aria-modal", "true");
+      dlg.setAttribute("aria-label", this._t("doors") + " / " + this._t("windows"));
+    }
+  }
+
+  _onKey(e) {
+    if (e.key === "Escape" && this._ui.popup) {
+      e.preventDefault();
+      this._ui.popup = null; this._sig = ""; this._update();
+      return;
+    }
+    if ((e.key === "Enter" || e.key === " ") && e.target.getAttribute?.("role") === "button" && !e.target.matches(NATIVE)) {
+      e.preventDefault();
+      e.target.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }));
+      return;
+    }
+    if (e.key === "Tab" && this._ui.popup) {
+      const items = [...this._root.querySelectorAll(".dlg " + FOCUSABLE)];
+      if (!items.length) return;
+      const first = items[0], last = items[items.length - 1];
+      const active = this.shadowRoot.activeElement;
+      if (e.shiftKey && (active === first || !items.includes(active))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (active === last || !items.includes(active))) { e.preventDefault(); first.focus(); }
+    }
   }
 
   _render() {
@@ -708,7 +768,7 @@ class AudiConnectCard extends HTMLElement {
       <summary><ha-icon icon="mdi:air-conditioner"></ha-icon><span class="t">${esc(this._t("climate"))}</span><span class="sm">${esc(sub)}</span><ha-icon class="ch" icon="mdi:chevron-down"></ha-icon></summary>
       <div class="cbody">
         ${modeRow}
-        ${temp !== undefined && temp !== null ? `<div class="step"><button class="stp" data-step="-1" aria-label="-"><ha-icon icon="mdi:minus"></ha-icon></button><b data-live="temp">${esc(this._temp(this._ui.tempDraft ?? temp))}</b><button class="stp" data-step="1" aria-label="+"><ha-icon icon="mdi:plus"></ha-icon></button></div>` : ""}
+        ${temp !== undefined && temp !== null ? `<div class="step"><button class="stp" data-step="-1" aria-label="${esc(this._t("temp_down"))}"><ha-icon icon="mdi:minus"></ha-icon></button><b data-live="temp">${esc(this._temp(this._ui.tempDraft ?? temp))}</b><button class="stp" data-step="1" aria-label="${esc(this._t("temp_up"))}"><ha-icon icon="mdi:plus"></ha-icon></button></div>` : ""}
         ${seats ? `<div class="pills" style="grid-template-columns:repeat(2,1fr)">${seats}</div>` : ""}
         <div class="pills">
           ${on
