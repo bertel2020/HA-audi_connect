@@ -4,13 +4,18 @@
       "already_configured": "Dit account is al geconfigureerd",
       "reauth_successful": "Herauthenticatie is geslaagd",
       "reconfigure_successful": "Herconfiguratie is geslaagd",
-      "device_auth_failed": "Kan de apparaataanmelding bij Audi niet starten. Probeer het later opnieuw."
+      "device_auth_failed": "Kan de apparaataanmelding bij Audi niet starten. Probeer het later opnieuw.",
+      "auth0_auth_failed": "Kan de browseraanmelding bij Audi niet starten. Probeer het later opnieuw."
     },
     "create_entry": {},
     "error": {
       "authorization_pending": "Aanmelding nog niet gedetecteerd. Keur het verzoek goed in uw browser en klik daarna op OK.",
       "device_auth_failed": "Apparaataanmelding mislukt. Begin opnieuw.",
-      "invalid_credentials": "Ongeldige gebruikersgegevens"
+      "invalid_credentials": "Ongeldige gebruikersgegevens",
+      "invalid_auth0_callback": "De myAudi-callback-URL is ongeldig of hoort bij een andere aanmeldpoging.",
+      "auth0_denied": "De Audi-aanmelding is geannuleerd of geweigerd.",
+      "auth0_auth_failed": "Audi heeft de autorisatiecode geweigerd. Begin de aanmelding opnieuw.",
+      "unexpected": "Onverwachte fout"
     },
     "step": {
       "user": {
@@ -30,6 +35,20 @@
       "device": {
         "title": "Aanmelden bij Audi",
         "description": "Open de volgende link en meld u aan met uw Audi-account om Home Assistant te autoriseren:\n\n[{verification_uri}]({verification_uri})\n\nAls om een code wordt gevraagd, voer in: **{user_code}**\n\nZodra u het verzoek hebt goedgekeurd, klikt u op **OK**."
+      },
+      "auth0": {
+        "title": "Aanmelden bij Audi",
+        "description": "Open [{authorization_url}]({authorization_url}) in een privévenster van uw browser en meld u aan. Audi stuurt u daarna door naar een localhost-pagina die mogelijk een verbindingsfout toont; dit is normaal. Kopieer de volledige URL uit de adresbalk van de browser en plak die hieronder.",
+        "data": {
+          "callback_url": "myAudi-callback-URL"
+        }
+      },
+      "reauth_auth0": {
+        "title": "Opnieuw authenticeren bij Audi",
+        "description": "Open [{authorization_url}]({authorization_url}) in een privévenster van uw browser en meld u aan. Audi stuurt u daarna door naar een localhost-pagina die mogelijk een verbindingsfout toont; dit is normaal. Kopieer de volledige URL uit de adresbalk van de browser en plak die hieronder.",
+        "data": {
+          "callback_url": "myAudi-callback-URL"
+        }
       },
       "reauth_confirm": {
         "title": "Opnieuw authenticeren bij Audi",
@@ -70,13 +89,23 @@
     "step": {
       "init": {
         "data": {
+          "scan_initial": "Cloud-update bij opstarten",
+          "refresh_vehicle_data_after_action": "Voertuiggegevens vernieuwen na actie",
+          "climate_quick_start": "Airco snel starten met in de auto opgeslagen instellingen",
+          "update_sleep": "Vertraging cloudvernieuwing",
           "scan_interval": "Scaninterval",
+          "filter_vins": "Uitgesloten VIN's",
           "edit_local_dealer": "Dealer en onderhoudsgegevens bewerken",
           "experimental_commands": "Experimentele voertuigbediening inschakelen"
         },
         "title": "Audi Connect-opties",
         "data_description": {
+          "scan_initial": "Voer direct bij het opstarten een cloud-update uit.",
+          "climate_quick_start": "Stuurt bij het inschakelen van de klimaatkaart een CARIAD-startverzoek zonder body, met de instellingen die al in het voertuig zijn opgeslagen. De in Home Assistant getoonde temperatuur wordt niet meegestuurd. Optionele workaround voor nieuwere auto's; laat uitgeschakeld tenzij nodig.",
+          "refresh_vehicle_data_after_action": "Stuur na elke service-actie (bijv. airco, vergrendelen) een vernieuwingsopdracht naar het voertuig. Dit is meestal niet nodig, omdat het voertuig na een opdracht zelf contact met de cloud opneemt. Elke voertuigvernieuwing telt mee voor de API-limiet. Verhoog liever de vertraging van de cloudvernieuwing om de reactiesnelheid te verbeteren.",
+          "update_sleep": "Aantal seconden wachten na een service-actie voordat de cloudgegevens worden vernieuwd. Een langere vertraging geeft het voertuig meer tijd om de nieuwe status aan de cloud door te geven.",
           "scan_interval": "(Minuten) Opnieuw opstarten vereist om het nieuwe scaninterval van kracht te laten worden.",
+          "filter_vins": "Door komma's gescheiden lijst met VIN's die van de installatie en updates worden uitgesloten.",
           "edit_local_dealer": "Open een extra scherm om dealer, onderhoud en garantie lokaal in te stellen. Geen Audi API-aanroepen.",
           "experimental_commands": "Toont optionele, door de gebruiker te bedienen CARIAD-functies voor ruitverwarming en de schakelaar voor het vrijgeven van de laadstekker. Standaard uit. Verifieer acties fysiek; API HTTP 200 is geen bewijs van uitvoering."
         }
@@ -108,6 +137,782 @@
     },
     "abort": {
       "no_vehicle_available": "Er is nog geen Audi-voertuig geladen."
+    }
+  },
+  "selector": {
+    "vehicle_actions": {
+      "options": {
+        "lock": "Vergrendelen",
+        "unlock": "Ontgrendelen",
+        "start_climatisation": "Airco starten (legacy)",
+        "stop_climatisation": "Airco stoppen",
+        "start_charger": "Laden starten",
+        "start_timed_charger": "Getimed laden starten",
+        "stop_charger": "Laden stoppen",
+        "start_preheater": "Voorverwarming starten (legacy)",
+        "stop_preheater": "Voorverwarming stoppen",
+        "start_window_heating": "Ruitverwarming starten",
+        "stop_window_heating": "Ruitverwarming stoppen"
+      }
+    }
+  },
+  "services": {
+    "refresh_vehicle_data": {
+      "name": "Voertuiggegevens vernieuwen",
+      "description": "Vraagt de voertuigstatus rechtstreeks op, in tegenstelling tot het normale updatemechanisme dat alleen gegevens uit de cloud ophaalt.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig dat moet worden vernieuwd."
+        }
+      }
+    },
+    "execute_vehicle_action": {
+      "name": "Voertuigactie uitvoeren",
+      "description": "Voert diverse acties uit op het voertuig.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig waarop de actie wordt uitgevoerd."
+        },
+        "action": {
+          "name": "Actie",
+          "description": "De specifieke actie die op het voertuig wordt uitgevoerd. Let op: de beschikbare acties kunnen per voertuig verschillen.",
+          "example": "lock"
+        }
+      }
+    },
+    "start_climate_control": {
+      "name": "Klimaatregeling starten",
+      "description": "Start de klimaatregeling met opties voor temperatuur, ruitverwarming en automatisch stoelcomfort.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig waarop de klimaatregeling wordt gestart."
+        },
+        "temp_f": {
+          "name": "Doeltemperatuur (Fahrenheit)",
+          "description": "(Optioneel) Stel de temperatuur in °F in. Standaard 70°F als niets is opgegeven. Heeft voorrang op 'temp_c'."
+        },
+        "temp_c": {
+          "name": "Doeltemperatuur (Celsius)",
+          "description": "(Optioneel) Stel de temperatuur in °C in. Standaard 21°C als niets is opgegeven. Wordt genegeerd als 'temp_f' is opgegeven."
+        },
+        "glass_heating": {
+          "name": "Ruitverwarming",
+          "description": "(Optioneel) Schakel de ruitverwarming in of uit."
+        },
+        "seat_fl": {
+          "name": "Automatisch stoelcomfort: linksvoor",
+          "description": "(Optioneel) Schakel automatisch stoelcomfort voor de stoel linksvoor in of uit."
+        },
+        "seat_fr": {
+          "name": "Automatisch stoelcomfort: rechtsvoor",
+          "description": "(Optioneel) Schakel automatisch stoelcomfort voor de stoel rechtsvoor in of uit."
+        },
+        "seat_rl": {
+          "name": "Automatisch stoelcomfort: linksachter",
+          "description": "(Optioneel) Schakel automatisch stoelcomfort voor de stoel linksachter in of uit."
+        },
+        "seat_rr": {
+          "name": "Automatisch stoelcomfort: rechtsachter",
+          "description": "(Optioneel) Schakel automatisch stoelcomfort voor de stoel rechtsachter in of uit."
+        },
+        "climatisation_at_unlock": {
+          "name": "Klimaatregeling bij ontgrendelen",
+          "description": "(Optioneel) Laat de klimaatregeling doorlopen wanneer het voertuig wordt ontgrendeld."
+        },
+        "climatisation_mode": {
+          "name": "Klimaatmodus",
+          "description": "(Optioneel) Maximaal comfort (Comfort) of energiebesparend (Economy). Standaard is Comfort."
+        }
+      }
+    },
+    "refresh_cloud_data": {
+      "name": "Cloudgegevens vernieuwen",
+      "description": "Haalt de actuele cloudgegevens op zonder het voertuig te vernieuwen. De gegevens kunnen verouderd zijn als het voertuig zich niet recent heeft gemeld."
+    },
+    "start_auxiliary_heating": {
+      "name": "Standkachel starten",
+      "description": "Start de standkachel van het voertuig, optioneel met een duur.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig waarop de standkachel wordt gestart."
+        },
+        "duration": {
+          "name": "Duur",
+          "description": "Het aantal minuten dat de standkachel draait voordat hij uitschakelt. Standaard 20 minuten als niets is opgegeven."
+        }
+      }
+    },
+    "set_location_charge_target": {
+      "name": "Laaddoel per locatie instellen",
+      "description": "Stel de laadtoestand in van een laadprofiel voor een locatie. Deze waarde bepaalt daadwerkelijk waar het laden op die locatie stopt, in tegenstelling tot het globale doel. Het is een permanente instelling: ze geldt voor elke lading op die locatie totdat ze wordt gewijzigd.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig."
+        },
+        "profile_id": {
+          "name": "Profiel",
+          "description": "De ID van het laadprofiel dat moet worden gewijzigd. Laat leeg om het profiel te wijzigen waarin de auto momenteel geparkeerd staat."
+        },
+        "target_soc": {
+          "name": "Doellaadtoestand",
+          "description": "Doellaadniveau voor deze locatie, 20-100% in stappen van 5."
+        }
+      }
+    },
+    "set_charge_mode": {
+      "name": "Laadmodus instellen",
+      "description": "Stel in in welke modus het voertuig laadt. Dit is een voorkeur en start of stopt geen lopende lading.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig waarvoor de laadmodus wordt ingesteld."
+        },
+        "charge_mode": {
+          "name": "Laadmodus",
+          "description": "manual laadt zodra het voertuig is aangesloten; timer laadt alleen op de ingestelde tijden van het voertuig."
+        }
+      }
+    },
+    "set_target_soc": {
+      "name": "Doellaadtoestand instellen",
+      "description": "Stel de doellaadtoestand (accu in %) van het voertuig in.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig waarvoor het doellaadniveau wordt ingesteld."
+        },
+        "target_soc": {
+          "name": "Doellaadtoestand",
+          "description": "Doellaadtoestand in procenten (20-100%)."
+        }
+      }
+    },
+    "start_engine": {
+      "name": "Motor starten",
+      "description": "Start de motor van het voertuig op afstand. Vereist dat de S-PIN in de configuratie is ingesteld.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig waarvan de motor wordt gestart."
+        }
+      }
+    },
+    "stop_engine": {
+      "name": "Motor stoppen",
+      "description": "Stop de motor van het voertuig op afstand.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig waarvan de motor wordt gestopt."
+        }
+      }
+    },
+    "probe_api": {
+      "name": "API testen (diagnose)",
+      "description": "Raadpleegt de Audi API alleen-lezen en geeft het antwoord terug. Alleen voor onderzoek; telt mee voor de API-limiet.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig."
+        },
+        "jobs": {
+          "name": "Jobs",
+          "description": "Aan te vragen selectivestatus-jobs (standaard: alle bekende)."
+        },
+        "path": {
+          "name": "Pad",
+          "description": "Eventueel een pad onder de voertuig-URL, bijv. capabilities."
+        },
+        "graphql": {
+          "name": "GraphQL-vraag",
+          "description": "Een vaste alleen-lezen vraag aan de voertuigservice van de app."
+        }
+      }
+    },
+    "test_climatisation_write": {
+      "name": "Schrijven van een klimaatinstelling testen",
+      "description": "Experimenteel: schrijft één klimaatinstelling met een gekozen verzoekbody om te achterhalen wat het voertuig accepteert. Wijzigt de in de auto opgeslagen instelling.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig."
+        },
+        "setting": {
+          "name": "Instelling",
+          "description": "De instelling die moet worden gewijzigd."
+        },
+        "value": {
+          "name": "Waarde",
+          "description": "Nieuwe waarde."
+        },
+        "variant": {
+          "name": "Body-variant",
+          "description": "full: alle instellingen; without_window_heating: laat ruitverwarming weg; single_field: alleen het gewijzigde veld; full_json: zoals full met een JSON-content-type; app_dto: de velden en namen die de myAudi-app gebruikt, met een JSON-content-type; app_full: zoals app_dto, maar alle twaalf velden van het verzoek van de app, null waar de auto niets meldt."
+        },
+        "method": {
+          "name": "HTTP-methode",
+          "description": "PUT (standaard) of POST."
+        }
+      }
+    },
+    "create_climatisation_timer": {
+      "name": "Klimaattimer aanmaken",
+      "description": "Maakt een klimaattimer in de auto aan. De tijd is de lokale tijd van de auto.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig."
+        },
+        "time": {
+          "name": "Tijd",
+          "description": "Starttijd, bijvoorbeeld 07:30."
+        },
+        "days": {
+          "name": "Dagen",
+          "description": "Weekdagen. Een enkele timer accepteert precies één dag."
+        },
+        "repeat": {
+          "name": "Herhalen",
+          "description": "Elke week op de gekozen dagen. Uit = eenmalig."
+        },
+        "enabled": {
+          "name": "Ingeschakeld",
+          "description": "De timer wordt na het aanmaken ingeschakeld."
+        }
+      }
+    },
+    "delete_climatisation_timer": {
+      "name": "Klimaattimer verwijderen",
+      "description": "Verwijdert een klimaattimer in de auto op basis van het nummer.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig."
+        },
+        "timer_id": {
+          "name": "Timernummer",
+          "description": "Het timernummer (zie de attributen van de klimaattimersensoren)."
+        }
+      }
+    },
+    "set_climatisation_timer_enabled": {
+      "name": "Klimaattimer in- of uitschakelen",
+      "description": "Schakelt een bestaande klimaattimer in de auto in of uit.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig."
+        },
+        "timer_id": {
+          "name": "Timernummer",
+          "description": "Het timernummer."
+        },
+        "enabled": {
+          "name": "Ingeschakeld",
+          "description": "Aan = ingeschakeld, uit = uitgeschakeld."
+        }
+      }
+    },
+    "probe_api_paths": {
+      "name": "Bekende alleen-lezen Audi API-paden testen",
+      "description": "Op verzoek uitgevoerde, snelheidsbeperkte controle van acht bekende alleen-lezen CARIAD-eindpunten voor één voertuig. Geen acties op afstand. De resultaten verschijnen in de volgende diagnosedownload. Voer dit alleen uit bij onderzoek naar ontbrekende voertuiggegevens. De uitgebreide modus voegt vijf experimentele alleen-lezen controles toe, waaronder klimaattimers, metingen, inspectie en ritstatistieken. Opnieuw uitvoeren met een andere modus binnen 15 minuten wordt geweigerd.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig."
+        },
+        "extended": {
+          "name": "Uitgebreid",
+          "description": "Voer ook de experimentele alleen-lezen controles uit."
+        }
+      }
+    },
+    "set_local_dealer": {
+      "name": "Lokale dealer- en onderhoudsgegevens instellen",
+      "description": "Optionele gegevens die lokaal in Home Assistant worden bewaard. Geen Audi API-verzoeken. Niet opgegeven velden behouden hun vorige waarde. Lege tekst verwijdert een veld. Wissen verwijdert het hele lokale record van dit voertuig.",
+      "fields": {
+        "device_id": {
+          "name": "Voertuig",
+          "description": "Het Audi-voertuig."
+        },
+        "dealer_name": {
+          "name": "Dealernaam",
+          "description": "Naam van de dealer."
+        },
+        "dealer_city": {
+          "name": "Plaats",
+          "description": "Plaats van de dealer."
+        },
+        "dealer_address": {
+          "name": "Adres",
+          "description": "Straat en huisnummer van de dealer."
+        },
+        "dealer_phone": {
+          "name": "Telefoon",
+          "description": "Telefoonnummer van de dealer."
+        },
+        "dealer_website": {
+          "name": "Website",
+          "description": "Website van de dealer."
+        },
+        "next_service_date": {
+          "name": "Volgende onderhoudsbeurt",
+          "description": "Datum van de volgende onderhoudsbeurt."
+        },
+        "warranty_expiry": {
+          "name": "Einde garantie",
+          "description": "Datum waarop de garantie afloopt."
+        },
+        "clear": {
+          "name": "Wissen",
+          "description": "Verwijder het hele lokale record van dit voertuig."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "active_charging_profile_max_current": {
+        "name": "Laadstroom van het actieve profiel"
+      },
+      "last_update_time": {
+        "name": "Laatste update"
+      },
+      "shortterm_current": {
+        "name": "Kortetermijn-ritgegevens"
+      },
+      "shortterm_reset": {
+        "name": "Kortetermijn-ritgegevens gebruikersreset"
+      },
+      "longterm_current": {
+        "name": "Langetermijn-ritgegevens"
+      },
+      "longterm_reset": {
+        "name": "Langetermijn-ritgegevens gebruikersreset"
+      },
+      "model": {
+        "name": "Model"
+      },
+      "mileage": {
+        "name": "Kilometerstand"
+      },
+      "service_adblue_distance": {
+        "name": "AdBlue-bereik"
+      },
+      "range": {
+        "name": "Actieradius"
+      },
+      "hybrid_range": {
+        "name": "Hybride actieradius"
+      },
+      "service_inspection_time": {
+        "name": "Tijd tot onderhoudsbeurt"
+      },
+      "service_inspection_distance": {
+        "name": "Afstand tot onderhoudsbeurt"
+      },
+      "oil_change_time": {
+        "name": "Tijd tot olieverversing"
+      },
+      "oil_change_distance": {
+        "name": "Afstand tot olieverversing"
+      },
+      "oil_level": {
+        "name": "Oliepeil"
+      },
+      "charging_state": {
+        "name": "Laadstatus"
+      },
+      "charging_mode": {
+        "name": "Laadmodus"
+      },
+      "charging_scenario": {
+        "name": "Laadscenario"
+      },
+      "access_overall_status": {
+        "name": "Beveiligingsstatus"
+      },
+      "last_trip_distance": {
+        "name": "Afstand laatste rit"
+      },
+      "last_trip_duration": {
+        "name": "Duur laatste rit"
+      },
+      "last_trip_consumption": {
+        "name": "Verbruik laatste rit"
+      },
+      "last_trip_energy": {
+        "name": "Energie laatste rit"
+      },
+      "last_trip_speed": {
+        "name": "Gemiddelde snelheid laatste rit"
+      },
+      "trip_totals_distance": {
+        "name": "Langetermijn-ritafstand"
+      },
+      "trip_totals_duration": {
+        "name": "Langetermijn-ritduur"
+      },
+      "trip_totals_consumption": {
+        "name": "Langetermijn-ritverbruik"
+      },
+      "trip_totals_energy": {
+        "name": "Langetermijn-ritenergie"
+      },
+      "trip_totals_speed": {
+        "name": "Langetermijn-gemiddelde ritsnelheid"
+      },
+      "battery_care_mode": {
+        "name": "Accuzorgmodus"
+      },
+      "climatisation_mode": {
+        "name": "Klimaatmodus"
+      },
+      "charging_type": {
+        "name": "Laadtype"
+      },
+      "energy_flow": {
+        "name": "Energiestroom"
+      },
+      "max_charge_current": {
+        "name": "Maximale laadstroom"
+      },
+      "charging_current_limit_a": {
+        "name": "AC-laadstroomlimiet"
+      },
+      "charging_current_limit_mode": {
+        "name": "Laadstroommodus"
+      },
+      "charging_plug_auto_unlock": {
+        "name": "Laadstekker na het laden ontgrendelen"
+      },
+      "vehicle_reported_online": {
+        "name": "Door voertuig gemelde verbinding"
+      },
+      "vehicle_reported_active": {
+        "name": "Door voertuig gemelde activiteit"
+      },
+      "primary_engine_type": {
+        "name": "Type primaire motor"
+      },
+      "secondary_engine_type": {
+        "name": "Type secundaire motor"
+      },
+      "primary_engine_range": {
+        "name": "Actieradius primaire motor"
+      },
+      "secondary_engine_range": {
+        "name": "Actieradius secundaire motor"
+      },
+      "primary_engine_range_percent": {
+        "name": "Percentage primaire motor"
+      },
+      "secondary_engine_range_percent": {
+        "name": "Percentage secundaire motor"
+      },
+      "charging_power": {
+        "name": "Laadvermogen"
+      },
+      "actual_charge_rate": {
+        "name": "Laadsnelheid"
+      },
+      "tank_level": {
+        "name": "Tankniveau"
+      },
+      "state_of_charge": {
+        "name": "Laadtoestand"
+      },
+      "remaining_charging_time": {
+        "name": "Resterende laadtijd"
+      },
+      "charging_complete_time": {
+        "name": "Laadtijd voltooid"
+      },
+      "external_power": {
+        "name": "Externe voeding"
+      },
+      "plug_led_color": {
+        "name": "Led-kleur stekker"
+      },
+      "doors_trunk_status": {
+        "name": "Status deuren/kofferbak"
+      },
+      "climatisation_state": {
+        "name": "Klimaatstatus"
+      },
+      "outdoor_temperature": {
+        "name": "Buitentemperatuur"
+      },
+      "park_time": {
+        "name": "Parkeertijd"
+      },
+      "position_last_updated": {
+        "name": "Positie laatst bijgewerkt"
+      },
+      "remaining_climatisation_time": {
+        "name": "Resterende klimaattijd"
+      },
+      "preheater_duration": {
+        "name": "Looptijd voorverwarming"
+      },
+      "preheater_remaining": {
+        "name": "Resterende tijd voorverwarming"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Doellaadtoestand actief laadprofiel"
+      },
+      "active_charging_profile_name": {
+        "name": "Actief laadprofiel"
+      },
+      "active_charging_profile_min_soc": {
+        "name": "Minimale laadtoestand actief laadprofiel"
+      },
+      "preferred_charging_time_start": {
+        "name": "Start voorkeurslaadvenster"
+      },
+      "preferred_charging_time_end": {
+        "name": "Einde voorkeurslaadvenster"
+      },
+      "climatisation_timer_enabled_count": {
+        "name": "Ingeschakelde klimaattimers"
+      },
+      "next_climatisation_timer_local": {
+        "name": "Volgende klimaattimer (lokale tijd auto)"
+      },
+      "charging_timer_enabled_count": {
+        "name": "Ingeschakelde laadtimers"
+      },
+      "vehicle_data_freshness": {
+        "name": "Actualiteit voertuiggegevens",
+        "state": {
+          "fresh": "Actueel",
+          "delayed": "Vertraagd",
+          "stale": "Verouderd",
+          "unknown": "Onbekend"
+        }
+      },
+      "vehicle_data_age": {
+        "name": "Leeftijd voertuiggegevens"
+      },
+      "cloud_last_successful_poll": {
+        "name": "Laatste geslaagde cloudopvraging"
+      },
+      "dealer_local": {
+        "name": "Dealer (lokaal)"
+      },
+      "service_overview": {
+        "name": "Onderhoudsoverzicht"
+      },
+      "api_requests_remaining": {
+        "name": "Resterende API-verzoeken"
+      },
+      "service_expiry_date": {
+        "name": "Einde onlinediensten"
+      },
+      "warning_light_count": {
+        "name": "Waarschuwingslampjes"
+      },
+      "window_open_pct_front_left": {
+        "name": "Raamopening linksvoor"
+      },
+      "window_open_pct_front_right": {
+        "name": "Raamopening rechtsvoor"
+      },
+      "window_open_pct_rear_left": {
+        "name": "Raamopening linksachter"
+      },
+      "window_open_pct_rear_right": {
+        "name": "Raamopening rechtsachter"
+      }
+    },
+    "binary_sensor": {
+      "active_charging_profile_uses_preferred_times": {
+        "name": "Actief profiel gebruikt voorkeurslaadtijden"
+      },
+      "plug_state": {
+        "name": "Stekkerstatus"
+      },
+      "plug_lock_state": {
+        "name": "Stekkervergrendeling"
+      },
+      "glass_surface_heating": {
+        "name": "Ruitverwarming"
+      },
+      "sun_roof": {
+        "name": "Zonnedak"
+      },
+      "roof_cover": {
+        "name": "Dakafdekking"
+      },
+      "parking_light": {
+        "name": "Parkeerlicht"
+      },
+      "any_window_open": {
+        "name": "Ramen"
+      },
+      "any_door_unlocked": {
+        "name": "Deurvergrendeling"
+      },
+      "any_door_open": {
+        "name": "Deuren"
+      },
+      "trunk_unlocked": {
+        "name": "Kofferbakvergrendeling"
+      },
+      "trunk_open": {
+        "name": "Kofferbak"
+      },
+      "hood_open": {
+        "name": "Motorkap"
+      },
+      "left_front_door_open": {
+        "name": "Deur linksvoor"
+      },
+      "right_front_door_open": {
+        "name": "Deur rechtsvoor"
+      },
+      "left_rear_door_open": {
+        "name": "Deur linksachter"
+      },
+      "right_rear_door_open": {
+        "name": "Deur rechtsachter"
+      },
+      "left_front_window_open": {
+        "name": "Raam linksvoor"
+      },
+      "right_front_window_open": {
+        "name": "Raam rechtsvoor"
+      },
+      "left_rear_window_open": {
+        "name": "Raam linksachter"
+      },
+      "right_rear_window_open": {
+        "name": "Raam rechtsachter"
+      },
+      "braking_status": {
+        "name": "Remstatus"
+      },
+      "parking_brake": {
+        "name": "Parkeerrem"
+      },
+      "oil_level_binary": {
+        "name": "Oliepeil (binair)"
+      },
+      "is_moving": {
+        "name": "In beweging"
+      },
+      "warning_lights": {
+        "name": "Waarschuwingslampje actief"
+      }
+    },
+    "button": {
+      "refresh_vehicle_data": {
+        "name": "Voertuiggegevens vernieuwen"
+      },
+      "flash_lights": {
+        "name": "Knipperen"
+      },
+      "start_window_heating_modern": {
+        "name": "Ruitverwarming starten (experimenteel)"
+      },
+      "stop_window_heating_modern": {
+        "name": "Ruitverwarming stoppen (experimenteel)"
+      },
+      "wake_vehicle_modern": {
+        "name": "Voertuig wekken"
+      },
+      "start_engine": {
+        "name": "Motor starten"
+      },
+      "stop_engine": {
+        "name": "Motor stoppen"
+      },
+      "honk_horn": {
+        "name": "Claxonneren en knipperen"
+      }
+    },
+    "number": {
+      "target_state_of_charge": {
+        "name": "Globaal laaddoel"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Laaddoel huidige locatie"
+      },
+      "charge_profile_target": {
+        "name": "Laaddoel {profile}"
+      }
+    },
+    "switch": {
+      "preheater_active": {
+        "name": "Voorverwarming"
+      },
+      "climatisation_window_heating": {
+        "name": "Ruitverwarming"
+      },
+      "plug_auto_unlock": {
+        "name": "Stekker na het laden vrijgeven"
+      },
+      "climatisation_at_unlock": {
+        "name": "Klimaatregeling bij ontgrendelen"
+      },
+      "climatisation_zone_front_left": {
+        "name": "Klimaatzone linksvoor"
+      },
+      "climatisation_zone_front_right": {
+        "name": "Klimaatzone rechtsvoor"
+      },
+      "climatisation_zone_rear_left": {
+        "name": "Klimaatzone linksachter"
+      },
+      "climatisation_zone_rear_right": {
+        "name": "Klimaatzone rechtsachter"
+      },
+      "climate_quick_control": {
+        "name": "Klimaatregeling aan/uit"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Laadmodus",
+        "state": {
+          "manual": "Handmatig",
+          "timer": "Timer"
+        }
+      },
+      "climatisation_mode": {
+        "name": "Klimaatmodus",
+        "state": {
+          "comfort": "Comfort",
+          "economy": "Economy"
+        }
+      },
+      "profile_charging_current": {
+        "name": "Laadstroom profiel",
+        "state": {
+          "max": "Maximaal",
+          "reduced": "Verlaagd"
+        }
+      }
+    },
+    "climate": {
+      "climatisation": {
+        "name": "Klimaatregeling"
+      }
+    },
+    "lock": {
+      "door_lock": {
+        "name": "Deurslot"
+      }
+    },
+    "device_tracker": {
+      "position": {
+        "name": "Positie"
+      }
     }
   }
 }
