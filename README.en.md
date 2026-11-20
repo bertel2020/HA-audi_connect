@@ -59,7 +59,7 @@ To add the integration, go to **Settings ➤ Devices & Services ➤ Integrations
 
 For Auth0 regions, Home Assistant displays an Audi login link. Open it in a private browser window and sign in. Audi redirects to its registered `http://localhost:8080/myaudi-callback` URL; an unable-to-connect page is expected because no local server is required. Copy the complete URL from the browser address bar and paste it into the Home Assistant form. Home Assistant validates the OAuth state and exchanges the one-time code using PKCE.
 
-Region, S-PIN and API level can be changed later through **Reconfigure** on the integration entry. If Audi rejects the stored login, Home Assistant starts the reauthentication flow.
+Region, S-PIN and API level can be changed later through **Reconfigure** on the integration entry. If Audi rejects the stored login, Home Assistant starts the reauthentication flow. Reauthentication must use the same Audi account; with a different account Home Assistant aborts instead of re-pointing the entry.
 
 ### Configuration Variables
 
@@ -205,6 +205,10 @@ Starting is unproven. It appeared to work once, but the car had a target well ab
 Timed charging is not exposed either, for the same reason: it goes through the same command as start and stop.
 
 Use `Target state of charge` instead. Raising it above the current level starts a charge and lowering it below stops one, which is the lever that behaved consistently in every direction under testing. The car's departure timers are the other reliable route, and are reported here but not yet writable.
+
+Number and select entities (charge targets, `Charge mode`, `Climatisation mode`) show the value that was just sent until the car reports a different one, for at most 20 minutes. The car often confirms such values only after several minutes; without this assumption the control would jump straight back to the old value.
+
+After a command the integration polls the cloud once. If the command itself already triggered a poll, no second one follows.
 
 ## Climatisation
 

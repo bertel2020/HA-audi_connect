@@ -65,7 +65,7 @@ Unter **Einstellungen ➤ Geräte & Dienste ➤ Integrationen** auf **➕ Integr
 
 In Auth0-Regionen zeigt Home Assistant einen Audi-Anmeldelink. Öffne ihn in einem privaten Browserfenster und melde dich an. Audi leitet dann auf die registrierte Adresse `http://localhost:8080/myaudi-callback` weiter; eine Seite „Verbindung nicht möglich“ ist erwartet, weil kein lokaler Server nötig ist. Kopiere die vollständige URL aus der Adressleiste und füge sie in das Formular von Home Assistant ein. Home Assistant prüft den OAuth-State und tauscht den einmaligen Code per PKCE ein.
 
-Region, S-PIN und API-Level lassen sich später über **Neu konfigurieren** am Integrationseintrag ändern. Lehnt Audi die gespeicherte Anmeldung ab, startet Home Assistant die erneute Anmeldung.
+Region, S-PIN und API-Level lassen sich später über **Neu konfigurieren** am Integrationseintrag ändern. Lehnt Audi die gespeicherte Anmeldung ab, startet Home Assistant die erneute Anmeldung. Beim erneuten Anmelden muss es dasselbe Audi-Konto sein; mit einem anderen Konto bricht Home Assistant ab, statt den Eintrag umzuhängen.
 
 ### Konfigurationsvariablen
 
@@ -171,6 +171,10 @@ Starten ist unbewiesen. Es schien einmal zu funktionieren, aber das Auto hatte d
 Zeitgesteuertes Laden ist aus demselben Grund ebenfalls nicht verfügbar: Es läuft über denselben Befehl wie Starten und Stoppen.
 
 Nutze stattdessen `Target state of charge`. Ein Wert über dem aktuellen Ladestand startet eine Ladung, ein Wert darunter stoppt sie; das war bei allen Tests in jede Richtung der Hebel, der sich konsistent verhalten hat. Die Abfahrtstimer des Autos sind der andere verlässliche Weg und werden hier gemeldet, aber noch nicht geschrieben.
+
+Zahlen- und Auswahlfelder (Ladeziele, `Charge mode`, `Climatisation mode`) zeigen nach dem Schreiben den gesendeten Wert, bis das Auto einen anderen meldet, höchstens aber 20 Minuten lang. Das Auto bestätigt solche Werte oft erst nach Minuten; ohne diese Annahme würde das Bedienelement sofort auf den alten Wert zurückspringen.
+
+Nach einem Befehl fragt die Integration die Cloud einmal ab. Hat der Befehl selbst schon eine Abfrage ausgelöst, folgt keine zweite.
 
 ## Klimatisierung
 
