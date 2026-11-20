@@ -49,6 +49,16 @@ def parse_datetime(time_value: Any) -> datetime | None:
     if isinstance(time_value, datetime):
         return time_value  # Return the datetime object directly if already datetime
     elif isinstance(time_value, str):
+        # ISO 8601 first: it keeps an offset (converted to UTC, not overwritten)
+        # and takes any number of fractional digits, as the car sends them.
+        try:
+            parsed = datetime.fromisoformat(time_value)
+        except ValueError:
+            parsed = None
+        if parsed is not None:
+            if parsed.tzinfo is None:
+                return parsed.replace(tzinfo=UTC)
+            return parsed.astimezone(UTC)
         formats = [
             "%Y-%m-%d %H:%M:%S%z",  # Format: 2024-04-12 05:56:17+00:00
             "%Y-%m-%dT%H:%M:%S.%fZ",  # Format: 2024-04-12T05:56:13.025Z

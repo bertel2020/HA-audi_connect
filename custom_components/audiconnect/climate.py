@@ -29,7 +29,10 @@ _MAX_TEMP_C = 30
 _DEFAULT_TEMP_C = 21.0
 # What the car reports when climatisation is doing nothing. Anything else is a
 # running mode, so unknown modes read as on rather than silently as off.
-_INACTIVE_STATES = frozenset({"off", "invalid", "unsupported", "error", ""})
+# "inactive" and "stopped" count as off, as they do for the quick-control switch.
+_INACTIVE_STATES = frozenset(
+    {"off", "inactive", "stopped", "invalid", "unsupported", "error", ""}
+)
 
 _ACTIONS = {
     "heating": HVACAction.HEATING,

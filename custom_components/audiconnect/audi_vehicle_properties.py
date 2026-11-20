@@ -419,11 +419,11 @@ class AudiVehicleProperties:
     @property
     def preheater_duration(self):
         if self.preheater_duration_supported:
-            res = (
-                self._vehicle.state["preheaterState"]
-                .get("climatisationStateReport")
-                .get("climatisationDuration")
+            report = (
+                self._vehicle.state["preheaterState"].get("climatisationStateReport")
+                or {}
             )
+            res = report.get("climatisationDuration")
             return parse_int(res)
 
     @property
@@ -437,11 +437,11 @@ class AudiVehicleProperties:
     @property
     def preheater_remaining(self):
         if self.preheater_remaining_supported:
-            res = (
-                self._vehicle.state["preheaterState"]
-                .get("climatisationStateReport")
-                .get("remainingClimateTime")
+            report = (
+                self._vehicle.state["preheaterState"].get("climatisationStateReport")
+                or {}
             )
+            res = report.get("remainingClimateTime")
             return parse_int(res)
 
     @property

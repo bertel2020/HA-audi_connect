@@ -319,3 +319,10 @@ def test_a_new_temperature_is_sent_even_when_the_car_reports_another():
     assert entity.target_temperature == 19.5
     entity._vehicle.climatisation_target_temperature = 23.0
     assert entity.target_temperature == 23.0
+
+
+@pytest.mark.parametrize("state", ["inactive", "stopped"])
+def test_inactive_and_stopped_read_as_off_like_the_quick_switch(state):
+    _, entity = build(state)
+    assert entity.hvac_mode is HVACMode.OFF
+    assert entity.hvac_action is HVACAction.OFF

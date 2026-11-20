@@ -310,3 +310,25 @@ def test_the_tracker_does_not_put_the_vin_into_state_attributes():
     tracker = AudiDeviceTracker(MagicMock(), vehicle)
     attrs = tracker.extra_state_attributes
     assert "vin" not in attrs and "csid" not in attrs
+
+
+def test_parse_datetime_converts_offsets_and_takes_long_fractions():
+    from datetime import UTC
+
+    from custom_components.audiconnect.util import parse_datetime
+
+    assert parse_datetime("2026-11-16 20:52:55+01:00") == datetime(
+        2026, 11, 16, 19, 52, 55, tzinfo=UTC
+    )
+    assert parse_datetime("2026-11-16T19:52:55.5058477Z") == datetime(
+        2026, 11, 16, 19, 52, 55, 505847, tzinfo=UTC
+    )
+    assert parse_datetime("nonsense") is None
+
+
+def test_preheater_duration_without_a_state_report_is_none():
+    from tests.test_a6_etron import vehicle_with
+
+    car = vehicle_with({"preheaterState": {}})
+    assert car.preheater_duration is None
+    assert car.preheater_remaining is None
