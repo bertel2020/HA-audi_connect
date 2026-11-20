@@ -20,6 +20,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import AudiRuntimeData
 from .audi_entity import AudiEntity, entity_unique_id, should_create_entity
+from .const import CLIMATISATION_NO_READING_STATES, CLIMATISATION_OFF_STATES
 from .coordinator import AudiDataUpdateCoordinator
 
 _ATTR_KEY = "climatisation_state"
@@ -29,10 +30,7 @@ _MAX_TEMP_C = 30
 _DEFAULT_TEMP_C = 21.0
 # What the car reports when climatisation is doing nothing. Anything else is a
 # running mode, so unknown modes read as on rather than silently as off.
-# "inactive" and "stopped" count as off, as they do for the quick-control switch.
-_INACTIVE_STATES = frozenset(
-    {"off", "inactive", "stopped", "invalid", "unsupported", "error", ""}
-)
+_INACTIVE_STATES = CLIMATISATION_OFF_STATES | CLIMATISATION_NO_READING_STATES
 
 _ACTIONS = {
     "heating": HVACAction.HEATING,

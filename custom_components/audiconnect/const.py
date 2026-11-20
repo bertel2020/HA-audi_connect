@@ -76,6 +76,12 @@ def entry_uses_auth0(entry_data: Mapping[str, Any]) -> bool:
 
 API_LEVELS: list[int] = [0, 1]
 
+# What the car reports as climatisation state when it is doing nothing, and when
+# it has no reading at all. One definition for the climate entity and the quick
+# switch, so they cannot disagree about whether the car is climatising.
+CLIMATISATION_OFF_STATES = frozenset({"off", "inactive", "stopped"})
+CLIMATISATION_NO_READING_STATES = frozenset({"invalid", "unsupported", "error", ""})
+
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.BUTTON,

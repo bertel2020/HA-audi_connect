@@ -326,3 +326,26 @@ def test_inactive_and_stopped_read_as_off_like_the_quick_switch(state):
     _, entity = build(state)
     assert entity.hvac_mode is HVACMode.OFF
     assert entity.hvac_action is HVACAction.OFF
+
+
+def test_climate_and_quick_switch_agree_on_every_reported_state():
+    from custom_components.audiconnect.switch import AudiClimateQuickSwitch
+
+    for state in [
+        "off",
+        "inactive",
+        "stopped",
+        "invalid",
+        "unsupported",
+        "error",
+        "",
+        "heating",
+        "cooling",
+        "ventilation",
+        "defrosting",
+    ]:
+        _, climate = build(state)
+        switch = AudiClimateQuickSwitch(StubCoordinator(), StubVehicle(state))
+        running = climate.hvac_mode is HVACMode.HEAT_COOL
+        # No reading: the climate entity says off, the switch says unavailable.
+        assert (switch.is_on is True) == running, state

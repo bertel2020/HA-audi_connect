@@ -23,6 +23,7 @@ from .audi_entity import (
     is_entity_supported,
     should_create_entity,
 )
+from .const import CLIMATISATION_NO_READING_STATES, CLIMATISATION_OFF_STATES
 from .coordinator import AudiDataUpdateCoordinator
 
 
@@ -227,9 +228,9 @@ class AudiClimateQuickSwitch(AudiEntity, SwitchEntity):
         if not isinstance(reported, str):
             return None
         state = reported.strip().lower()
-        if state in {"invalid", "unsupported", "error", ""}:
+        if state in CLIMATISATION_NO_READING_STATES:
             return None
-        return state not in {"off", "inactive", "stopped"}
+        return state not in CLIMATISATION_OFF_STATES
 
     @property
     def available(self) -> bool:
