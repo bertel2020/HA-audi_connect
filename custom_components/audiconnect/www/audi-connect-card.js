@@ -12,7 +12,7 @@ const DOMAIN = "audiconnect";
 
 const TEXT = {
   en: {
-    locked: "Locked", unlocked: "Unlocked", not_secured: "Not secured",
+    locked: "Locked", unlocked: "Unlocked", lock_unknown: "Lock state unknown", not_secured: "Not secured",
     doors_closed: "Doors closed", windows_closed: "Windows closed",
     n_open: "{n} open", plugged: "Plugged in", unplugged: "Not plugged in",
     light_on: "Lights on", light_off: "Lights off", warning: "Warning",
@@ -25,7 +25,7 @@ const TEXT = {
     heating: "Heating", cooling: "Cooling", ventilating: "Ventilating", running: "Running", remaining: "Time left",
     driver: "Driver", passenger: "Passenger", start: "Start", stop: "Stop",
     doors: "Doors", windows: "Windows", all_closed: "All closed and locked",
-    all_closed_unlocked: "All closed, not locked", n_openings: "{n} openings open",
+    all_closed_unlocked: "All closed, not locked", all_closed_unknown: "Lock state unknown", n_openings: "{n} openings open",
     one_opening: "1 opening open", open: "open", closed: "closed",
     closed_locked: "closed · locked", closed_unlocked: "closed · unlocked",
     lock: "Lock", unlock: "Unlock", close: "Close",
@@ -39,7 +39,7 @@ const TEXT = {
     e_icon: "Icon instead of the Audi logo (optional)", e_logo: "Show Audi logo", e_trips: "Show trips", e_climate: "Show climate", e_stats: "Show vehicle details",
   },
   de: {
-    locked: "Verriegelt", unlocked: "Entriegelt", not_secured: "Nicht gesichert",
+    locked: "Verriegelt", unlocked: "Entriegelt", lock_unknown: "Schlosszustand unbekannt", not_secured: "Nicht gesichert",
     doors_closed: "Türen zu", windows_closed: "Fenster zu",
     n_open: "{n} offen", plugged: "Angesteckt", unplugged: "Nicht verbunden",
     light_on: "Licht an", light_off: "Licht aus", warning: "Warnung",
@@ -52,7 +52,7 @@ const TEXT = {
     heating: "Heizt", cooling: "Kühlt", ventilating: "Lüftet", running: "Läuft", remaining: "Restlaufzeit",
     driver: "Fahrer", passenger: "Beifahrer", start: "Starten", stop: "Stoppen",
     doors: "Türen", windows: "Fenster", all_closed: "Alles zu und verriegelt",
-    all_closed_unlocked: "Alles zu, nicht verriegelt", n_openings: "{n} Öffnungen offen",
+    all_closed_unlocked: "Alles zu, nicht verriegelt", all_closed_unknown: "Schlosszustand unbekannt", n_openings: "{n} Öffnungen offen",
     one_opening: "1 Öffnung offen", open: "offen", closed: "zu",
     closed_locked: "zu · verriegelt", closed_unlocked: "zu · entriegelt",
     lock: "Verriegeln", unlock: "Entriegeln", close: "Schließen",
@@ -373,16 +373,24 @@ class AudiConnectCard extends HTMLElement {
     // "closed" is only trusted when the sensor says so; unavailable counts as closed-unknown.
     const open = this._on(DOOR_KEYS[k]);
     let locked = true;
-    if (k === "trunk" && this._has("trunk_unlocked")) locked = !this._on("trunk_unlocked");
-    else if (k !== "hood") locked = this._lockState() !== "unlocked";
-    return { open, locked };
+    let unk = false;
+    if (k === "trunk" && this._has("trunk_unlocked")) {
+      unk = !this._known("trunk_unlocked");
+      locked = !this._on("trunk_unlocked");
+    } else if (k !== "hood") {
+      const ls = this._lockState();
+      unk = ls === "unknown";
+      locked = ls === "locked";
+    }
+    return { open, locked, unk };
   }
 
   _lockState() {
     const s = this._s("door_lock");
     if (s && (s.state === "locked" || s.state === "unlocked")) return s.state;
-    if (this._has("any_door_unlocked")) return this._on("any_door_unlocked") ? "unlocked" : "locked";
-    return "locked";
+    // unavailable/unknown is not "locked": claiming it would show a possibly open car as secure.
+    if (this._known("any_door_unlocked")) return this._on("any_door_unlocked") ? "unlocked" : "locked";
+    return "unknown";
   }
 
   _openLists() {
@@ -467,6 +475,7 @@ class AudiConnectCard extends HTMLElement {
     let lockCls, lockIcon, lockTxt;
     if (doors.length) { lockCls = ""; lockIcon = "mdi:lock-open-variant"; lockTxt = this._t("not_secured"); }
     else if (unlockedIdle) { lockCls = "warn"; lockIcon = "mdi:lock-open-variant"; lockTxt = this._t("unlocked"); }
+    else if (lock === "unknown") { lockCls = ""; lockIcon = "mdi:lock-question"; lockTxt = this._t("lock_unknown"); }
     else { lockCls = "ok"; lockIcon = "mdi:lock"; lockTxt = this._t("locked"); }
 
     const items = [];
@@ -714,13 +723,14 @@ class AudiConnectCard extends HTMLElement {
     let sum, cls;
     if (n) { sum = n === 1 ? this._t("one_opening") : this._t("n_openings", { n }); cls = "c-bad"; }
     else if (lock === "unlocked") { sum = this._t("all_closed_unlocked"); cls = "c-warn"; }
+    else if (lock === "unknown") { sum = this._t("all_closed_unknown"); cls = "c-mute"; }
     else { sum = this._t("all_closed"); cls = "c-ok"; }
 
     const dim = (isDoor) => (isDoor === (tab === "doors") ? 1 : 0.35);
     let svg = `<svg class="car" viewBox="0 0 200 300" role="img"><path d="${BODY}" fill="var(--secondary-background-color)" stroke="var(--divider-color)" stroke-width="1.5"/>`;
     for (const [k, [x, y, w, h, r]] of Object.entries(SEG)) {
       const st = this._doorState(k);
-      const cls2 = st.open ? "open" : st.locked ? "lk" : "ul";
+      const cls2 = st.open ? "open" : st.unk ? "lk" : st.locked ? "lk" : "ul";
       svg += `<rect class="seg ${cls2}" data-more="${esc(this._id(DOOR_KEYS[k]))}" x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" style="opacity:${dim(true)}"/>`;
     }
     for (const [k, [x, y, w, h]] of Object.entries(GLASS)) {
@@ -731,7 +741,7 @@ class AudiConnectCard extends HTMLElement {
       for (const [k, [x, y]] of Object.entries(ICON_AT)) {
         const st = this._doorState(k);
         if (st.open) continue;
-        svg += `<g transform="translate(${x - 10} ${y - 10}) scale(.83)" style="pointer-events:none"><path fill="${st.locked ? "var(--success-color)" : "var(--warning-color)"}" d="${st.locked ? "M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z" : "M18,1C15.24,1 13,3.24 13,6V8H4A2,2 0 0,0 2,10V20A2,2 0 0,0 4,22H16A2,2 0 0,0 18,20V10A2,2 0 0,0 16,8H15V6A3,3 0 0,1 18,3A3,3 0 0,1 21,6V8H23V6C23,3.24 20.76,1 18,1M10,13A2,2 0 0,1 12,15C12,16.11 11.11,17 10,17A2,2 0 0,1 8,15A2,2 0 0,1 10,13Z"}"/></g>`;
+        svg += `<g transform="translate(${x - 10} ${y - 10}) scale(.83)" style="pointer-events:none"><path fill="${st.unk ? "var(--secondary-text-color)" : st.locked ? "var(--success-color)" : "var(--warning-color)"}" d="${st.locked ? "M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z" : "M18,1C15.24,1 13,3.24 13,6V8H4A2,2 0 0,0 2,10V20A2,2 0 0,0 4,22H16A2,2 0 0,0 18,20V10A2,2 0 0,0 16,8H15V6A3,3 0 0,1 18,3A3,3 0 0,1 21,6V8H23V6C23,3.24 20.76,1 18,1M10,13A2,2 0 0,1 12,15C12,16.11 11.11,17 10,17A2,2 0 0,1 8,15A2,2 0 0,1 10,13Z"}"/></g>`;
       }
     }
     svg += "</svg>";
@@ -740,8 +750,8 @@ class AudiConnectCard extends HTMLElement {
     if (tab === "doors") {
       for (const k of ["fl", "fr", "rl", "rr", "hood", "trunk"]) {
         const st = this._doorState(k);
-        const txt = st.open ? this._t("open") : k === "hood" ? this._t("closed") : st.locked ? this._t("closed_locked") : this._t("closed_unlocked");
-        const c = st.open ? "c-bad" : k === "hood" || st.locked ? "c-mute" : "c-warn";
+        const txt = st.open ? this._t("open") : k === "hood" || st.unk ? this._t("closed") : st.locked ? this._t("closed_locked") : this._t("closed_unlocked");
+        const c = st.open ? "c-bad" : k === "hood" || st.unk || st.locked ? "c-mute" : "c-warn";
         list += `<div class="li" data-more="${esc(this._id(DOOR_KEYS[k]))}"><span>${esc(this._t(k))}</span><span class="${c}">${esc(txt)}</span></div>`;
       }
     } else {
@@ -752,7 +762,7 @@ class AudiConnectCard extends HTMLElement {
         list += `<div class="li" data-more="${esc(this._id(WINDOW_KEYS[k]))}"><span>${esc(this._t(k))}</span><span class="${open ? "c-warn" : "c-mute"}">${esc(txt)}</span></div>`;
       }
     }
-    const lockBtn = tab === "doors" && (this._has("door_lock") || this._has("any_door_unlocked"))
+    const lockBtn = tab === "doors" && lock !== "unknown" && (this._has("door_lock") || this._has("any_door_unlocked"))
       ? `<button class="pill big" data-act="lock"><ha-icon icon="${lock === "locked" ? "mdi:lock-open-variant" : "mdi:lock"}"></ha-icon>${esc(lock === "locked" ? this._t("unlock") : this._t("lock"))}</button>` : "";
     return `<div class="ov" data-act="close-bg"><div class="dlg">
       <div class="dh"><div><b>${esc(this._t("doors"))} / ${esc(this._t("windows"))}</b><span class="${cls}">${esc(sum)}</span></div>
@@ -872,7 +882,9 @@ class AudiConnectCard extends HTMLElement {
   _toggleLock() {
     const id = this._id("door_lock");
     if (!id) { this._moreInfo(this._id("any_door_unlocked")); return; }
-    const locked = this._lockState() === "locked";
+    const state = this._lockState();
+    if (state === "unknown") return;
+    const locked = state === "locked";
     if (!window.confirm(this._t(locked ? "confirm_unlock" : "confirm_lock"))) return;
     this._hass.callService("lock", locked ? "unlock" : "lock", { entity_id: id });
   }
