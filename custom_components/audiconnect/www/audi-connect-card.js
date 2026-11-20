@@ -446,7 +446,10 @@ class AudiConnectCard extends HTMLElement {
     this._a11y();
     this._lastPopup = popup;
     if (popup && !sameMode) this._root.querySelector(".x")?.focus();
-    else if (index >= 0) this._root.querySelectorAll(FOCUSABLE)[index]?.focus();
+    else if (!popup && !sameMode && focused) {
+      // Closing the dialog returns focus to the button that opened it.
+      this._root.querySelector(`[data-act="popup"][data-tab="${this._ui.tab}"]`)?.focus();
+    } else if (index >= 0) this._root.querySelectorAll(FOCUSABLE)[index]?.focus();
   }
 
   // Clickable divs, spans and SVG shapes become buttons for keyboards and screen readers.
@@ -481,7 +484,7 @@ class AudiConnectCard extends HTMLElement {
       return;
     }
     if (e.key === "Tab" && this._ui.popup) {
-      const items = [...this._root.querySelectorAll(".dlg " + FOCUSABLE)];
+      const items = [...(this._root.querySelector(".dlg")?.querySelectorAll(FOCUSABLE) || [])];
       if (!items.length) return;
       const first = items[0], last = items[items.length - 1];
       const active = this.shadowRoot.activeElement;
