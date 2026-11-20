@@ -369,8 +369,11 @@ class AudiConnectAccount:
             return True
 
         except builtins.TimeoutError:
-            _LOGGER.debug(
-                "TimeoutError encountered while refreshing vehicle data for VIN: %s.",
+            # The car did not answer the wake-up in time. That is a normal state
+            # (asleep, out of coverage), not an error of the integration.
+            _LOGGER.warning(
+                "VEHICLE REFRESH: the vehicle did not answer in time for VIN: %s; "
+                "it may be asleep or out of coverage.",
                 redacted_vin,
             )
             return False

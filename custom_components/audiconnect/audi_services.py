@@ -1826,7 +1826,10 @@ class AudiService(AudiAuthMixin):
                         )
                     )
 
-        raise Exception(f"Request {request_id} timed out")
+        # A TimeoutError, not a bare Exception: a car that does not answer in time
+        # is a normal state (asleep, out of coverage), and callers can tell it from
+        # a real failure.
+        raise TimeoutError(f"Request {request_id} timed out")
 
     async def check_request_succeeded(
         self, url: str, action: str, successCode: str, failedCode: str, path: str
