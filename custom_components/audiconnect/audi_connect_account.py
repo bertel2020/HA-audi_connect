@@ -203,9 +203,17 @@ class AudiConnectAccount:
             if not self._loggedin:
                 return
             elapsed_sec = time.time() - self._logintime
-            if await self._audi_service.refresh_token_if_necessary(elapsed_sec):
-                self._logintime = time.time()
+            try:
+                refreshed = await self._audi_service.refresh_token_if_necessary(
+                    elapsed_sec
+                )
+            finally:
+                # The server may have rotated the refresh token before a later
+                # step failed. Keep it even then: the old one may already be
+                # spent, and after a restart the stored one would be dead.
                 self._sync_refresh_token()
+            if refreshed:
+                self._logintime = time.time()
 
     async def _login_locked(self):
         for i in range(self._connect_retries):
@@ -227,6 +235,7 @@ class AudiConnectAccount:
                 await asyncio.sleep(delay)
 
     async def try_login(self, logError):
+        used_refresh_token = bool(self._refresh_token)
         try:
             if self._refresh_token:
                 _LOGGER.debug("LOGIN: Refreshing Audi session from stored token...")
@@ -245,8 +254,14 @@ class AudiConnectAccount:
         except AudiAuthError:
             # Credentials/token rejected: propagate so Home Assistant starts reauth
             # instead of retrying something that can never work.
+            if used_refresh_token:
+                self._sync_refresh_token()
             raise
         except Exception as exception:  # noqa: BLE001
+            # The refresh may have succeeded and rotated the token before a later
+            # step failed; the retry (and the next start) must use the new one.
+            if used_refresh_token:
+                self._sync_refresh_token()
             # A rejected token or credentials raised AudiAuthError above, so this
             # is a failure that a new sign-in won't fix (an outage, or a change on
             # Audi's side). Don't point the user at reconfiguring: removing the
