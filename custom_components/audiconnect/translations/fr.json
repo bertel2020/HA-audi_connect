@@ -89,7 +89,6 @@
     "step": {
       "init": {
         "data": {
-          "scan_initial": "Mise à jour du cloud au démarrage",
           "refresh_vehicle_data_after_action": "Actualiser les données du véhicule après une action",
           "climate_quick_start": "Démarrage rapide de la climatisation avec les réglages du véhicule",
           "update_sleep": "Délai d'actualisation du cloud",
@@ -100,7 +99,6 @@
         },
         "title": "Options Audi Connect",
         "data_description": {
-          "scan_initial": "Effectuer une mise à jour du cloud immédiatement après le démarrage.",
           "climate_quick_start": "Lorsque la carte de climatisation est activée, envoie une requête de démarrage CARIAD sans corps, avec les réglages déjà enregistrés dans le véhicule. N'envoie pas la température affichée dans Home Assistant. Contournement optionnel pour les véhicules récents ; laissez désactivé sauf besoin.",
           "refresh_vehicle_data_after_action": "Envoie une commande d'actualisation du véhicule après chaque action (p. ex. climatisation, verrouillage). Ce n'est généralement pas nécessaire, car le véhicule se synchronise de lui-même avec le cloud après une commande. Chaque actualisation compte dans la limite de requêtes de l'API. Pour une meilleure réactivité, augmentez plutôt le délai d'actualisation du cloud.",
           "update_sleep": "Secondes d'attente après une action avant d'actualiser les données du cloud. Un délai plus long laisse plus de temps au véhicule pour transmettre son nouvel état au cloud.",

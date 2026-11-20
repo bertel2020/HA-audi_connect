@@ -89,7 +89,6 @@
     "step": {
       "init": {
         "data": {
-          "scan_initial": "Cloud-Update beim Start",
           "scan_interval": "Abfrageintervall",
           "refresh_vehicle_data_after_action": "Fahrzeugdaten nach einer Aktion aktualisieren",
           "climate_quick_start": "Klimatisierung mit gespeicherten Fahrzeugeinstellungen starten",
@@ -100,7 +99,6 @@
         },
         "title": "Audi Connect-Optionen",
         "data_description": {
-          "scan_initial": "Führen Sie sofort nach dem Start ein Cloud-Update durch.",
           "scan_interval": "Minuten zwischen Cloud-Abfragen.",
           "refresh_vehicle_data_after_action": "Sendet nach jeder Fahrzeugaktion (z. B. Klimatisieren oder Verriegeln) einen Aktualisierungsbefehl an das Fahrzeug. Normalerweise ist dies nicht erforderlich, da sich das Fahrzeug nach einer Aktion selbst bei der Cloud meldet. Jede Fahrzeugaktualisierung zählt zum API-Limit. Erhöhen Sie stattdessen die Verzögerung der Cloud-Aktualisierung.",
           "climate_quick_start": "Beim Einschalten der Klimatisierung wird eine CARIAD-Startanfrage ohne zusätzliche Parameter gesendet. Dabei verwendet das Fahrzeug seine gespeicherten Einstellungen. Die in Home Assistant angezeigte Solltemperatur wird nicht übertragen. Diese Option dient als alternative Startmethode für neuere Fahrzeuge und sollte nur bei Bedarf aktiviert werden.",

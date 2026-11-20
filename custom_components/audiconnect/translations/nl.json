@@ -89,7 +89,6 @@
     "step": {
       "init": {
         "data": {
-          "scan_initial": "Cloud-update bij opstarten",
           "refresh_vehicle_data_after_action": "Voertuiggegevens vernieuwen na actie",
           "climate_quick_start": "Airco snel starten met in de auto opgeslagen instellingen",
           "update_sleep": "Vertraging cloudvernieuwing",
@@ -100,7 +99,6 @@
         },
         "title": "Audi Connect-opties",
         "data_description": {
-          "scan_initial": "Voer direct bij het opstarten een cloud-update uit.",
           "climate_quick_start": "Stuurt bij het inschakelen van de klimaatkaart een CARIAD-startverzoek zonder body, met de instellingen die al in het voertuig zijn opgeslagen. De in Home Assistant getoonde temperatuur wordt niet meegestuurd. Optionele workaround voor nieuwere auto's; laat uitgeschakeld tenzij nodig.",
           "refresh_vehicle_data_after_action": "Stuur na elke service-actie (bijv. airco, vergrendelen) een vernieuwingsopdracht naar het voertuig. Dit is meestal niet nodig, omdat het voertuig na een opdracht zelf contact met de cloud opneemt. Elke voertuigvernieuwing telt mee voor de API-limiet. Verhoog liever de vertraging van de cloudvernieuwing om de reactiesnelheid te verbeteren.",
           "update_sleep": "Aantal seconden wachten na een service-actie voordat de cloudgegevens worden vernieuwd. Een langere vertraging geeft het voertuig meer tijd om de nieuwe status aan de cloud door te geven.",

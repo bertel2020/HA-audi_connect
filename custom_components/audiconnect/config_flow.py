@@ -43,7 +43,6 @@ from .const import (
     CONF_REFRESH_AFTER_ACTION,
     CONF_REFRESH_TOKEN,
     CONF_REGION,
-    CONF_SCAN_INITIAL,
     CONF_SCAN_INTERVAL,
     CONF_SPIN,
     CONF_UPDATE_SLEEP,
@@ -618,10 +617,6 @@ class OptionsFlowHandler(OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Optional("edit_local_dealer", default=False): bool,
-                    vol.Required(
-                        CONF_SCAN_INITIAL,
-                        default=self.config_entry.options.get(CONF_SCAN_INITIAL, True),
-                    ): bool,
                     vol.Required(
                         "climate_quick_start",
                         default=self.config_entry.options.get(

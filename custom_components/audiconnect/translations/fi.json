@@ -89,7 +89,6 @@
     "step": {
       "init": {
         "data": {
-          "scan_initial": "Päivitä pilvestä käynnistyksessä",
           "refresh_vehicle_data_after_action": "Päivitä ajoneuvon tiedot toiminnon jälkeen",
           "climate_quick_start": "Ilmastoinnin pikakäynnistys auton tallennetuilla asetuksilla",
           "update_sleep": "Pilvipäivityksen viive",
@@ -100,7 +99,6 @@
         },
         "title": "Audi Connect -asetukset",
         "data_description": {
-          "scan_initial": "Päivitä pilvestä heti käynnistyksen yhteydessä.",
           "climate_quick_start": "Kun ilmastointikortti kytketään päälle, lähetetään CARIADille sisällötön käynnistyspyyntö ajoneuvoon jo tallennetuilla asetuksilla. Home Assistantissa näkyvää lämpötilaa ei lähetetä. Valinnainen ratkaisu uudemmille autoille; jätä pois käytöstä, ellei tarvita.",
           "refresh_vehicle_data_after_action": "Lähetä ajoneuvon päivityskomento jokaisen palvelutoiminnon (esim. ilmastointi, lukitus) jälkeen. Tätä ei yleensä tarvita, koska ajoneuvo ottaa komennon jälkeen itse yhteyden pilveen. Jokainen ajoneuvon päivitys kuluttaa API-rajaa. Parempaa reagointia saat kasvattamalla pilvipäivityksen viivettä.",
           "update_sleep": "Sekuntia, jotka odotetaan palvelutoiminnon jälkeen ennen pilvitietojen päivitystä. Pidempi viive antaa ajoneuvolle enemmän aikaa raportoida päivitetty tilansa pilveen.",
