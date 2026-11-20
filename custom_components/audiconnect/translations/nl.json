@@ -33,10 +33,6 @@
           "api_level": "Bij Audi-voertuigen verschilt de structuur van API-verzoeken per model. Nieuwere voertuigen gebruiken een bijgewerkte datastructuur ten opzichte van oudere modellen. Dit kan later worden gewijzigd via de optie Herconfigureren."
         }
       },
-      "device": {
-        "title": "Aanmelden bij Audi",
-        "description": "Open de volgende link en meld u aan met uw Audi-account om Home Assistant te autoriseren:\n\n[{verification_uri}]({verification_uri})\n\nAls om een code wordt gevraagd, voer in: **{user_code}**\n\nZodra u het verzoek hebt goedgekeurd, klikt u op **OK**."
-      },
       "auth0": {
         "title": "Aanmelden bij Audi",
         "description": "Open [{authorization_url}]({authorization_url}) in een privévenster van uw browser en meld u aan. Audi stuurt u daarna door naar een localhost-pagina die mogelijk een verbindingsfout toont; dit is normaal. Kopieer de volledige URL uit de adresbalk van de browser en plak die hieronder.",
@@ -50,10 +46,6 @@
         "data": {
           "callback_url": "myAudi-callback-URL"
         }
-      },
-      "reauth_confirm": {
-        "title": "Opnieuw authenticeren bij Audi",
-        "description": "Uw Audi-autorisatie is verlopen. Open de volgende link en meld u opnieuw aan:\n\n[{verification_uri}]({verification_uri})\n\nAls om een code wordt gevraagd, voer in: **{user_code}**\n\nZodra u het verzoek hebt goedgekeurd, klikt u op **OK**."
       },
       "reconfigure": {
         "title": "Audi Connect-configuratie bijwerken",

@@ -104,9 +104,6 @@ class AudiConfigFlow(ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         self._flow_data: dict[str, Any] = {}
         self._connection: AudiConnectAccount | None = None
-        self._device_code: str | None = None
-        self._verification_uri: str | None = None
-        self._user_code: str | None = None
         self._auth0_verifier: str | None = None
         self._auth0_state: str | None = None
         self._auth0_authorization_url: str | None = None
@@ -322,56 +319,6 @@ class AudiConfigFlow(ConfigFlow, domain=DOMAIN):
             ),
             description_placeholders={
                 "authorization_url": self._auth0_authorization_url or ""
-            },
-            errors=errors,
-        )
-
-    async def async_step_device(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Device Authorization Grant: show a code/URL, then poll for approval."""
-        errors: dict[str, str] = {}
-
-        if self._connection is None:
-            self._connection = self._build_connection()
-
-        if self._device_code is None:
-            try:
-                response = await self._connection.request_device_code()
-            except Exception:
-                _LOGGER.exception("Audi device authorization request failed")
-                return self.async_abort(reason="device_auth_failed")
-            self._device_code = response["device_code"]
-            self._verification_uri = response.get(
-                "verification_uri_complete"
-            ) or response.get("verification_uri")
-            self._user_code = response.get("user_code")
-
-        if user_input is not None:
-            try:
-                status = await self._connection.poll_device_token(self._device_code)
-            except Exception:
-                _LOGGER.exception("Audi device token poll failed")
-                status = None
-                errors["base"] = "device_auth_failed"
-            if status == "ok":
-                return await self._finish_token_login()
-            if status in ("authorization_pending", "slow_down"):
-                errors["base"] = "authorization_pending"
-            elif status == "expired":
-                # Code timed out; mint a fresh one and show it again.
-                self._device_code = None
-                return await self.async_step_device()
-            elif status is not None:
-                errors["base"] = "device_auth_failed"
-
-        step_id = "reauth_confirm" if self._reauth_entry is not None else "device"
-        return self.async_show_form(
-            step_id=step_id,
-            data_schema=vol.Schema({}),
-            description_placeholders={
-                "verification_uri": self._verification_uri or "",
-                "user_code": self._user_code or "",
             },
             errors=errors,
         )

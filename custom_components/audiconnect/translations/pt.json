@@ -33,10 +33,6 @@
           "api_level": "Nos veículos Audi, a estrutura dos pedidos de API varia consoante o modelo. Os veículos mais recentes usam uma estrutura de dados atualizada em comparação com os modelos mais antigos. Isto pode ser alterado posteriormente através da opção Reconfigurar."
         }
       },
-      "device": {
-        "title": "Iniciar sessão na Audi",
-        "description": "Abra a ligação seguinte e inicie sessão com a sua conta Audi para autorizar o Home Assistant:\n\n[{verification_uri}]({verification_uri})\n\nSe lhe for pedido um código, introduza: **{user_code}**\n\nApós aprovar o pedido, prima **OK**."
-      },
       "auth0": {
         "title": "Iniciar sessão na Audi",
         "description": "Abra [{authorization_url}]({authorization_url}) numa janela privada do navegador e inicie sessão. A Audi redireciona depois para uma página localhost que pode mostrar um erro de ligação; isto é esperado. Copie o URL completo da barra de endereços do navegador e cole-o abaixo.",
@@ -50,10 +46,6 @@
         "data": {
           "callback_url": "URL de retorno do myAudi"
         }
-      },
-      "reauth_confirm": {
-        "title": "Reautenticar com a Audi",
-        "description": "A sua autorização Audi expirou. Abra a ligação seguinte e inicie sessão novamente:\n\n[{verification_uri}]({verification_uri})\n\nSe lhe for pedido um código, introduza: **{user_code}**\n\nApós aprovar o pedido, prima **OK**."
       },
       "reconfigure": {
         "title": "Atualizar a configuração do Audi Connect",

@@ -33,10 +33,6 @@
           "api_level": "Audi-ajoneuvoissa API-pyyntöjen rakenne vaihtelee mallin mukaan. Uudemmat ajoneuvot käyttävät päivitettyä tietorakennetta vanhempiin malleihin verrattuna. Tämän voi muuttaa myöhemmin Määritä uudelleen -valinnalla."
         }
       },
-      "device": {
-        "title": "Kirjaudu Audiin",
-        "description": "Avaa seuraava linkki ja kirjaudu Audi-tililläsi valtuuttaaksesi Home Assistantin:\n\n[{verification_uri}]({verification_uri})\n\nJos sinulta pyydetään koodia, syötä: **{user_code}**\n\nKun olet hyväksynyt pyynnön, paina **OK**."
-      },
       "auth0": {
         "title": "Kirjaudu Audiin",
         "description": "Avaa [{authorization_url}]({authorization_url}) yksityisessä selainikkunassa ja kirjaudu sisään. Audi ohjaa sen jälkeen localhost-sivulle, joka saattaa näyttää yhteysvirheen; tämä on odotettua. Kopioi koko URL-osoite selaimen osoiteriviltä ja liitä se alle.",
@@ -50,10 +46,6 @@
         "data": {
           "callback_url": "myAudi-paluuosoite"
         }
-      },
-      "reauth_confirm": {
-        "title": "Todenna uudelleen Audiin",
-        "description": "Audi-valtuutuksesi on vanhentunut. Avaa seuraava linkki ja kirjaudu uudelleen:\n\n[{verification_uri}]({verification_uri})\n\nJos sinulta pyydetään koodia, syötä: **{user_code}**\n\nKun olet hyväksynyt pyynnön, paina **OK**."
       },
       "reconfigure": {
         "title": "Päivitä Audi Connect -määritykset",

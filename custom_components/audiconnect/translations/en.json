@@ -33,10 +33,6 @@
           "api_level": "For Audi vehicles, the API request data structure varies by model. Newer vehicles use an updated data structure compared to older models. This can be changed later via the Reconfigure option."
         }
       },
-      "device": {
-        "title": "Sign in to Audi",
-        "description": "Open the following link and sign in with your Audi account to authorise Home Assistant:\n\n[{verification_uri}]({verification_uri})\n\nIf you are asked for a code, enter: **{user_code}**\n\nOnce you have approved it, press **OK**."
-      },
       "auth0": {
         "title": "Sign in to Audi",
         "description": "Open [{authorization_url}]({authorization_url}) in a private browser window and sign in. Audi then redirects to a localhost page that may show an unable-to-connect error; this is expected. Copy the complete URL from the browser address bar and paste it below.",
@@ -50,10 +46,6 @@
         "data": {
           "callback_url": "myAudi callback URL"
         }
-      },
-      "reauth_confirm": {
-        "title": "Re-authenticate with Audi",
-        "description": "Your Audi authorisation has expired. Open the following link and sign in again:\n\n{verification_uri}\n\nIf you are asked for a code, enter: **{user_code}**\n\nOnce you have approved it, press **OK**."
       },
       "reconfigure": {
         "title": "Update Audi Connect Configuration",

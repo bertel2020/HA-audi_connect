@@ -77,22 +77,6 @@ from .local_extensions import DEALER_FIELDS, update_local_dealer_options
 
 _LOGGER = logging.getLogger(__name__)
 
-SERVICE_PROBE_API_PATHS = "probe_api_paths"
-SERVICE_SET_LOCAL_DEALER = "set_local_dealer"
-PROBE_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_DEVICE_ID): cv.string,
-        vol.Optional("extended", default=False): bool,
-    }
-)
-LOCAL_DEALER_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_DEVICE_ID): cv.string,
-        vol.Optional("clear", default=False): bool,
-        **{vol.Optional(field): cv.string for field in DEALER_FIELDS},
-    }
-)
-
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 

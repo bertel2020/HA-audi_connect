@@ -33,14 +33,6 @@
           "api_level": "Bei Audi-Fahrzeugen variiert die Struktur der API-Anfragen je nach Modell. Neuere Fahrzeuge verwenden eine aktualisierte Datenstruktur als ältere Modelle. Dies kann später über die Option Neu konfigurieren geändert werden."
         }
       },
-      "device": {
-        "title": "Bei Audi anmelden",
-        "description": "Öffnen Sie den folgenden Link und melden Sie sich mit Ihrem Audi-Konto an, um Home Assistant zu autorisieren:\n\n[{verification_uri}]({verification_uri})\n\nFalls Sie nach einem Code gefragt werden, geben Sie ein: **{user_code}**\n\nSobald Sie die Anfrage bestätigt haben, klicken Sie auf **OK**."
-      },
-      "reauth_confirm": {
-        "title": "Erneut bei Audi authentifizieren",
-        "description": "Ihre Audi-Autorisierung ist abgelaufen. Öffnen Sie den folgenden Link und melden Sie sich erneut an:\n\n[{verification_uri}]({verification_uri})\n\nFalls Sie nach einem Code gefragt werden, geben Sie ein: **{user_code}**\n\nSobald Sie die Anfrage bestätigt haben, klicken Sie auf **OK**."
-      },
       "reconfigure": {
         "title": "Audi Connect-Konfiguration aktualisieren",
         "data": {
