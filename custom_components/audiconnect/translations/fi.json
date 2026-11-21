@@ -94,7 +94,7 @@
           "climate_quick_start": "Kun ilmastointikortti kytketään päälle, lähetetään CARIADille sisällötön käynnistyspyyntö ajoneuvoon jo tallennetuilla asetuksilla. Home Assistantissa näkyvää lämpötilaa ei lähetetä. Valinnainen ratkaisu uudemmille autoille; jätä pois käytöstä, ellei tarvita.",
           "refresh_vehicle_data_after_action": "Lähetä ajoneuvon päivityskomento jokaisen palvelutoiminnon (esim. ilmastointi, lukitus) jälkeen. Tätä ei yleensä tarvita, koska ajoneuvo ottaa komennon jälkeen itse yhteyden pilveen. Jokainen ajoneuvon päivitys kuluttaa API-rajaa. Parempaa reagointia saat kasvattamalla pilvipäivityksen viivettä.",
           "update_sleep": "Sekuntia, jotka odotetaan palvelutoiminnon jälkeen ennen pilvitietojen päivitystä. Pidempi viive antaa ajoneuvolle enemmän aikaa raportoida päivitetty tilansa pilveen.",
-          "scan_interval": "Minuutit pilvikyselyjen välillä.",
+          "scan_interval": "Minuutit pilvikyselyjen välillä. Vähintään 15, koska Audi rajoittaa pyyntöjen määrää päivässä. Auto raportoi lähinnä silloin, kun jotain tapahtuu, joten pidempi väli (esimerkiksi 30) säästää pyyntöjä ja menettää vain vähän. Tallennus lataa integraation uudelleen.",
           "filter_vins": "Pilkuilla erotettu luettelo VIN-tunnuksista, jotka suljetaan pois käyttöönotosta ja päivityksistä.",
           "experimental_commands": "Näytä lisää käyttäjän käynnistämiä CARIADin ikkunalämmitystoimintoja ja latausliittimen vapautuskytkin. Oletuksena pois päältä. Tarkista toiminta itse; HTTP 200 ei todista, että ajoneuvo toimi."
         }

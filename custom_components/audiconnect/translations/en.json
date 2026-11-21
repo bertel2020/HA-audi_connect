@@ -94,7 +94,7 @@
           "climate_quick_start": "When the climate card is switched on, send a bodyless CARIAD start request using settings already stored in the vehicle. Does not send the temperature shown in Home Assistant. Optional workaround for newer cars; leave disabled unless needed.",
           "refresh_vehicle_data_after_action": "Send a vehicle refresh command after every service action (e.g. climate, lock). This is typically not required as the vehicle will check in with the cloud on its own after a command. Each vehicle refresh counts against the API rate limit. To improve responsiveness, increase the Cloud Refresh Delay instead.",
           "update_sleep": "Seconds to wait after a service action before refreshing cloud data. A longer delay gives the vehicle more time to report its updated state to the cloud.",
-          "scan_interval": "Minutes between cloud polling updates.",
+          "scan_interval": "Minutes between cloud polling updates. At least 15, because Audi limits the requests per day. The car mostly reports when something happens, so a longer interval (for example 30) saves requests and loses little. Saving reloads the integration.",
           "filter_vins": "Comma-separated VIN list to exclude from setup and updates.",
           "experimental_commands": "Show additional user-triggered CARIAD window heating actions and the charging plug release switch. Off by default. Verify real operation; HTTP 200 is not proof the vehicle acted."
         }

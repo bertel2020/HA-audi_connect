@@ -124,7 +124,7 @@ state before relying on remote commands in automations.
 | Standard on supported Auth0 vehicles | **Climatisation ON/OFF** switch                                     | Uses the climate settings already stored in the car and reads the car's reported state; does not replace the climate temperature entity |
 | Legacy / model-dependent             | **Preheater** and the original **Climatisation** climate entity     | Retained for compatibility; older routes may be unavailable or rejected on newer Auth0-backed accounts                                  |
 | Experimental, opt-in                 | Window-heating start/stop buttons and the plug release switch       | Disabled by default; enable _experimental vehicle controls_ under Configure, where a reported capability permits the action             |
-| Capability-dependent                 | **Wake vehicle** and **Honk and flash** buttons                     | Wake vehicle needs a reported wake-up capability; Honk and flash is disabled in the entity registry by default                          |
+| Capability-dependent                 | **Wake vehicle** and **Honk and flash** buttons                     | Wake vehicle needs a reported wake-up capability; Wake vehicle and Honk and flash are disabled in the entity registry by default      |
 | Service only                         | Start, timed start and stop of charging                             | Available through `execute_vehicle_action`; there is no entity for them (see below)                                                      |
 | Model-dependent                      | Charge mode and target SOC changes                                  | Audi may accept an HTTP request while rejecting or not applying the setting                                                             |
 
@@ -160,7 +160,7 @@ API generation and verified model-specific behavior, without assuming that a
 model name grants permission or that a missing capability is definitive proof
 of absence.
 
-**Wake / sleeping vehicle:** The `Wake vehicle` button (shown when the car reports a wake-up capability)
+**Wake / sleeping vehicle:** The `Wake vehicle` button (created when the car reports a wake-up capability; disabled by default for now, because Audi's wake-up service currently answers 502 and 504, and can be enabled by hand in the entity registry)
 uses the Auth0/CARIAD `vehiclewakeuptrigger` route; a HTTP 2xx/204 acknowledgement
 is **not proof** that the physical vehicle woke. Initial Q8 observations suggest
 that a wake request may help recover delayed sleeping-vehicle and charging-status

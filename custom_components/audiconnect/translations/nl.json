@@ -94,7 +94,7 @@
           "climate_quick_start": "Stuurt bij het inschakelen van de klimaatkaart een CARIAD-startverzoek zonder body, met de instellingen die al in het voertuig zijn opgeslagen. De in Home Assistant getoonde temperatuur wordt niet meegestuurd. Optionele workaround voor nieuwere auto's; laat uitgeschakeld tenzij nodig.",
           "refresh_vehicle_data_after_action": "Stuur na elke service-actie (bijv. airco, vergrendelen) een vernieuwingsopdracht naar het voertuig. Dit is meestal niet nodig, omdat het voertuig na een opdracht zelf contact met de cloud opneemt. Elke voertuigvernieuwing telt mee voor de API-limiet. Verhoog liever de vertraging van de cloudvernieuwing om de reactiesnelheid te verbeteren.",
           "update_sleep": "Aantal seconden wachten na een service-actie voordat de cloudgegevens worden vernieuwd. Een langere vertraging geeft het voertuig meer tijd om de nieuwe status aan de cloud door te geven.",
-          "scan_interval": "(Minuten) Opnieuw opstarten vereist om het nieuwe scaninterval van kracht te laten worden.",
+          "scan_interval": "Minuten tussen cloudopvragingen. Minimaal 15, omdat Audi het aantal verzoeken per dag beperkt. De auto meldt vooral wanneer er iets gebeurt; een langer interval (bijvoorbeeld 30) bespaart verzoeken en kost weinig. Bij opslaan wordt de integratie opnieuw geladen.",
           "filter_vins": "Door komma's gescheiden lijst met VIN's die van de installatie en updates worden uitgesloten.",
           "experimental_commands": "Toont optionele, door de gebruiker te bedienen CARIAD-functies voor ruitverwarming en de schakelaar voor het vrijgeven van de laadstekker. Standaard uit. Verifieer acties fysiek; API HTTP 200 is geen bewijs van uitvoering."
         }

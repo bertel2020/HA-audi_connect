@@ -91,7 +91,7 @@
         },
         "title": "Audi Connect-Optionen",
         "data_description": {
-          "scan_interval": "Minuten zwischen Cloud-Abfragen.",
+          "scan_interval": "Minuten zwischen Cloud-Abfragen. Mindestens 15, weil Audi die Anfragen pro Tag begrenzt. Das Auto meldet vor allem dann, wenn etwas passiert, ein längerer Wert (zum Beispiel 30) spart Anfragen und kostet kaum etwas. Beim Speichern wird die Integration neu geladen.",
           "refresh_vehicle_data_after_action": "Sendet nach jeder Fahrzeugaktion (z. B. Klimatisieren oder Verriegeln) einen Aktualisierungsbefehl an das Fahrzeug. Normalerweise ist dies nicht erforderlich, da sich das Fahrzeug nach einer Aktion selbst bei der Cloud meldet. Jede Fahrzeugaktualisierung zählt zum API-Limit. Erhöhen Sie stattdessen die Verzögerung der Cloud-Aktualisierung.",
           "climate_quick_start": "Beim Einschalten der Klimatisierung wird eine CARIAD-Startanfrage ohne zusätzliche Parameter gesendet. Dabei verwendet das Fahrzeug seine gespeicherten Einstellungen. Die in Home Assistant angezeigte Solltemperatur wird nicht übertragen. Diese Option dient als alternative Startmethode für neuere Fahrzeuge und sollte nur bei Bedarf aktiviert werden.",
           "update_sleep": "Wartezeit in Sekunden nach einer Fahrzeugaktion, bevor die Cloud-Daten aktualisiert werden. Eine längere Wartezeit gibt dem Fahrzeug mehr Zeit, seinen neuen Status an die Cloud zu übermitteln.",

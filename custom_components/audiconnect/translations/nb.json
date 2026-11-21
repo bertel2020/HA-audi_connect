@@ -94,7 +94,7 @@
           "climate_quick_start": "Når klimakortet slås på, sendes en CARIAD-startforespørsel uten ekstra parametere, basert på innstillinger som allerede er lagret i kjøretøyet. Temperaturen som vises i Home Assistant sendes ikke. Valgfri løsning for nyere biler; la den være av med mindre den trengs.",
           "refresh_vehicle_data_after_action": "Send en oppdateringskommando til kjøretøyet etter hver tjenestehandling (f.eks. klima eller låsing). Dette er vanligvis ikke nødvendig, siden kjøretøyet melder seg til skyen av seg selv etter en kommando. Hver kjøretøyoppdatering teller mot API-grensen. For å få raskere respons kan du heller øke forsinkelsen for skyoppdatering.",
           "update_sleep": "Sekunder å vente etter en tjenestehandling før skydata oppdateres. En lengre forsinkelse gir kjøretøyet mer tid til å rapportere ny status til skyen.",
-          "scan_interval": "(Minutter) Omstart kreves for at nytt skanneintervall skal tre i kraft.",
+          "scan_interval": "Minutter mellom skyspørringer. Minst 15, fordi Audi begrenser antall forespørsler per dag. Bilen melder hovedsakelig når noe skjer, så et lengre intervall (for eksempel 30) sparer forespørsler og koster lite. Lagring laster integrasjonen på nytt.",
           "filter_vins": "Kommaseparert liste over VIN-er som skal utelates fra oppsett og oppdateringer.",
           "experimental_commands": "Vis flere brukerutløste CARIAD-handlinger for vindusoppvarming og bryteren for å frigjøre ladepluggen. Av som standard. Kontroller at det faktisk fungerer; HTTP 200 er ikke bevis på at kjøretøyet utførte handlingen."
         }

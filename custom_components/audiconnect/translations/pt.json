@@ -94,7 +94,7 @@
           "climate_quick_start": "Ao ligar o cartão de climatização, envia um pedido de arranque CARIAD sem corpo, usando as definições já guardadas no veículo. Não envia a temperatura mostrada no Home Assistant. Solução alternativa opcional para automóveis mais recentes; mantenha desativado, salvo se necessário.",
           "refresh_vehicle_data_after_action": "Envia um comando de atualização do veículo após cada ação de serviço (p. ex. climatização, bloqueio). Normalmente não é necessário, pois o veículo comunica com a cloud por si após um comando. Cada atualização do veículo conta para o limite de pedidos da API. Para melhorar a capacidade de resposta, aumente antes o atraso da atualização da cloud.",
           "update_sleep": "Segundos de espera após uma ação de serviço antes de atualizar os dados da cloud. Um atraso maior dá mais tempo ao veículo para comunicar o seu novo estado à cloud.",
-          "scan_interval": "(Minutos) É necessário reiniciar para que o novo intervalo de verificação entre em vigor.",
+          "scan_interval": "Minutos entre as consultas à cloud. No mínimo 15, porque a Audi limita os pedidos por dia. O automóvel comunica sobretudo quando algo acontece, por isso um intervalo maior (por exemplo, 30) poupa pedidos e perde pouco. Ao guardar, a integração é recarregada.",
           "filter_vins": "Lista de VIN separados por vírgulas a excluir da configuração e das atualizações.",
           "experimental_commands": "Mostra ações adicionais CARIAD de aquecimento dos vidros acionadas pelo utilizador e o interruptor de libertação da ficha de carregamento. Desativado por predefinição. Verifique o funcionamento real; HTTP 200 não prova que o veículo executou a ação."
         }

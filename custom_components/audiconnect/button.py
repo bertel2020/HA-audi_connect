@@ -111,6 +111,9 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
         key="wake_vehicle_modern",
         translation_key="wake_vehicle_modern",
         icon="mdi:car-connected",
+        # Off for now: Audi's wake-up service has answered 502 and 504 to every
+        # request, whatever the car's state. Enable it by hand once it works.
+        entity_registry_enabled_default=False,
         supported_fn=_wakeup_capable,
         press_fn=lambda account, vin: account.connection.trigger_vehicle_wakeup(vin),
     ),
