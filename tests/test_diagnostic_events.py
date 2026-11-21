@@ -77,3 +77,55 @@ class TestDiagnostics(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRouteNames(unittest.TestCase):
+    """The names the diagnostics show instead of one "other" bucket."""
+
+    BFF = "https://emea.bff.cariad.digital/vehicle/v1/vehicles/SECRETVIN"
+
+    def route(self, url, method="POST", status=502):
+        return module.build_http_event(method, url, status)["route"]
+
+    def test_climatisation_settings_start_and_stop_are_told_apart(self):
+        self.assertEqual(
+            self.route(self.BFF + "/climatisation/settings", "PUT"),
+            "climatisation_settings",
+        )
+        self.assertEqual(
+            self.route(self.BFF + "/climatisation/start"), "climatisation_start"
+        )
+        self.assertEqual(
+            self.route(self.BFF + "/climatisation/stop"), "climatisation_stop"
+        )
+
+    def test_charging_settings_are_told_apart_from_start_and_stop(self):
+        self.assertEqual(
+            self.route(self.BFF + "/charging/settings", "PUT"), "charging_settings"
+        )
+        self.assertEqual(self.route(self.BFF + "/charging/start"), "charging")
+
+    def test_timers_are_departure_timers_not_climatisation_or_charging(self):
+        base = "https://emea.bff.cariad.digital/vehicle/v2/departure/SECRETVIN"
+        self.assertEqual(
+            self.route(base + "/climatisation/timers", "PUT"), "departure_timers"
+        )
+        self.assertEqual(
+            self.route(base + "/charging/timers", "POST"), "departure_timers"
+        )
+
+    def test_wakeup_honk_graphql_and_capabilities_have_names(self):
+        self.assertEqual(self.route(self.BFF + "/vehiclewakeup"), "vehicle_wakeup")
+        self.assertEqual(
+            self.route(self.BFF + "/vehiclewakeuptrigger"), "vehicle_wakeup"
+        )
+        self.assertEqual(self.route(self.BFF + "/honkandflash"), "honk_and_flash")
+        self.assertEqual(
+            self.route("https://app-api.live-my.audi.com/vgql/v1/graphql"), "graphql"
+        )
+        self.assertEqual(self.route(self.BFF + "/capabilities", "GET"), "capabilities")
+
+    def test_unknown_routes_stay_other_and_no_vin_leaks(self):
+        event = module.build_http_event("POST", self.BFF + "/somethingnew", 502)
+        self.assertEqual(event["route"], "other")
+        self.assertNotIn("SECRETVIN", str(event))

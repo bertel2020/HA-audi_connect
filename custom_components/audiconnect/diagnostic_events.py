@@ -41,12 +41,32 @@ def classify_route(url: str) -> str:
         return "legacy_climatisation"
     if "/auxiliaryheating/" in path:
         return "auxiliary_heating"
+    # Departure and climatisation timers live under /departure/, which also
+    # contains /climatisation/ and /charging/, so they are told apart first.
+    if "/departure/" in path:
+        return "departure_timers"
+    if "/climatisation/settings" in path:
+        return "climatisation_settings"
+    if "/climatisation/start" in path:
+        return "climatisation_start"
+    if "/climatisation/stop" in path:
+        return "climatisation_stop"
     if "/climatisation/" in path:
         return "modern_climatisation"
     if "/engine/" in path:
         return "remote_engine"
+    if "/charging/settings" in path:
+        return "charging_settings"
     if "/charging/" in path or "/charger/" in path:
         return "charging"
+    if "/honkandflash" in path:
+        return "honk_and_flash"
+    if "/vehiclewakeup" in path:
+        return "vehicle_wakeup"
+    if path.endswith("/capabilities"):
+        return "capabilities"
+    if "/vgql/" in path or path.endswith("/graphql"):
+        return "graphql"
     if "/pendingrequests" in path:
         return "command_confirmation"
     if "selectivestatus" in path:
