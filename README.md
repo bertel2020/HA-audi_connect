@@ -410,6 +410,19 @@ Die Diagnosesensoren `Vehicle data freshness`, `Vehicle data age`, `Cloud last s
 
 ## Dashboard-Karte
 
+<p align="center">
+  <img src="assets/card-light.png" width="260" alt="Karte im Überblick">
+  <img src="assets/card-expanded.png" width="260" alt="Aufgeklappte Bereiche Fahrzeug und Klimatisierung">
+  <img src="assets/card-doors.png" width="260" alt="Türen-Popup mit offener Tür">
+</p>
+
+<p align="center">
+  <img src="assets/card-doors-dark.png" width="260" alt="Türen-Popup im dunklen Theme">
+  <img src="assets/card-windows.png" width="260" alt="Fenster-Tab">
+</p>
+
+<p align="center"><em>Beispieldaten, Darstellung im Standard-Theme von Home Assistant. Oben: Karte, aufgeklappte Bereiche und das Türen-Popup. Unten: dasselbe dunkel und der Fenster-Tab.</em></p>
+
 Die Integration bringt ihre eigene Dashboard-Karte `audi-connect-card` mit. Es gibt nichts zu installieren und kein YAML zu schreiben: Sie wird nach der Einrichtung der Integration automatisch geladen.
 
 1. Ein Dashboard öffnen, **Bearbeiten** und **Karte hinzufügen** wählen.

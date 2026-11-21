@@ -444,6 +444,19 @@ The diagnostic sensors `Vehicle data freshness`, `Vehicle data age`, `Cloud last
 
 ## Dashboard Card
 
+<p align="center">
+  <img src="assets/card-light.png" width="260" alt="Card overview">
+  <img src="assets/card-expanded.png" width="260" alt="Expanded vehicle and climatisation sections">
+  <img src="assets/card-doors.png" width="260" alt="Doors popup with an open door">
+</p>
+
+<p align="center">
+  <img src="assets/card-doors-dark.png" width="260" alt="Doors popup in the dark theme">
+  <img src="assets/card-windows.png" width="260" alt="Windows tab">
+</p>
+
+<p align="center"><em>Sample data, shown in Home Assistant's default theme. Top: the card, the expanded sections and the doors popup. Bottom: the same in dark mode and the windows tab.</em></p>
+
 The integration ships its own dashboard card, `audi-connect-card`. There is nothing to install and no YAML to write: it is loaded automatically once the integration is set up.
 
 1. Open a dashboard, choose **Edit** and **Add card**.
