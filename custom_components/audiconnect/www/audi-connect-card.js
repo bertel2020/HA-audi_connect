@@ -191,12 +191,12 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 --c-trim:color-mix(in srgb,var(--primary-text-color) 78%,var(--card-background-color));
 --c-cavity:color-mix(in srgb,var(--primary-text-color) 70%,var(--card-background-color));
 --c-engine:color-mix(in srgb,var(--primary-text-color) 16%,var(--c-cavity));
---c-gl-a:color-mix(in srgb,var(--primary-color) 30%,color-mix(in srgb,var(--primary-text-color) 42%,var(--card-background-color)));
---c-gl-b:color-mix(in srgb,var(--primary-color) 20%,color-mix(in srgb,var(--primary-text-color) 58%,var(--card-background-color)));
---c-gl-c:color-mix(in srgb,var(--primary-color) 14%,color-mix(in srgb,var(--primary-text-color) 70%,var(--card-background-color)));
+--c-gl-a:color-mix(in srgb,#4f8fc4 30%,color-mix(in srgb,var(--primary-text-color) 42%,var(--card-background-color)));
+--c-gl-b:color-mix(in srgb,#4f8fc4 20%,color-mix(in srgb,var(--primary-text-color) 58%,var(--card-background-color)));
+--c-gl-c:color-mix(in srgb,#4f8fc4 14%,color-mix(in srgb,var(--primary-text-color) 70%,var(--card-background-color)));
 --c-tail:color-mix(in srgb,var(--error-color) 55%,var(--secondary-background-color));
 --c-head:color-mix(in srgb,var(--primary-text-color) 10%,var(--card-background-color));
---c-drl:color-mix(in srgb,var(--primary-color) 70%,var(--card-background-color));
+--c-drl:color-mix(in srgb,#8cc8f0 80%,var(--card-background-color));
 --c-ul:color-mix(in srgb,var(--warning-color) 14%,var(--secondary-background-color));
 --c-open:color-mix(in srgb,var(--error-color) 40%,var(--secondary-background-color));
 --c-win:color-mix(in srgb,var(--warning-color) 45%,var(--c-cavity))}
@@ -217,7 +217,7 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 @supports not (color:color-mix(in srgb,red,blue)){
 .band,.cstatus,.pill.on,.stp:active,.pill:active,.note.bad{background:var(--secondary-background-color)}
 .cell+.cell{border-left-color:var(--divider-color)}
-.car{--c-edge:var(--divider-color);--c-mid:var(--card-background-color);--c-line:var(--divider-color);--c-bodyline:var(--divider-color);--c-trim:var(--secondary-text-color);--c-cavity:var(--secondary-text-color);--c-engine:var(--secondary-text-color);--c-gl-a:var(--secondary-text-color);--c-gl-b:var(--secondary-text-color);--c-gl-c:var(--secondary-text-color);--c-tail:var(--error-color);--c-head:var(--secondary-background-color);--c-drl:var(--primary-color);--c-ul:var(--secondary-background-color);--c-open:var(--secondary-background-color);--c-win:var(--secondary-background-color)}
+.car{--c-edge:var(--divider-color);--c-mid:var(--card-background-color);--c-line:var(--divider-color);--c-bodyline:var(--divider-color);--c-trim:var(--secondary-text-color);--c-cavity:var(--secondary-text-color);--c-engine:var(--secondary-text-color);--c-gl-a:var(--secondary-text-color);--c-gl-b:var(--secondary-text-color);--c-gl-c:var(--secondary-text-color);--c-tail:var(--error-color);--c-head:var(--secondary-background-color);--c-drl:#8cc8f0;--c-ul:var(--secondary-background-color);--c-open:var(--secondary-background-color);--c-win:var(--secondary-background-color)}
 }
 @media (prefers-reduced-motion:reduce){.bar.charging::before,.pulse,.cstatus ha-icon,.pill.wait ha-icon{animation:none}}
 `;
