@@ -90,7 +90,6 @@ Die Optionen findest du unter **Einstellungen ➤ Geräte & Dienste ➤ Integrat
 | `Excluded VINs`                     | `str`  | –        | Kommagetrennte FIN-Liste (VIN) von Fahrzeugen, die von Einrichtung und Updates ausgenommen werden.                                                                                                                                                                                                                                 |
 | `Quick start climate using car-stored settings` | `bool` | `False` | Beim Einschalten der Climate-Entity wird eine CARIAD-Startanfrage ohne Parameter gesendet, die die im Auto gespeicherten Einstellungen nutzt. Die in Home Assistant angezeigte Temperatur wird nicht übertragen. Optionaler Umweg für neuere Fahrzeuge. |
 | `Enable experimental vehicle controls` | `bool` | `False` | Zeigt die Buttons zum Starten/Stoppen der Scheibenheizung und den Schalter zur Freigabe des Ladesteckers. Das tatsächliche Verhalten prüfen; HTTP 200 ist kein Beweis, dass das Fahrzeug gehandelt hat. |
-| `Edit dealer and local service details` | `bool` | `False` | Öffnet ein Formular für Händler-, Servicetermin- und Garantiedaten, die in Home Assistant bleiben. Es werden keine Audi-API-Anfragen gesendet. |
 
 _Hinweis: Die Integration lädt nach einem Klick auf `Senden` automatisch neu, ein Neustart von Home Assistant wird trotzdem empfohlen._
 
@@ -145,8 +144,6 @@ _Veraltet_ bezeichnet eine ältere Schnittstelle, keine angekündigte Entfernung
 **Wecken / schlafendes Fahrzeug:** Der Button `Wake vehicle` (sichtbar, wenn das Auto eine Wecken-Fähigkeit meldet) nutzt die Auth0/CARIAD-Route `vehiclewakeuptrigger`; eine HTTP-Antwort 2xx/204 ist **kein Beweis**, dass das Fahrzeug wirklich aufgewacht ist. Erste Q8-Beobachtungen deuten darauf hin, dass eine Wecken-Anfrage verzögerte Werte schlafender Fahrzeuge und des Ladestatus wiederherstellen kann, das ist aber nicht als allgemeine Lösung belegt. Ein geparktes Fahrzeug zu wecken kann außerdem Energie aus der 12-V- und/oder Traktionsbatterie kosten. Deshalb darf die automatische Abfrage das Fahrzeug **nie** in jedem Zyklus wecken, und die aktuelle Integration tut das nicht. Künftig sollten passiver Cloud-Refresh und aktives Wecken getrennt bleiben, ausdrückliche Nutzerabsicht oder geprüfte Lade-/Sitzungswechsel als mögliche Auslöser dienen, pro Fahrzeug Abkühlzeiten und Anfrage-/Energiebudgets gelten und die Aktualität nach einem begrenzten, verzögerten Rücklesen bestätigt werden, bevor Wecken oder Ladestatus als aktuell dargestellt werden. Das bleibt experimentell, bis Messungen zu Statusverbesserung, tatsächlicher Weckreaktion und Auswirkung auf die Batterie des geparkten Fahrzeugs vorliegen.
 
 `Refresh vehicle data` nutzt eine andere Route (`vehiclewakeup`) und wartet bis zu 100 Sekunden auf die Antwort des Autos. Antwortet das Auto nicht rechtzeitig, steht eine Warnung im Log, kein Fehler: Es kann schlafen oder außer Reichweite sein.
-
-Optionale lokale Händler-/Service-Angaben werden, falls eingerichtet, in den Home-Assistant-Optionen gehalten; sie werden **nicht** aus Audis Cloud abgerufen und dürfen nicht mit Service-Daten des Herstellers verwechselt werden.
 
 ### Ladeziele
 
@@ -393,12 +390,6 @@ Verwaltet die Klima-Timer des Autos. Zeiten gelten in der Ortszeit des Autos. Di
 - Anlegen: **`time`** (zum Beispiel `07:30`), **`days`** (ein Timer nimmt genau einen Tag), **`repeat`** (jede Woche, Standard an), **`enabled`** (Standard an).
 - Schalten: **`timer_id`**, **`enabled`**.
 - Löschen: **`timer_id`**.
-
-### Audi Connect: Set Local Dealer
-
-`audiconnect.set_local_dealer`
-
-Speichert Händler-, Servicetermin- und Garantiedaten in Home Assistant. Es werden keine Audi-API-Anfragen gesendet. Nicht angegebene Felder behalten ihren Wert, leerer Text entfernt ein Feld, und `clear` entfernt den ganzen lokalen Eintrag des Fahrzeugs. Dieselben Daten lassen sich unter **Konfigurieren** bearbeiten.
 
 ### Diagnose
 

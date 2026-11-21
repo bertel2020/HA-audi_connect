@@ -84,7 +84,6 @@ Find configuration options under **Settings ➤ Devices & Services ➤ Integrati
 | `Excluded VINs`                     | `str`  | –       | Comma-separated VIN list to exclude from setup and updates.                                                                                                                                                                                                                                                         |
 | `Quick start climate using car-stored settings` | `bool` | `False` | When the climate entity is switched on, send a bodyless CARIAD start request that uses the settings stored in the car. The temperature shown in Home Assistant is not sent. Optional workaround for newer cars. |
 | `Enable experimental vehicle controls` | `bool` | `False` | Shows the window-heating start/stop buttons and the plug release switch. Verify real operation; HTTP 200 is not proof the vehicle acted. |
-| `Edit dealer and local service details` | `bool` | `False` | Opens a form for dealer, service appointment and warranty details that stay in Home Assistant. No Audi API requests are made. |
 
 _Note: The integration will reload automatically upon clicking `Submit`, but a Home Assistant restart is suggested._
 
@@ -177,10 +176,6 @@ This work remains experimental pending measurements of status improvement,
 actual wake response, and parked-vehicle battery impact.
 
 `Refresh vehicle data` uses a separate route (`vehiclewakeup`) and waits up to 100 seconds for the car to answer. A car that does not answer in time is logged as a warning, not an error: it may be asleep or out of coverage.
-
-Optional local dealer/service details, where configured, are kept in Home
-Assistant options; they are **not** retrieved from Audi's cloud and must not be
-confused with manufacturer-provided service data.
 
 ### Charge targets
 
@@ -427,12 +422,6 @@ Manage the car's climatisation timers. Times are in the car's local time. The ti
 - Create: **`time`** (for example `07:30`), **`days`** (a single timer takes exactly one day), **`repeat`** (every week, default on), **`enabled`** (default on).
 - Switch: **`timer_id`**, **`enabled`**.
 - Delete: **`timer_id`**.
-
-### Audi Connect: Set Local Dealer
-
-`audiconnect.set_local_dealer`
-
-Stores dealer, service appointment and warranty details in Home Assistant. No Audi API requests are made. Fields you leave out keep their previous values, empty text removes a field, and `clear` removes the vehicle's whole local record. The same data can be edited under **Configure**.
 
 ### Diagnostics
 

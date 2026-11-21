@@ -169,8 +169,7 @@ def test_the_scan_interval_is_raised_to_the_minimum():
     assert result["data"][CONF_SCAN_INTERVAL] == MIN_UPDATE_INTERVAL
 
 
-def test_saving_the_options_keeps_the_local_dealer_records():
+def test_saving_the_options_stores_exactly_what_was_entered():
     flow = options_flow({"local_dealers": {"vin": {"dealer_name": "X"}}})
     result = run(flow.async_step_init({CONF_SCAN_INTERVAL: 30}))
-    assert result["data"]["local_dealers"] == {"vin": {"dealer_name": "X"}}
-    assert "edit_local_dealer" not in result["data"]
+    assert result["data"] == {CONF_SCAN_INTERVAL: 30}

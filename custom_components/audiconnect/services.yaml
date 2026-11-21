@@ -12,39 +12,6 @@ probe_api_paths:
       selector:
         boolean:
 
-set_local_dealer:
-  fields:
-    device_id:
-      required: true
-      selector:
-        device:
-          integration: audiconnect
-    dealer_name:
-      selector:
-        text:
-    dealer_city:
-      selector:
-        text:
-    dealer_address:
-      selector:
-        text:
-    dealer_phone:
-      selector:
-        text:
-    dealer_website:
-      selector:
-        text:
-          type: url
-    next_service_date:
-      selector:
-        date:
-    warranty_expiry:
-      selector:
-        date:
-    clear:
-      selector:
-        boolean:
-
 refresh_cloud_data:
 
 refresh_vehicle_data:

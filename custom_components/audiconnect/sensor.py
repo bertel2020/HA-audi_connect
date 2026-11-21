@@ -34,7 +34,6 @@ from . import AudiRuntimeData
 from .audi_entity import AudiEntity, entity_unique_id, should_create_entity
 from .coordinator import AudiDataUpdateCoordinator
 from .freshness import usable_vehicle_timestamp, vehicle_age_minutes, vehicle_freshness
-from .local_extensions import get_local_dealer
 from .util import parse_datetime
 
 
@@ -831,15 +830,9 @@ async def async_setup_entry(
                 AudiCloudLastPollSensor(runtime_data.coordinator, vehicle),
             )
         )
-        # The dealer and service sensors are for what the user enters and for
-        # cars that report more than one service figure. Entering a dealer
-        # reloads the integration, which creates the dealer sensor then.
-        local_data = get_local_dealer(config_entry.options, vehicle.vin)
-        if local_data:
-            entities.append(
-                AudiLocalDealerSensor(runtime_data.coordinator, vehicle, config_entry)
-            )
-        if local_data or service_figures_reported(vehicle) > 1:
+        # The service overview is for cars that report more than one service
+        # figure; one figure already has its own sensor.
+        if service_figures_reported(vehicle) > 1:
             entities.append(
                 AudiServiceOverviewSensor(
                     runtime_data.coordinator, vehicle, config_entry
@@ -1020,48 +1013,8 @@ class AudiCloudLastPollSensor(AudiEntity, SensorEntity):
         }
 
 
-class AudiLocalDealerSensor(AudiEntity, SensorEntity):
-    """Visible, locally managed dealership details on the Audi device.
-
-    The source connector has inspection dates, but no verified dealer lookup.
-    Never claim that manual dealer metadata came from the Audi cloud.
-    """
-
-    _attr_translation_key = "dealer_local"
-    _attr_icon = "mdi:store"
-
-    def __init__(
-        self, coordinator: AudiDataUpdateCoordinator, vehicle: Any, entry: ConfigEntry
-    ) -> None:
-        super().__init__(coordinator, vehicle)
-        self._entry = entry
-        self._attr_unique_id = entity_unique_id(vehicle, "sensor", "local_dealer")
-
-    @property
-    def available(self) -> bool:
-        return True
-
-    @property
-    def _local_data(self) -> dict[str, str]:
-        return get_local_dealer(self._entry.options, self._vehicle.vin)
-
-    @property
-    def native_value(self) -> str:
-        return self._local_data.get("dealer_name", "Not configured")
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        data = self._local_data
-        return {
-            "source": "Home Assistant local configuration (not Audi)",
-            "configured": bool(data),
-            "configuration_path": "Audi Connect > Configure > Edit dealer and local service details",
-            **{key: value for key, value in data.items() if key != "dealer_name"},
-        }
-
-
 class AudiServiceOverviewSensor(AudiEntity, SensorEntity):
-    """Car-sourced maintenance combined with optional local appointment data."""
+    """Maintenance as the car reports it."""
 
     _attr_translation_key = "service_overview"
     _attr_icon = "mdi:car-wrench"
@@ -1075,7 +1028,6 @@ class AudiServiceOverviewSensor(AudiEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
-        # A local appointment remains useful even if Audi cloud is down.
         return True
 
     @property
@@ -1093,12 +1045,10 @@ class AudiServiceOverviewSensor(AudiEntity, SensorEntity):
             return "due_soon"
         if numbers:
             return "scheduled"
-        data = get_local_dealer(self._entry.options, self._vehicle.vin)
-        return "appointment_recorded" if data.get("next_service_date") else "unknown"
+        return "unknown"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        data = get_local_dealer(self._entry.options, self._vehicle.vin)
         return {
             "inspection_due_days": getattr(
                 self._vehicle, "service_inspection_time", None
@@ -1108,10 +1058,7 @@ class AudiServiceOverviewSensor(AudiEntity, SensorEntity):
             ),
             "oil_service_due_days": getattr(self._vehicle, "oil_change_time", None),
             "oil_service_due_km": getattr(self._vehicle, "oil_change_distance", None),
-            "next_appointment_local": data.get("next_service_date"),
-            "warranty_expiry_local": data.get("warranty_expiry"),
             "maintenance_source": "Audi vehicleHealthInspection when reported",
-            "appointment_source": "Home Assistant local configuration, not Audi",
         }
 
 
@@ -1190,7 +1137,6 @@ class AudiApiRateLimitSensor(AudiEntity, RestoreSensor):
 __all__ = [
     "AudiApiRateLimitSensor",
     "AudiCloudLastPollSensor",
-    "AudiLocalDealerSensor",
     "AudiSensor",
     "AudiVehicleAgeSensor",
     "AudiVehicleFreshnessSensor",

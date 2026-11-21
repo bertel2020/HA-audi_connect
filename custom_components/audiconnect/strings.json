@@ -87,7 +87,6 @@
           "update_sleep": "Cloud Refresh Delay",
           "scan_interval": "Scan Interval",
           "filter_vins": "Excluded VINs",
-          "edit_local_dealer": "Edit dealer and local service details",
           "experimental_commands": "Enable experimental vehicle controls"
         },
         "title": "Audi Connect Options",
@@ -97,37 +96,9 @@
           "update_sleep": "Seconds to wait after a service action before refreshing cloud data. A longer delay gives the vehicle more time to report its updated state to the cloud.",
           "scan_interval": "Minutes between cloud polling updates.",
           "filter_vins": "Comma-separated VIN list to exclude from setup and updates.",
-          "edit_local_dealer": "Open the form to save dealership, service appointment and warranty details locally, without any Audi API requests.",
           "experimental_commands": "Show additional user-triggered CARIAD window heating actions and the charging plug release switch. Off by default. Verify real operation; HTTP 200 is not proof the vehicle acted."
         }
-      },
-      "dealer_vehicle": {
-        "title": "Choose vehicle",
-        "data": {
-          "vehicle": "Audi vehicle"
-        }
-      },
-      "dealer": {
-        "title": "Dealer and service (local)",
-        "description": "The details remain in Home Assistant. This feature does not retrieve dealer information from Audi.",
-        "data": {
-          "dealer_name": "Dealer name",
-          "dealer_city": "City",
-          "dealer_address": "Address",
-          "dealer_phone": "Phone",
-          "dealer_website": "Website",
-          "next_service_date": "Next service appointment",
-          "warranty_expiry": "Warranty expiry",
-          "clear": "Remove this vehicle's local details"
-        }
       }
-    },
-    "error": {
-      "invalid_dealer": "Check date, website and field lengths.",
-      "invalid_vehicle": "Select a valid vehicle."
-    },
-    "abort": {
-      "no_vehicle_available": "No Audi vehicle is currently loaded."
     }
   },
   "selector": {
@@ -422,48 +393,6 @@
           "description": "Also run the experimental read-only checks."
         }
       }
-    },
-    "set_local_dealer": {
-      "name": "Set local dealer and service information",
-      "description": "Optional details kept locally in Home Assistant. No Audi API requests. Fields not supplied keep their previous values. Empty text removes a field. Clear removes the whole local record for this vehicle.",
-      "fields": {
-        "device_id": {
-          "name": "Vehicle",
-          "description": "The Audi vehicle."
-        },
-        "dealer_name": {
-          "name": "Dealer name",
-          "description": "Name of the dealer."
-        },
-        "dealer_city": {
-          "name": "City",
-          "description": "City of the dealer."
-        },
-        "dealer_address": {
-          "name": "Address",
-          "description": "Street address of the dealer."
-        },
-        "dealer_phone": {
-          "name": "Phone",
-          "description": "Phone number of the dealer."
-        },
-        "dealer_website": {
-          "name": "Website",
-          "description": "Website of the dealer."
-        },
-        "next_service_date": {
-          "name": "Next service",
-          "description": "Date of the next service."
-        },
-        "warranty_expiry": {
-          "name": "Warranty expiry",
-          "description": "Date the warranty ends."
-        },
-        "clear": {
-          "name": "Clear",
-          "description": "Remove the whole local record for this vehicle."
-        }
-      }
     }
   },
   "entity": {
@@ -692,9 +621,6 @@
       },
       "cloud_last_successful_poll": {
         "name": "Cloud last successful poll"
-      },
-      "dealer_local": {
-        "name": "Dealer (local)"
       },
       "service_overview": {
         "name": "Service overview"

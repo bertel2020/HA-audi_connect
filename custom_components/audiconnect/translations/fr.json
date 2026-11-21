@@ -87,7 +87,6 @@
           "update_sleep": "Délai d'actualisation du cloud",
           "scan_interval": "Intervalle de mises à jour",
           "filter_vins": "VIN exclus",
-          "edit_local_dealer": "Modifier les informations du concessionnaire et de l'entretien",
           "experimental_commands": "Activer les commandes expérimentales du véhicule"
         },
         "title": "Options Audi Connect",
@@ -97,37 +96,9 @@
           "update_sleep": "Secondes d'attente après une action avant d'actualiser les données du cloud. Un délai plus long laisse plus de temps au véhicule pour transmettre son nouvel état au cloud.",
           "scan_interval": "Minutes entre les mises à jour du cloud.",
           "filter_vins": "Liste de VIN séparés par des virgules à exclure de la configuration et des mises à jour.",
-          "edit_local_dealer": "Ouvre le formulaire pour enregistrer localement les informations du concessionnaire, du rendez-vous d'entretien et de la garantie, sans aucune requête vers l'API Audi.",
           "experimental_commands": "Affiche des actions CARIAD supplémentaires de chauffage des vitres, déclenchées par l'utilisateur, ainsi que le commutateur de déverrouillage de la prise de charge. Désactivé par défaut. Vérifiez le fonctionnement réel ; un HTTP 200 ne prouve pas que le véhicule a agi."
         }
-      },
-      "dealer_vehicle": {
-        "title": "Choisir le véhicule",
-        "data": {
-          "vehicle": "Véhicule Audi"
-        }
-      },
-      "dealer": {
-        "title": "Concessionnaire et entretien (local)",
-        "description": "Les informations restent dans Home Assistant. Cette fonction ne récupère aucune information de concessionnaire auprès d'Audi.",
-        "data": {
-          "dealer_name": "Nom du concessionnaire",
-          "dealer_city": "Ville",
-          "dealer_address": "Adresse",
-          "dealer_phone": "Téléphone",
-          "dealer_website": "Site web",
-          "next_service_date": "Prochain rendez-vous d'entretien",
-          "warranty_expiry": "Fin de garantie",
-          "clear": "Supprimer les informations locales de ce véhicule"
-        }
       }
-    },
-    "error": {
-      "invalid_dealer": "Vérifiez la date, le site web et la longueur des champs.",
-      "invalid_vehicle": "Sélectionnez un véhicule valide."
-    },
-    "abort": {
-      "no_vehicle_available": "Aucun véhicule Audi n'est actuellement chargé."
     }
   },
   "selector": {
@@ -422,48 +393,6 @@
           "description": "Exécute aussi les vérifications expérimentales en lecture seule."
         }
       }
-    },
-    "set_local_dealer": {
-      "name": "Définir les informations locales du concessionnaire et de l'entretien",
-      "description": "Informations facultatives conservées localement dans Home Assistant. Aucune requête vers l'API Audi. Les champs non fournis gardent leur valeur précédente. Un texte vide supprime un champ. « Effacer » supprime tout l'enregistrement local de ce véhicule.",
-      "fields": {
-        "device_id": {
-          "name": "Véhicule",
-          "description": "Le véhicule Audi."
-        },
-        "dealer_name": {
-          "name": "Nom du concessionnaire",
-          "description": "Nom du concessionnaire."
-        },
-        "dealer_city": {
-          "name": "Ville",
-          "description": "Ville du concessionnaire."
-        },
-        "dealer_address": {
-          "name": "Adresse",
-          "description": "Adresse postale du concessionnaire."
-        },
-        "dealer_phone": {
-          "name": "Téléphone",
-          "description": "Numéro de téléphone du concessionnaire."
-        },
-        "dealer_website": {
-          "name": "Site web",
-          "description": "Site web du concessionnaire."
-        },
-        "next_service_date": {
-          "name": "Prochain entretien",
-          "description": "Date du prochain entretien."
-        },
-        "warranty_expiry": {
-          "name": "Fin de garantie",
-          "description": "Date de fin de la garantie."
-        },
-        "clear": {
-          "name": "Effacer",
-          "description": "Supprime tout l'enregistrement local de ce véhicule."
-        }
-      }
     }
   },
   "entity": {
@@ -692,9 +621,6 @@
       },
       "cloud_last_successful_poll": {
         "name": "Dernière interrogation réussie du cloud"
-      },
-      "dealer_local": {
-        "name": "Concessionnaire (local)"
       },
       "service_overview": {
         "name": "Aperçu de l'entretien"

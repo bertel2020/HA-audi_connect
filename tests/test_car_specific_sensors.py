@@ -11,7 +11,6 @@ import pytest
 from custom_components.audiconnect import sensor
 from custom_components.audiconnect.sensor import (
     SENSOR_DESCRIPTIONS,
-    AudiLocalDealerSensor,
     is_sensor_available_for,
 )
 from tests.test_a6_etron import vehicle_with
@@ -56,27 +55,16 @@ def _created(options, **figures):
     entry.runtime_data.account.config_vehicles = [SimpleNamespace(vehicle=vehicle)]
     entry.runtime_data.coordinator = MagicMock()
     added: list = []
-    with (
-        patch.object(sensor, "sensor_descriptions_to_create", lambda *a: []),
-        patch.object(sensor, "AudiLocalDealerSensor", AudiLocalDealerSensor),
-    ):
+    with patch.object(sensor, "sensor_descriptions_to_create", lambda *a: []):
         asyncio.run(sensor.async_setup_entry(MagicMock(), entry, added.extend))
     return {type(e).__name__ for e in added}
 
 
-def test_no_dealer_data_and_a_single_service_figure_make_neither_sensor():
+def test_a_single_service_figure_makes_no_overview():
     names = _created({}, service_inspection_time=307)
-    assert "AudiLocalDealerSensor" not in names
     assert "AudiServiceOverviewSensor" not in names
-
-
-def test_entering_a_dealer_creates_both():
-    options = {"local_dealers": {"wauzzz00000000001": {"dealer_name": "Example"}}}
-    names = _created(options, service_inspection_time=307)
-    assert {"AudiLocalDealerSensor", "AudiServiceOverviewSensor"} <= names
 
 
 def test_a_car_reporting_two_service_figures_gets_the_overview():
     names = _created({}, service_inspection_time=307, oil_change_time=100)
     assert "AudiServiceOverviewSensor" in names
-    assert "AudiLocalDealerSensor" not in names

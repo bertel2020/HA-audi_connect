@@ -87,7 +87,6 @@
           "climate_quick_start": "Klimatisierung mit gespeicherten Fahrzeugeinstellungen starten",
           "update_sleep": "Verzögerung der Cloud-Aktualisierung",
           "filter_vins": "Ausgeschlossene VINs",
-          "edit_local_dealer": "Händler- und Servicedaten lokal bearbeiten",
           "experimental_commands": "Experimentelle Fahrzeugsteuerungen aktivieren"
         },
         "title": "Audi Connect-Optionen",
@@ -97,37 +96,9 @@
           "climate_quick_start": "Beim Einschalten der Klimatisierung wird eine CARIAD-Startanfrage ohne zusätzliche Parameter gesendet. Dabei verwendet das Fahrzeug seine gespeicherten Einstellungen. Die in Home Assistant angezeigte Solltemperatur wird nicht übertragen. Diese Option dient als alternative Startmethode für neuere Fahrzeuge und sollte nur bei Bedarf aktiviert werden.",
           "update_sleep": "Wartezeit in Sekunden nach einer Fahrzeugaktion, bevor die Cloud-Daten aktualisiert werden. Eine längere Wartezeit gibt dem Fahrzeug mehr Zeit, seinen neuen Status an die Cloud zu übermitteln.",
           "filter_vins": "Kommagetrennte Liste von VINs, die bei der Einrichtung und bei Aktualisierungen ausgeschlossen werden.",
-          "edit_local_dealer": "Öffnet ein Formular zur lokalen Speicherung von Händlerdaten, Serviceterminen und Garantieinformationen in Home Assistant. Dabei werden keine Anfragen an die Audi-API gesendet.",
           "experimental_commands": "Aktiviert zusätzliche, manuell auslösbare CARIAD-Fahrzeugaktionen für die Scheibenheizung sowie den Schalter zur Freigabe des Ladesteckers. Standardmässig deaktiviert. Die tatsächliche Ausführung muss überprüft werden, da eine erfolgreiche API-Antwort nicht zwangsläufig bedeutet, dass das Fahrzeug die Aktion ausgeführt hat."
         }
-      },
-      "dealer_vehicle": {
-        "title": "Fahrzeug auswählen",
-        "data": {
-          "vehicle": "Audi-Fahrzeug"
-        }
-      },
-      "dealer": {
-        "title": "Händler- und Servicedaten (lokal)",
-        "description": "Diese Informationen werden ausschliesslich lokal in Home Assistant gespeichert. Es werden keine Händlerdaten von Audi abgerufen.",
-        "data": {
-          "dealer_name": "Händlername",
-          "dealer_city": "Ort",
-          "dealer_address": "Adresse",
-          "dealer_phone": "Telefonnummer",
-          "dealer_website": "Webseite",
-          "next_service_date": "Nächster Servicetermin",
-          "warranty_expiry": "Garantieende",
-          "clear": "Lokale Daten dieses Fahrzeugs löschen"
-        }
       }
-    },
-    "error": {
-      "invalid_dealer": "Bitte überprüfen Sie die Datumsangaben, die Webseite und die Feldlängen.",
-      "invalid_vehicle": "Bitte wählen Sie ein gültiges Fahrzeug aus."
-    },
-    "abort": {
-      "no_vehicle_available": "Derzeit ist kein Audi-Fahrzeug geladen."
     }
   },
   "selector": {
@@ -422,48 +393,6 @@
           "description": "Auch die experimentellen lesenden Prüfungen ausführen."
         }
       }
-    },
-    "set_local_dealer": {
-      "name": "Lokale Händler- und Serviceangaben setzen",
-      "description": "Optionale Angaben, die nur lokal in Home Assistant gespeichert werden. Keine Anfragen an die Audi-API. Nicht angegebene Felder behalten ihren Wert. Leerer Text entfernt ein Feld. „Löschen“ entfernt den ganzen lokalen Eintrag dieses Fahrzeugs.",
-      "fields": {
-        "device_id": {
-          "name": "Fahrzeug",
-          "description": "Das Audi-Fahrzeug."
-        },
-        "dealer_name": {
-          "name": "Händlername",
-          "description": "Name des Händlers."
-        },
-        "dealer_city": {
-          "name": "Ort",
-          "description": "Ort des Händlers."
-        },
-        "dealer_address": {
-          "name": "Adresse",
-          "description": "Straße und Hausnummer des Händlers."
-        },
-        "dealer_phone": {
-          "name": "Telefon",
-          "description": "Telefonnummer des Händlers."
-        },
-        "dealer_website": {
-          "name": "Webseite",
-          "description": "Webseite des Händlers."
-        },
-        "next_service_date": {
-          "name": "Nächster Service",
-          "description": "Datum des nächsten Service."
-        },
-        "warranty_expiry": {
-          "name": "Garantieende",
-          "description": "Datum, an dem die Garantie endet."
-        },
-        "clear": {
-          "name": "Löschen",
-          "description": "Den ganzen lokalen Eintrag dieses Fahrzeugs entfernen."
-        }
-      }
     }
   },
   "entity": {
@@ -692,9 +621,6 @@
       },
       "cloud_last_successful_poll": {
         "name": "Letzter erfolgreicher Cloud-Abruf"
-      },
-      "dealer_local": {
-        "name": "Händler (lokal)"
       },
       "service_overview": {
         "name": "Serviceübersicht"

@@ -87,7 +87,6 @@
           "update_sleep": "Atraso da atualização da nuvem",
           "scan_interval": "Intervalo de escaneamento",
           "filter_vins": "VINs excluídos",
-          "edit_local_dealer": "Editar dados da concessionária e do serviço local",
           "experimental_commands": "Ativar controles experimentais do veículo"
         },
         "title": "Opções Audi Connect",
@@ -97,37 +96,9 @@
           "update_sleep": "Segundos de espera após uma ação de serviço antes de atualizar os dados da nuvem. Um atraso maior dá mais tempo para o veículo informar seu novo estado à nuvem.",
           "scan_interval": "(Minutos) É necessário reiniciar para que o novo intervalo de verificação entre em vigor.",
           "filter_vins": "Lista de VINs separados por vírgula a excluir da configuração e das atualizações.",
-          "edit_local_dealer": "Abre o formulário para salvar localmente os dados da concessionária, do agendamento de revisão e da garantia, sem nenhuma requisição à API da Audi.",
           "experimental_commands": "Mostra ações adicionais CARIAD de aquecimento dos vidros acionadas pelo usuário e o interruptor de liberação do plugue de recarga. Desativado por padrão. Verifique o funcionamento real; HTTP 200 não prova que o veículo executou a ação."
         }
-      },
-      "dealer_vehicle": {
-        "title": "Escolher veículo",
-        "data": {
-          "vehicle": "Veículo Audi"
-        }
-      },
-      "dealer": {
-        "title": "Concessionária e serviço (local)",
-        "description": "Os dados permanecem no Home Assistant. Este recurso não obtém informações da concessionária junto à Audi.",
-        "data": {
-          "dealer_name": "Nome da concessionária",
-          "dealer_city": "Cidade",
-          "dealer_address": "Endereço",
-          "dealer_phone": "Telefone",
-          "dealer_website": "Site",
-          "next_service_date": "Próxima revisão",
-          "warranty_expiry": "Fim da garantia",
-          "clear": "Remover os dados locais deste veículo"
-        }
       }
-    },
-    "error": {
-      "invalid_dealer": "Verifique a data, o site e o tamanho dos campos.",
-      "invalid_vehicle": "Selecione um veículo válido."
-    },
-    "abort": {
-      "no_vehicle_available": "Nenhum veículo Audi está carregado no momento."
     }
   },
   "selector": {
@@ -422,48 +393,6 @@
           "description": "Executa também as verificações experimentais somente leitura."
         }
       }
-    },
-    "set_local_dealer": {
-      "name": "Definir dados locais da concessionária e do serviço",
-      "description": "Dados opcionais mantidos localmente no Home Assistant. Sem requisições à API da Audi. Campos não informados mantêm os valores anteriores. Texto vazio remove um campo. Limpar remove todo o registro local deste veículo.",
-      "fields": {
-        "device_id": {
-          "name": "Veículo",
-          "description": "O veículo Audi."
-        },
-        "dealer_name": {
-          "name": "Nome da concessionária",
-          "description": "Nome da concessionária."
-        },
-        "dealer_city": {
-          "name": "Cidade",
-          "description": "Cidade da concessionária."
-        },
-        "dealer_address": {
-          "name": "Endereço",
-          "description": "Endereço da concessionária."
-        },
-        "dealer_phone": {
-          "name": "Telefone",
-          "description": "Telefone da concessionária."
-        },
-        "dealer_website": {
-          "name": "Site",
-          "description": "Site da concessionária."
-        },
-        "next_service_date": {
-          "name": "Próxima revisão",
-          "description": "Data da próxima revisão."
-        },
-        "warranty_expiry": {
-          "name": "Fim da garantia",
-          "description": "Data em que a garantia termina."
-        },
-        "clear": {
-          "name": "Limpar",
-          "description": "Remove todo o registro local deste veículo."
-        }
-      }
     }
   },
   "entity": {
@@ -692,9 +621,6 @@
       },
       "cloud_last_successful_poll": {
         "name": "Última consulta bem-sucedida à nuvem"
-      },
-      "dealer_local": {
-        "name": "Concessionária (local)"
       },
       "service_overview": {
         "name": "Visão geral do serviço"

@@ -87,7 +87,6 @@
           "update_sleep": "Vertraging cloudvernieuwing",
           "scan_interval": "Scaninterval",
           "filter_vins": "Uitgesloten VIN's",
-          "edit_local_dealer": "Dealer en onderhoudsgegevens bewerken",
           "experimental_commands": "Experimentele voertuigbediening inschakelen"
         },
         "title": "Audi Connect-opties",
@@ -97,37 +96,9 @@
           "update_sleep": "Aantal seconden wachten na een service-actie voordat de cloudgegevens worden vernieuwd. Een langere vertraging geeft het voertuig meer tijd om de nieuwe status aan de cloud door te geven.",
           "scan_interval": "(Minuten) Opnieuw opstarten vereist om het nieuwe scaninterval van kracht te laten worden.",
           "filter_vins": "Door komma's gescheiden lijst met VIN's die van de installatie en updates worden uitgesloten.",
-          "edit_local_dealer": "Open een extra scherm om dealer, onderhoud en garantie lokaal in te stellen. Geen Audi API-aanroepen.",
           "experimental_commands": "Toont optionele, door de gebruiker te bedienen CARIAD-functies voor ruitverwarming en de schakelaar voor het vrijgeven van de laadstekker. Standaard uit. Verifieer acties fysiek; API HTTP 200 is geen bewijs van uitvoering."
         }
-      },
-      "dealer_vehicle": {
-        "title": "Kies het voertuig",
-        "data": {
-          "vehicle": "Audi-voertuig"
-        }
-      },
-      "dealer": {
-        "title": "Dealer en onderhoud (lokaal)",
-        "description": "De gegevens blijven lokaal in Home Assistant. Audi levert via deze functie geen automatische dealerinformatie.",
-        "data": {
-          "dealer_name": "Dealernaam",
-          "dealer_city": "Gemeente",
-          "dealer_address": "Adres",
-          "dealer_phone": "Telefoon",
-          "dealer_website": "Website",
-          "next_service_date": "Volgende afspraak (datum)",
-          "warranty_expiry": "Einde garantie",
-          "clear": "Gegevens van deze wagen verwijderen"
-        }
       }
-    },
-    "error": {
-      "invalid_dealer": "Controleer datum, website en lengte van de velden.",
-      "invalid_vehicle": "Selecteer een geldig voertuig."
-    },
-    "abort": {
-      "no_vehicle_available": "Er is nog geen Audi-voertuig geladen."
     }
   },
   "selector": {
@@ -422,48 +393,6 @@
           "description": "Voer ook de experimentele alleen-lezen controles uit."
         }
       }
-    },
-    "set_local_dealer": {
-      "name": "Lokale dealer- en onderhoudsgegevens instellen",
-      "description": "Optionele gegevens die lokaal in Home Assistant worden bewaard. Geen Audi API-verzoeken. Niet opgegeven velden behouden hun vorige waarde. Lege tekst verwijdert een veld. Wissen verwijdert het hele lokale record van dit voertuig.",
-      "fields": {
-        "device_id": {
-          "name": "Voertuig",
-          "description": "Het Audi-voertuig."
-        },
-        "dealer_name": {
-          "name": "Dealernaam",
-          "description": "Naam van de dealer."
-        },
-        "dealer_city": {
-          "name": "Plaats",
-          "description": "Plaats van de dealer."
-        },
-        "dealer_address": {
-          "name": "Adres",
-          "description": "Straat en huisnummer van de dealer."
-        },
-        "dealer_phone": {
-          "name": "Telefoon",
-          "description": "Telefoonnummer van de dealer."
-        },
-        "dealer_website": {
-          "name": "Website",
-          "description": "Website van de dealer."
-        },
-        "next_service_date": {
-          "name": "Volgende onderhoudsbeurt",
-          "description": "Datum van de volgende onderhoudsbeurt."
-        },
-        "warranty_expiry": {
-          "name": "Einde garantie",
-          "description": "Datum waarop de garantie afloopt."
-        },
-        "clear": {
-          "name": "Wissen",
-          "description": "Verwijder het hele lokale record van dit voertuig."
-        }
-      }
     }
   },
   "entity": {
@@ -692,9 +621,6 @@
       },
       "cloud_last_successful_poll": {
         "name": "Laatste geslaagde cloudopvraging"
-      },
-      "dealer_local": {
-        "name": "Dealer (lokaal)"
       },
       "service_overview": {
         "name": "Onderhoudsoverzicht"

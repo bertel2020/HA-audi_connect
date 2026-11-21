@@ -73,7 +73,6 @@ from .audi_entity import _english_entity_names
 from .card import async_register_card
 from .coordinator import AudiDataUpdateCoordinator
 from .diagnostics_payload import redact
-from .local_extensions import DEALER_FIELDS, update_local_dealer_options
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -174,18 +173,10 @@ def _get_account_for_vin(hass: HomeAssistant, vin: str) -> AudiAccount | None:
 
 
 SERVICE_PROBE_API_PATHS = "probe_api_paths"
-SERVICE_SET_LOCAL_DEALER = "set_local_dealer"
 PROBE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_DEVICE_ID): _single_device_id,
         vol.Optional("extended", default=False): bool,
-    }
-)
-LOCAL_DEALER_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_DEVICE_ID): _single_device_id,
-        vol.Optional("clear", default=False): bool,
-        **{vol.Optional(field): cv.string for field in DEALER_FIELDS},
     }
 )
 
@@ -311,21 +302,6 @@ def _async_register_services(hass: HomeAssistant) -> None:
             vin, extended=service.data.get("extended", False)
         )
 
-    async def _handle_set_local_dealer(service: ServiceCall) -> None:
-        """Opt-in local metadata only; no Audi network calls."""
-        vin, account = _resolve_service_call(hass, service)
-        fields = {
-            key: service.data[key] for key in DEALER_FIELDS if key in service.data
-        }
-        current = dict(account.config_entry.options)
-        options = update_local_dealer_options(
-            current, vin, fields, clear=service.data.get("clear", False)
-        )
-        if options != current:
-            hass.config_entries.async_update_entry(
-                account.config_entry, options=options
-            )
-
     hass.services.async_register(
         DOMAIN,
         SERVICE_PROBE_API,
@@ -339,12 +315,6 @@ def _async_register_services(hass: HomeAssistant) -> None:
         SERVICE_PROBE_API_PATHS,
         _handle_probe_api_paths,
         schema=PROBE_SCHEMA,
-    )
-    hass.services.async_register(
-        DOMAIN,
-        SERVICE_SET_LOCAL_DEALER,
-        _handle_set_local_dealer,
-        schema=LOCAL_DEALER_SCHEMA,
     )
 
     vehicle_services: tuple[tuple[str, vol.Schema, str, bool], ...] = (

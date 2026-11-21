@@ -87,7 +87,6 @@
           "update_sleep": "Forsinkelse for skyoppdatering",
           "scan_interval": "Skanneintervall",
           "filter_vins": "Ekskluderte VIN-er",
-          "edit_local_dealer": "Rediger forhandler- og serviceopplysninger lokalt",
           "experimental_commands": "Aktiver eksperimentelle kjøretøystyringer"
         },
         "title": "Audi Connect-alternativer",
@@ -97,37 +96,9 @@
           "update_sleep": "Sekunder å vente etter en tjenestehandling før skydata oppdateres. En lengre forsinkelse gir kjøretøyet mer tid til å rapportere ny status til skyen.",
           "scan_interval": "(Minutter) Omstart kreves for at nytt skanneintervall skal tre i kraft.",
           "filter_vins": "Kommaseparert liste over VIN-er som skal utelates fra oppsett og oppdateringer.",
-          "edit_local_dealer": "Åpne skjemaet for å lagre forhandler-, servicetime- og garantiopplysninger lokalt, uten forespørsler til Audi-API-et.",
           "experimental_commands": "Vis flere brukerutløste CARIAD-handlinger for vindusoppvarming og bryteren for å frigjøre ladepluggen. Av som standard. Kontroller at det faktisk fungerer; HTTP 200 er ikke bevis på at kjøretøyet utførte handlingen."
         }
-      },
-      "dealer_vehicle": {
-        "title": "Velg kjøretøy",
-        "data": {
-          "vehicle": "Audi-kjøretøy"
-        }
-      },
-      "dealer": {
-        "title": "Forhandler og service (lokalt)",
-        "description": "Opplysningene forblir i Home Assistant. Denne funksjonen henter ikke forhandlerinformasjon fra Audi.",
-        "data": {
-          "dealer_name": "Forhandlernavn",
-          "dealer_city": "Sted",
-          "dealer_address": "Adresse",
-          "dealer_phone": "Telefon",
-          "dealer_website": "Nettsted",
-          "next_service_date": "Neste servicetime",
-          "warranty_expiry": "Garantiens utløp",
-          "clear": "Fjern lokale opplysninger for dette kjøretøyet"
-        }
       }
-    },
-    "error": {
-      "invalid_dealer": "Kontroller dato, nettsted og feltlengder.",
-      "invalid_vehicle": "Velg et gyldig kjøretøy."
-    },
-    "abort": {
-      "no_vehicle_available": "Ingen Audi-kjøretøy er lastet for øyeblikket."
     }
   },
   "selector": {
@@ -422,48 +393,6 @@
           "description": "Kjør også de eksperimentelle skrivebeskyttede kontrollene."
         }
       }
-    },
-    "set_local_dealer": {
-      "name": "Angi lokale forhandler- og serviceopplysninger",
-      "description": "Valgfrie opplysninger som lagres lokalt i Home Assistant. Ingen forespørsler til Audi-API-et. Felt som ikke er angitt beholder sine tidligere verdier. Tom tekst fjerner et felt. «Tøm» fjerner hele den lokale oppføringen for dette kjøretøyet.",
-      "fields": {
-        "device_id": {
-          "name": "Kjøretøy",
-          "description": "Audi-kjøretøyet."
-        },
-        "dealer_name": {
-          "name": "Forhandlernavn",
-          "description": "Forhandlerens navn."
-        },
-        "dealer_city": {
-          "name": "Sted",
-          "description": "Forhandlerens sted."
-        },
-        "dealer_address": {
-          "name": "Adresse",
-          "description": "Forhandlerens gateadresse."
-        },
-        "dealer_phone": {
-          "name": "Telefon",
-          "description": "Forhandlerens telefonnummer."
-        },
-        "dealer_website": {
-          "name": "Nettsted",
-          "description": "Forhandlerens nettsted."
-        },
-        "next_service_date": {
-          "name": "Neste service",
-          "description": "Dato for neste service."
-        },
-        "warranty_expiry": {
-          "name": "Garantiens utløp",
-          "description": "Datoen garantien utløper."
-        },
-        "clear": {
-          "name": "Tøm",
-          "description": "Fjern hele den lokale oppføringen for dette kjøretøyet."
-        }
-      }
     }
   },
   "entity": {
@@ -692,9 +621,6 @@
       },
       "cloud_last_successful_poll": {
         "name": "Siste vellykkede skyhenting"
-      },
-      "dealer_local": {
-        "name": "Forhandler (lokal)"
       },
       "service_overview": {
         "name": "Serviceoversikt"

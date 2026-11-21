@@ -87,7 +87,6 @@
           "update_sleep": "Pilvipäivityksen viive",
           "scan_interval": "Aikaväli",
           "filter_vins": "Poissuljetut VIN-tunnukset",
-          "edit_local_dealer": "Muokkaa myyjän ja paikallisia huoltotietoja",
           "experimental_commands": "Ota kokeelliset ajoneuvon ohjaukset käyttöön"
         },
         "title": "Audi Connect -asetukset",
@@ -97,37 +96,9 @@
           "update_sleep": "Sekuntia, jotka odotetaan palvelutoiminnon jälkeen ennen pilvitietojen päivitystä. Pidempi viive antaa ajoneuvolle enemmän aikaa raportoida päivitetty tilansa pilveen.",
           "scan_interval": "Minuutit pilvikyselyjen välillä.",
           "filter_vins": "Pilkuilla erotettu luettelo VIN-tunnuksista, jotka suljetaan pois käyttöönotosta ja päivityksistä.",
-          "edit_local_dealer": "Avaa lomake, jolla tallennetaan myyjän, huoltoajan ja takuun tiedot paikallisesti ilman Audi API -pyyntöjä.",
           "experimental_commands": "Näytä lisää käyttäjän käynnistämiä CARIADin ikkunalämmitystoimintoja ja latausliittimen vapautuskytkin. Oletuksena pois päältä. Tarkista toiminta itse; HTTP 200 ei todista, että ajoneuvo toimi."
         }
-      },
-      "dealer_vehicle": {
-        "title": "Valitse ajoneuvo",
-        "data": {
-          "vehicle": "Audi-ajoneuvo"
-        }
-      },
-      "dealer": {
-        "title": "Myyjä ja huolto (paikallinen)",
-        "description": "Tiedot pysyvät Home Assistantissa. Tämä toiminto ei hae myyjätietoja Audilta.",
-        "data": {
-          "dealer_name": "Myyjän nimi",
-          "dealer_city": "Kaupunki",
-          "dealer_address": "Osoite",
-          "dealer_phone": "Puhelin",
-          "dealer_website": "Verkkosivusto",
-          "next_service_date": "Seuraava huoltoaika",
-          "warranty_expiry": "Takuun päättyminen",
-          "clear": "Poista tämän ajoneuvon paikalliset tiedot"
-        }
       }
-    },
-    "error": {
-      "invalid_dealer": "Tarkista päivämäärä, verkkosivusto ja kenttien pituudet.",
-      "invalid_vehicle": "Valitse kelvollinen ajoneuvo."
-    },
-    "abort": {
-      "no_vehicle_available": "Yhtään Audi-ajoneuvoa ei ole tällä hetkellä ladattu."
     }
   },
   "selector": {
@@ -422,48 +393,6 @@
           "description": "Suorita myös kokeelliset vain luettavat tarkistukset."
         }
       }
-    },
-    "set_local_dealer": {
-      "name": "Aseta paikalliset myyjä- ja huoltotiedot",
-      "description": "Valinnaiset tiedot, jotka säilytetään paikallisesti Home Assistantissa. Ei Audi API -pyyntöjä. Antamatta jätetyt kentät säilyttävät aiemmat arvonsa. Tyhjä teksti poistaa kentän. Tyhjennä poistaa tämän ajoneuvon koko paikallisen tietueen.",
-      "fields": {
-        "device_id": {
-          "name": "Ajoneuvo",
-          "description": "Audi-ajoneuvo."
-        },
-        "dealer_name": {
-          "name": "Myyjän nimi",
-          "description": "Myyjän nimi."
-        },
-        "dealer_city": {
-          "name": "Kaupunki",
-          "description": "Myyjän kaupunki."
-        },
-        "dealer_address": {
-          "name": "Osoite",
-          "description": "Myyjän katuosoite."
-        },
-        "dealer_phone": {
-          "name": "Puhelin",
-          "description": "Myyjän puhelinnumero."
-        },
-        "dealer_website": {
-          "name": "Verkkosivusto",
-          "description": "Myyjän verkkosivusto."
-        },
-        "next_service_date": {
-          "name": "Seuraava huolto",
-          "description": "Seuraavan huollon päivämäärä."
-        },
-        "warranty_expiry": {
-          "name": "Takuun päättyminen",
-          "description": "Takuun päättymispäivä."
-        },
-        "clear": {
-          "name": "Tyhjennä",
-          "description": "Poista tämän ajoneuvon koko paikallinen tietue."
-        }
-      }
     }
   },
   "entity": {
@@ -692,9 +621,6 @@
       },
       "cloud_last_successful_poll": {
         "name": "Pilven viimeisin onnistunut kysely"
-      },
-      "dealer_local": {
-        "name": "Myyjä (paikallinen)"
       },
       "service_overview": {
         "name": "Huoltoyhteenveto"
