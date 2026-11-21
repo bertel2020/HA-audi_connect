@@ -510,7 +510,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     AudiSensorEntityDescription(
         key="charging_current_limit_a",
         attr_key="charging_current_limit_a",
-        capability="charging",
         translation_key="charging_current_limit_a",
         icon="mdi:current-ac",
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
@@ -520,7 +519,6 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
     AudiSensorEntityDescription(
         key="charging_current_limit_mode",
         attr_key="charging_current_limit_mode",
-        capability="charging",
         translation_key="charging_current_limit_mode",
         icon="mdi:ev-station",
         entity_category=EntityCategory.DIAGNOSTIC,

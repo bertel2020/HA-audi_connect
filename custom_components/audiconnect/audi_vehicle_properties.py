@@ -686,9 +686,17 @@ class AudiVehicleProperties:
         return parse_float(value) if value is not None else None
 
     @property
+    def charging_current_limit_a_supported(self):
+        return self.charging_current_limit_a is not None
+
+    @property
     def charging_current_limit_mode(self):
         value = self._vehicle.state.get("chargingCurrentLimitMode")
         return None if value == _INVALID else value
+
+    @property
+    def charging_current_limit_mode_supported(self):
+        return self.charging_current_limit_mode is not None
 
     @property
     def charging_plug_auto_unlock(self):
@@ -711,6 +719,10 @@ class AudiVehicleProperties:
         return None
 
     @property
+    def vehicle_reported_online_supported(self):
+        return self.vehicle_reported_online is not None
+
+    @property
     def vehicle_reported_active(self):
         value = self._vehicle.state.get("vehicleReportedActive")
         if value is True:
@@ -718,6 +730,10 @@ class AudiVehicleProperties:
         if value is False:
             return "inactive"
         return None
+
+    @property
+    def vehicle_reported_active_supported(self):
+        return self.vehicle_reported_active is not None
 
     @property
     def climatisation_timers(self):
