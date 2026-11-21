@@ -24,6 +24,26 @@ CAPABILITY_GROUPS: dict[str, tuple[str, ...]] = {
 }
 
 
+def _ids(value: Any) -> list[str]:
+    """Capability identifiers the car lists: product names, not personal data."""
+    if not isinstance(value, (set, frozenset, list, tuple)):
+        return []
+    return sorted(item for item in value if isinstance(item, str))
+
+
+def _flags(value: Any) -> dict[str, bool]:
+    """The car's "supports..." answers, true or false, nothing else."""
+    if not isinstance(value, dict):
+        return {}
+    return {
+        key: answer
+        for key, answer in sorted(value.items())
+        if isinstance(key, str)
+        and key.startswith("supports")
+        and isinstance(answer, bool)
+    }
+
+
 def snapshot_capabilities(vehicle: Any) -> dict[str, Any]:
     """Return only predeclared identifiers and a conservative tri-state verdict."""
     checker = getattr(vehicle, "has_capability", None)
@@ -42,6 +62,14 @@ def snapshot_capabilities(vehicle: Any) -> dict[str, Any]:
         groups[family] = statuses
     count = getattr(vehicle, "capabilities", None)
     return {
+        "capability_ids": _ids(count),
+        "impaired_capability_ids": _ids(impaired),
+        "supports_flags": {
+            "climatisation": _flags(getattr(vehicle, "climatisation_supports", None)),
+            "chargingProfiles": _flags(
+                getattr(vehicle, "charging_profiles_supports", None)
+            ),
+        },
         "source": "vehicle_poll_not_browser_session",
         "advertised_capability_count": len(count)
         if isinstance(count, (set, frozenset, list, tuple))

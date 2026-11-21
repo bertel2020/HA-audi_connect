@@ -17,6 +17,13 @@ def test_three_way_verdict_and_no_ids():
     car = NS(
         capabilities=frozenset(["charging", "vehicleWakeUp", "SECRET_CUSTOM"]),
         impaired_capabilities=frozenset(["vehicleWakeUp"]),
+        climatisation_supports={
+            "supportsWindowHeatingEnabled": False,
+            "supportsClimatisationAtUnlock": True,
+            "somethingElse": True,
+            "supportsEmpty": "",
+        },
+        charging_profiles_supports=None,
         has_capability=lambda c: c in ["charging", "vehicleWakeUp", "SECRET_CUSTOM"],
     )
     data = m.snapshot_capabilities(car)
@@ -26,8 +33,17 @@ def test_three_way_verdict_and_no_ids():
         data["groups"]["service"]["dealerAppointment"]
         == "not_reported_for_this_vehicle"
     )
-    assert "SECRET_CUSTOM" not in repr(data)
+    # Identifiers the car lists are product names and now reported in full.
+    assert "SECRET_CUSTOM" in data["capability_ids"]
     assert data["command_authorization_confirmed"] is False
+    assert data["impaired_capability_ids"] == ["vehicleWakeUp"]
+    assert data["supports_flags"] == {
+        "climatisation": {
+            "supportsClimatisationAtUnlock": True,
+            "supportsWindowHeatingEnabled": False,
+        },
+        "chargingProfiles": {},
+    }
 
 
 def test_empty_capabilities_are_unknown():
