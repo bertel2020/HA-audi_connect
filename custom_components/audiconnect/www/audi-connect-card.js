@@ -34,9 +34,10 @@ const TEXT = {
     no_vehicle: "No Audi Connect vehicle found. Pick one in the card settings.",
     stale: "Data is outdated", days: "days", ago: "{t} ago", now: "now",
     min: "min", h: "h", d: "d", refresh: "Refresh", refresh_data: "Refresh vehicle data", flash: "Flash lights",
+    call_failed: "The action failed",
     // editor
     e_device: "Vehicle", e_name: "Name", e_image: "Upload a photo (optional)", e_image_local: "…or pick one from the www folder", e_none: "none",
-    e_icon: "Icon instead of the Audi logo (optional)", e_logo: "Show Audi logo", e_trips: "Show trips", e_climate: "Show climate", e_stats: "Show vehicle details",
+    e_icon: "Icon instead of the Audi logo (optional)", e_logo: "Show Audi logo", e_trips: "Show trips", e_climate: "Show climate", e_stats: "Show vehicle details", e_seats: "Show seat/zone buttons (only if the car has them)",
   },
   de: {
     locked: "Verriegelt", unlocked: "Entriegelt", lock_unknown: "Schlosszustand unbekannt", not_secured: "Nicht gesichert",
@@ -61,8 +62,9 @@ const TEXT = {
     no_vehicle: "Kein Audi-Connect-Fahrzeug gefunden. Wähle eines in den Karteneinstellungen.",
     stale: "Daten sind veraltet", days: "Tage", ago: "vor {t}", now: "gerade eben",
     min: "Min.", h: "Std.", d: "T.", refresh: "Aktualisieren", refresh_data: "Fahrzeugdaten aktualisieren", flash: "Lichthupe",
+    call_failed: "Aktion fehlgeschlagen",
     e_device: "Fahrzeug", e_name: "Name", e_image: "Foto hochladen (optional)", e_image_local: "…oder eines aus dem www-Ordner wählen", e_none: "keines",
-    e_icon: "Icon statt Audi-Logo (optional)", e_logo: "Audi-Logo anzeigen", e_trips: "Fahrten anzeigen", e_climate: "Klimatisierung anzeigen", e_stats: "Fahrzeugdetails anzeigen",
+    e_icon: "Icon statt Audi-Logo (optional)", e_logo: "Audi-Logo anzeigen", e_trips: "Fahrten anzeigen", e_climate: "Klimatisierung anzeigen", e_stats: "Fahrzeugdetails anzeigen", e_seats: "Sitz-/Zonen-Tasten anzeigen (nur wenn das Auto sie hat)",
   },
 };
 
@@ -129,6 +131,8 @@ input[type=range]{width:100%;margin:2px 0 0;accent-color:var(--primary-color)}
 .note ha-icon{--mdc-icon-size:22px;color:var(--secondary-text-color)}
 .note.bad{background:color-mix(in srgb,var(--error-color) 14%,transparent)}
 .note.bad ha-icon{color:var(--error-color)}
+.note.err{cursor:default;margin:10px 14px 0}
+.note .sub{display:block;margin-top:2px;font-size:12px;color:var(--secondary-text-color)}
 .note .nd{margin-left:auto;font-size:12px;color:var(--secondary-text-color)}
 .pulse{animation:pu 1.4s ease-in-out infinite}
 details{border-top:1px solid var(--divider-color)}
@@ -352,7 +356,7 @@ class AudiConnectCard extends HTMLElement {
   }
 
   setConfig(config) {
-    this._config = { show_logo: true, show_trips: true, show_climate: true, show_stats: true, ...config };
+    this._config = { show_logo: true, show_trips: true, show_climate: true, show_stats: true, show_seats: false, ...config };
     this._sig = "";
     this._update();
   }
@@ -594,6 +598,7 @@ class AudiConnectCard extends HTMLElement {
     parts.push(`<div class="title tap${busy}"${act}>${c.icon ? `<ha-icon icon="${esc(c.icon)}"></ha-icon>` : c.show_logo ? RINGS : ""}<span>${esc(name)}</span></div>`);
     const photo = c.image_local || c.image;
     if (photo) parts.push(`<img class="photo tap${busy}"${act} src="${esc(photo)}" alt="">`);
+    parts.push(this._renderError());
     parts.push(this._renderInfoRow());
     parts.push(this._renderIcons());
     parts.push(this._renderEnergy());
@@ -602,6 +607,13 @@ class AudiConnectCard extends HTMLElement {
     if (c.show_climate && this._has("climatisation")) parts.push(this._renderClimate());
     if (this._ui.popup) parts.push(this._renderPopup());
     return parts.join("");
+  }
+
+  // A rejected action (Audi did not answer, the car is out of reach) shows here for a few seconds.
+  _renderError() {
+    const e = this._ui.error;
+    if (!e) return "";
+    return `<div class="note bad err" role="alert"><ha-icon icon="mdi:alert-circle-outline"></ha-icon><span>${esc(this._t("call_failed"))}${e.text ? `<span class="sub">${esc(e.text)}</span>` : ""}</span></div>`;
   }
 
   _renderInfoRow() {
@@ -702,11 +714,12 @@ class AudiConnectCard extends HTMLElement {
       cells.push(`<div class="cell" data-more="${esc(this._id("actual_charge_rate"))}"><ha-icon class="ci" icon="mdi:map-marker-distance"></ha-icon><span class="v">+${esc(shown)} ${esc(unit)}</span><span class="k">${esc(this._t("rate"))}</span></div>`);
     }
     const done = this._known("charging_complete_time") ? this._timeOf(this._s("charging_complete_time").state) : "";
+    const day = done ? this._dayOf(this._s("charging_complete_time").state) : "";
     const mins = this._known("remaining_charging_time") ? this._num("remaining_charging_time") : undefined;
     const left = mins !== undefined && mins > 0 ? this._t("in", { t: this._dur(mins) }) : "";
     if (done || left) {
       const id = this._id(done ? "charging_complete_time" : "remaining_charging_time");
-      cells.push(`<div class="cell" data-more="${esc(id)}"><ha-icon class="ci" icon="mdi:clock-check-outline"></ha-icon><span class="v">${esc(done || left)}</span><span class="k">${esc(this._t("charging_done"))}</span>${done && left ? `<span class="s">${esc(left)}</span>` : ""}</div>`);
+      cells.push(`<div class="cell" data-more="${esc(id)}"><ha-icon class="ci" icon="mdi:clock-check-outline"></ha-icon><span class="v">${esc(done || left)}</span><span class="k">${esc(this._t("charging_done") + (day ? " " + day : ""))}</span>${done && left ? `<span class="s">${esc(left)}</span>` : ""}</div>`);
     }
     return cells.length ? `<div class="band">${cells.join("")}</div>` : "";
   }
@@ -743,6 +756,18 @@ class AudiConnectCard extends HTMLElement {
   _dur(minutes) {
     const h = Math.floor(minutes / 60), m = Math.round(minutes % 60);
     return h ? (m ? `${h} ${this._t("h")} ${m} ${this._t("min")}` : `${h} ${this._t("h")}`) : `${m} ${this._t("min")}`;
+  }
+
+  // "" for today, otherwise "tomorrow" or the weekday, so a finish time after midnight is not ambiguous.
+  _dayOf(iso) {
+    const d = new Date(iso);
+    if (isNaN(d)) return "";
+    const lang = this._hass.language || undefined;
+    const start = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const diff = Math.round((start(d) - start(new Date())) / 86400000);
+    if (diff <= 0) return "";
+    if (diff === 1) return new Intl.RelativeTimeFormat(lang, { numeric: "auto" }).format(1, "day");
+    return d.toLocaleDateString(lang, { weekday: "short" });
   }
 
   _timeOf(iso) {
@@ -846,7 +871,7 @@ class AudiConnectCard extends HTMLElement {
       : "";
     const seatBtn = (tk, label) => this._has(tk)
       ? `<button class="pill ${this._on(tk) ? "on" : ""}${this._waiting(this._id(tk)) ? " wait" : ""}" data-toggle="${esc(this._id(tk))}"><ha-icon icon="${this._waiting(this._id(tk)) ? "mdi:loading" : "mdi:car-seat-heater"}"></ha-icon>${esc(label)}</button>` : "";
-    const seats = seatBtn("climatisation_zone_front_left", this._t("driver")) + seatBtn("climatisation_zone_front_right", this._t("passenger"));
+    const seats = this._config.show_seats ? seatBtn("climatisation_zone_front_left", this._t("driver")) + seatBtn("climatisation_zone_front_right", this._t("passenger")) : "";
     const id = esc(cl.entity_id);
     const sub = on ? `${this._t(action)}${left ? " · " + this._t("remaining") + " " + left : ""}` : this._t("climate_off") + outdoor;
     const modeRow = mode && modeOptions.length
@@ -1086,15 +1111,15 @@ class AudiConnectCard extends HTMLElement {
     if (el.dataset.more && t.closest("summary")) e.preventDefault();
     if (el.dataset.step) { this._stepTemp(Number(el.dataset.step)); return; }
     if (el.dataset.tabSet) { this._ui.tab = el.dataset.tabSet; this._sig = ""; this._update(); return; }
-    if (el.dataset.toggle) { this._hass.callService("homeassistant", "toggle", { entity_id: el.dataset.toggle }); this._wait(el.dataset.toggle); return; }
+    if (el.dataset.toggle) { this._call("homeassistant", "toggle", { entity_id: el.dataset.toggle }, el.dataset.toggle); this._wait(el.dataset.toggle); return; }
     switch (el.dataset.act) {
       case "popup": this._ui.popup = true; this._ui.tab = el.dataset.tab; this._sig = ""; this._update(); return;
       case "close": this._ui.popup = null; this._sig = ""; this._update(); return;
       case "lock": this._toggleLock(); return;
       case "refresh": this._refresh(); return;
       case "open-integration": this._openIntegration(); return;
-      case "climate-on": this._hass.callService("climate", "turn_on", { entity_id: this._id("climatisation") }); this._wait("climate-on"); return;
-      case "climate-off": this._hass.callService("climate", "turn_off", { entity_id: this._id("climatisation") }); this._wait("climate-off"); return;
+      case "climate-on": this._call("climate", "turn_on", { entity_id: this._id("climatisation") }, "climate-on"); this._wait("climate-on"); return;
+      case "climate-off": this._call("climate", "turn_off", { entity_id: this._id("climatisation") }, "climate-off"); this._wait("climate-off"); return;
       default: break;
     }
     if (el.dataset.more) this._moreInfo(el.dataset.more);
@@ -1111,7 +1136,7 @@ class AudiConnectCard extends HTMLElement {
     if (el) el.textContent = this._temp(v);
     clearTimeout(this._tempTimer);
     this._tempTimer = setTimeout(() => {
-      this._hass.callService("climate", "set_temperature", { entity_id: this._id("climatisation"), temperature: v });
+      this._call("climate", "set_temperature", { entity_id: this._id("climatisation"), temperature: v });
       setTimeout(() => { this._ui.tempDraft = null; this._sig = ""; this._update(); }, 3000);
     }, 700);
   }
@@ -1130,10 +1155,38 @@ class AudiConnectCard extends HTMLElement {
     }, 5000);
   }
 
+  // Every action goes through here. A call Home Assistant rejects is shown on the card instead of
+  // vanishing after the spinner, and the button that was waiting for the car stops waiting.
+  _call(domain, service, data, waitKey) {
+    let result;
+    try {
+      result = this._hass.callService(domain, service, data);
+    } catch (err) {
+      result = Promise.reject(err);
+    }
+    Promise.resolve(result).catch((err) => this._fail(err, waitKey));
+  }
+
+  _fail(err, waitKey) {
+    if (waitKey && this._ui.wait) delete this._ui.wait[waitKey];
+    this._ui.refreshing = false;
+    this._ui.tempDraft = null;
+    const raw = typeof err === "string" ? err : err?.message;
+    this._ui.error = { text: raw ? String(raw).slice(0, 140) : "" };
+    clearTimeout(this._errTimer);
+    this._errTimer = setTimeout(() => {
+      this._ui.error = null;
+      this._sig = "";
+      this._update();
+    }, 8000);
+    this._sig = "";
+    this._update();
+  }
+
   _refresh() {
     const id = this._id("refresh_vehicle_data");
     if (!id || this._ui.refreshing) return;
-    this._hass.callService("button", "press", { entity_id: id });
+    this._call("button", "press", { entity_id: id });
     // The car takes a while to answer; this only shows that the request went out.
     this._ui.refreshing = true;
     this._sig = "";
@@ -1152,7 +1205,7 @@ class AudiConnectCard extends HTMLElement {
     if (state === "unknown") return;
     const locked = state === "locked";
     if (!window.confirm(this._t(locked ? "confirm_unlock" : "confirm_lock"))) return;
-    this._hass.callService("lock", locked ? "unlock" : "lock", { entity_id: id });
+    this._call("lock", locked ? "unlock" : "lock", { entity_id: id });
   }
 
   // While a slider is dragged only its readout moves; the value is sent on release.
@@ -1173,11 +1226,11 @@ class AudiConnectCard extends HTMLElement {
   _onChange(e) {
     const t = e.target;
     if (t.dataset.slider === "target") {
-      this._hass.callService("number", "set_value", { entity_id: this._id("target_state_of_charge"), value: Number(t.value) });
+      this._call("number", "set_value", { entity_id: this._id("target_state_of_charge"), value: Number(t.value) });
     } else if (t.dataset.slider === "temp") {
-      this._hass.callService("climate", "set_temperature", { entity_id: this._id("climatisation"), temperature: Number(t.value) });
+      this._call("climate", "set_temperature", { entity_id: this._id("climatisation"), temperature: Number(t.value) });
     } else if (t.dataset.select) {
-      this._hass.callService("select", "select_option", { entity_id: t.dataset.select, option: t.value });
+      this._call("select", "select_option", { entity_id: t.dataset.select, option: t.value });
     }
   }
 }
@@ -1211,6 +1264,14 @@ class AudiConnectCardEditor extends HTMLElement {
     this._render();
   }
 
+  // Whether the chosen vehicle (or any Audi Connect vehicle, before one is chosen) has seat/zone switches.
+  _hasSeatZones() {
+    const device = this._config?.device_id;
+    return Object.values(this._hass?.entities || {}).some(
+      (e) => e.platform === DOMAIN && (!device || e.device_id === device) && /^climatisation_zone_front_(left|right)$/.test(e.translation_key || ""),
+    );
+  }
+
   _render() {
     if (!this._hass || !this._config) return;
     if (!this._form) {
@@ -1223,7 +1284,7 @@ class AudiConnectCardEditor extends HTMLElement {
       this.appendChild(this._form);
     }
     this._form.hass = this._hass;
-    this._form.data = { show_logo: true, show_trips: true, show_climate: true, show_stats: true, image_local: "", ...this._config };
+    this._form.data = { show_logo: true, show_trips: true, show_climate: true, show_stats: true, show_seats: false, image_local: "", ...this._config };
     const options = [{ value: "", label: this._t("e_none") }, ...(this._images || []).map((i) => ({ value: i.path, label: i.name }))];
     // A picture that is no longer in the folder must stay selectable, or the editor would drop it.
     const current = this._config.image_local;
@@ -1238,10 +1299,12 @@ class AudiConnectCardEditor extends HTMLElement {
       { name: "show_trips", selector: { boolean: {} } },
       { name: "show_climate", selector: { boolean: {} } },
       { name: "show_stats", selector: { boolean: {} } },
+      // Only offered when the car has such zones; hidden by default because what they heat is not confirmed.
+      ...(this._hasSeatZones() ? [{ name: "show_seats", selector: { boolean: {} } }] : []),
     ];
     const labels = {
       device_id: "e_device", name: "e_name", image: "e_image", image_local: "e_image_local",
-      icon: "e_icon", show_logo: "e_logo", show_trips: "e_trips", show_climate: "e_climate", show_stats: "e_stats",
+      icon: "e_icon", show_logo: "e_logo", show_trips: "e_trips", show_climate: "e_climate", show_stats: "e_stats", show_seats: "e_seats",
     };
     this._form.computeLabel = (s) => this._t(labels[s.name]);
   }

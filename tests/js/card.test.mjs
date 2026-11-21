@@ -29,9 +29,12 @@ const DEFS = [
   ["sensor.range", "range", "310", { unit_of_measurement: "km" }],
   ["sensor.cs", "charging_state", "charging"],
   ["sensor.cp", "charging_power", "11", { unit_of_measurement: "kW" }],
+  ["sensor.done", "charging_complete_time", new Date(Date.now() + 30 * 60e3).toISOString()],
   ["number.target", "target_state_of_charge", "80", { min: 20, max: 100, step: 5 }],
   ["climate.car", "climatisation", "off", { temperature: 21, min_temp: 15, max_temp: 30, target_temp_step: 0.5 }],
   ["select.mode", "climatisation_mode", "comfort", { options: ["comfort", "economy"] }],
+  ["switch.zfl", "climatisation_zone_front_left", "off"],
+  ["switch.zfr", "climatisation_zone_front_right", "on"],
   ["button.refresh", "refresh_vehicle_data", "unknown"],
 ];
 
@@ -227,6 +230,39 @@ test("every cell of the charging band has an icon, a value and a label", () => {
   }
 });
 
+const inHours = (h) => new Date(Date.now() + h * 3600e3).toISOString();
+
+test("a finish time today carries no day", () => {
+  const soon = new Date(Date.now() + 30 * 60e3);
+  if (soon.getDate() !== new Date().getDate()) return; // too close to midnight to say
+  card._hass.states["sensor.done"] = { entity_id: "sensor.done", state: soon.toISOString(), attributes: {}, last_updated: soon.toISOString() };
+  assert.equal(card._dayOf(soon.toISOString()), "");
+});
+
+test("a finish time tomorrow says tomorrow, and a later one the weekday", () => {
+  assert.equal(card._dayOf(inHours(30)).toLowerCase(), "tomorrow");
+  const later = card._dayOf(inHours(24 * 3 + 1));
+  assert.ok(later && later.toLowerCase() !== "tomorrow", later);
+});
+
+test("the band says tomorrow next to the finish label when it ends after midnight", () => {
+  setHass({ "sensor.done": inHours(30) });
+  const label = root().querySelector(".band .cell:last-child .k").textContent;
+  assert.match(label, /^done tomorrow$/i);
+});
+
+test("an invalid finish time has no day", () => {
+  assert.equal(card._dayOf("not a date"), "");
+});
+
+test("the seat and zone buttons are hidden unless the card option is on", () => {
+  const seats = () => root().querySelectorAll('button[data-toggle="switch.zfl"], button[data-toggle="switch.zfr"]').length;
+  assert.equal(seats(), 0);
+  card.setConfig({ device_id: "dev1", show_seats: true });
+  setHass({});
+  assert.equal(seats(), 2);
+});
+
 test("the temperature stepper has real labels", () => {
   card._ui.tempDraft = undefined;
   setHass({ "climate.car": "heat" });
@@ -253,6 +289,58 @@ test("a pressed climate button shows it is waiting, then settles", () => {
   assert.ok(root().querySelector('[data-act="climate-on"]').classList.contains("wait"));
   tick(5000);
   assert.ok(!root().querySelector('[data-act="climate-on"]').classList.contains("wait"));
+});
+
+const rejecting = (message) => ({
+  ...build(),
+  callService: (d, s, x) => {
+    calls.push([d, s, x]);
+    return Promise.reject(new Error(message));
+  },
+});
+
+test("a rejected action is shown on the card and the button stops waiting", async () => {
+  card.hass = rejecting("Audi wake_vehicle_modern request failed; check the logs");
+  root().querySelector('[data-act="climate-on"]').click();
+  assert.ok(root().querySelector('[data-act="climate-on"]').classList.contains("wait"));
+  await settle();
+  const note = root().querySelector(".note.err");
+  assert.ok(note, "an error note");
+  assert.equal(note.getAttribute("role"), "alert");
+  assert.match(note.textContent, /The action failed/);
+  assert.match(note.textContent, /request failed; check the logs/);
+  assert.ok(!root().querySelector('[data-act="climate-on"]').classList.contains("wait"));
+});
+
+test("the error note goes away by itself", async () => {
+  card.hass = rejecting("nope");
+  root().querySelector('[data-act="climate-on"]').click();
+  await settle();
+  assert.ok(root().querySelector(".note.err"));
+  tick(8000);
+  assert.equal(root().querySelector(".note.err"), null);
+});
+
+test("a call that throws instead of rejecting is shown the same way", async () => {
+  card.hass = { ...build(), callService: () => { throw new Error("boom"); } };
+  root().querySelector('[data-act="climate-on"]').click();
+  await settle();
+  assert.match(root().querySelector(".note.err").textContent, /boom/);
+});
+
+test("a refresh that fails stops the busy state and says so", async () => {
+  card.hass = rejecting("Audi did not answer");
+  card._refresh();
+  assert.ok(card._ui.refreshing);
+  await settle();
+  assert.equal(card._ui.refreshing, false);
+  assert.ok(root().querySelector(".note.err"));
+});
+
+test("a successful action shows no error", async () => {
+  root().querySelector('[data-act="climate-on"]').click();
+  await settle();
+  assert.equal(root().querySelector(".note.err"), null);
 });
 
 test("the stepper sends one temperature after the taps stop", () => {
@@ -360,6 +448,21 @@ test("empty choices are left out of the saved config", async () => {
   el.addEventListener("config-changed", (e) => { saved = e.detail.config; });
   el._form.dispatchEvent(new window.CustomEvent("value-changed", { detail: { value: { device_id: "dev1", name: "", image_local: "", show_logo: false } } }));
   assert.deepEqual(saved, { device_id: "dev1", show_logo: false });
+});
+
+test("the editor offers the seat option only when the car has zone switches", async () => {
+  const el = editor();
+  await settle();
+  assert.ok(el._form.schema.some((f) => f.name === "show_seats"));
+  assert.equal(el._form.data.show_seats, false);
+  assert.match(el._form.computeLabel({ name: "show_seats" }), /seat\/zone/);
+
+  const none = window.document.createElement("audi-connect-card-editor");
+  window.document.body.appendChild(none);
+  none.setConfig({ device_id: "dev1" });
+  none.hass = { ...build({}, { skip: ["switch.zfl", "switch.zfr"] }), callWS: async () => [] };
+  await settle();
+  assert.ok(!none._form.schema.some((f) => f.name === "show_seats"));
 });
 
 test("the editor is labelled in the user's language", async () => {
