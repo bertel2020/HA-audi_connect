@@ -29,6 +29,7 @@ const DEFS = [
   ["sensor.range", "range", "310", { unit_of_measurement: "km" }],
   ["sensor.cs", "charging_state", "charging"],
   ["sensor.cp", "charging_power", "11", { unit_of_measurement: "kW" }],
+  ["sensor.rate", "actual_charge_rate", "20", { unit_of_measurement: "km/h" }],
   ["sensor.done", "charging_complete_time", new Date(Date.now() + 30 * 60e3).toISOString()],
   ["number.target", "target_state_of_charge", "80", { min: 20, max: 100, step: 5 }],
   ["climate.car", "climatisation", "off", { temperature: 21, min_temp: 15, max_temp: 30, target_temp_step: 0.5 }],
@@ -230,25 +231,34 @@ test("every cell of the charging band has an icon, a value and a label", () => {
   }
 });
 
-const inHours = (h) => new Date(Date.now() + h * 3600e3).toISOString();
+// Local-time dates and a pinned clock, so the result does not depend on when or where the tests run.
+const at = (day, h, m = 0) => new Date(2026, 10, day, h, m);
+const pin = (d) => { card._now = () => d; };
 
 test("a finish time today carries no day", () => {
-  const soon = new Date(Date.now() + 30 * 60e3);
-  if (soon.getDate() !== new Date().getDate()) return; // too close to midnight to say
-  card._hass.states["sensor.done"] = { entity_id: "sensor.done", state: soon.toISOString(), attributes: {}, last_updated: soon.toISOString() };
-  assert.equal(card._dayOf(soon.toISOString()), "");
+  pin(at(21, 10));
+  assert.equal(card._dayOf(at(21, 11, 30).toISOString()), "");
 });
 
 test("a finish time tomorrow says tomorrow, and a later one the weekday", () => {
-  assert.equal(card._dayOf(inHours(30)).toLowerCase(), "tomorrow");
-  const later = card._dayOf(inHours(24 * 3 + 1));
+  pin(at(21, 22));
+  assert.equal(card._dayOf(at(22, 4, 10).toISOString()).toLowerCase(), "tomorrow");
+  const later = card._dayOf(at(24, 10).toISOString());
   assert.ok(later && later.toLowerCase() !== "tomorrow", later);
 });
 
 test("the band says tomorrow next to the finish label when it ends after midnight", () => {
-  setHass({ "sensor.done": inHours(30) });
+  pin(at(21, 22));
+  setHass({ "sensor.done": at(22, 4, 10).toISOString() });
   const label = root().querySelector(".band .cell:last-child .k").textContent;
   assert.match(label, /^done tomorrow$/i);
+});
+
+test("a language the card has no texts for does not mix in foreign dates", () => {
+  card.hass = { ...build(), language: "fr" };
+  assert.equal(card._locale(), "en");
+  pin(at(21, 22));
+  assert.equal(card._dayOf(at(22, 4).toISOString()).toLowerCase(), "tomorrow");
 });
 
 test("an invalid finish time has no day", () => {
@@ -261,6 +271,41 @@ test("the seat and zone buttons are hidden unless the card option is on", () => 
   card.setConfig({ device_id: "dev1", show_seats: true });
   setHass({});
   assert.equal(seats(), 2);
+});
+
+test("the range-per-hour cell shows the gain, and nothing when it is zero", () => {
+  const texts = () => [...root().querySelectorAll(".band .cell .v")].map((e) => e.textContent.trim());
+  assert.ok(texts().some((t) => t.startsWith("+20")), texts().join("|"));
+  setHass({ "sensor.rate": "0" });
+  assert.ok(!texts().some((t) => t.startsWith("+")), texts().join("|"));
+});
+
+test("doors and windows that no sensor reports are not shown as closed", () => {
+  const off = {};
+  for (const [id, tk] of DEFS) if (/_(door|window)_open$/.test(tk) || tk === "hood_open" || tk === "trunk_open") off[id] = "unavailable";
+  setHass(off);
+  const icons = [...root().querySelectorAll(".icons .ic")].map((b) => b.textContent.trim());
+  assert.ok(icons.includes("Doors: unknown"), icons.join("|"));
+  assert.ok(icons.includes("Windows: unknown"), icons.join("|"));
+  assert.ok(!root().querySelector('.icons .ic[data-tab="doors"]').classList.contains("ok"));
+});
+
+test("no focusable button without an entity behind it", () => {
+  setHass({}, { skip: ["binary_sensor.fl", "binary_sensor.wfl"] });
+  openDoors();
+  const dead = [...root().querySelectorAll('[data-more=""]')].filter((e) => e.getAttribute("role") === "button" || e.hasAttribute("tabindex"));
+  assert.deepEqual(dead, []);
+});
+
+test("without a lock entity there is no lock button in the popup", () => {
+  setHass({}, { skip: ["lock.car"] });
+  openDoors();
+  assert.equal(root().querySelector('[data-act="lock"]'), null);
+});
+
+test("a duration never reads 60 minutes", () => {
+  assert.equal(card._dur(119.6), "2 h");
+  assert.equal(card._dur(61), "1 h 1 min");
 });
 
 test("the temperature stepper has real labels", () => {
@@ -307,7 +352,7 @@ test("a rejected action is shown on the card and the button stops waiting", asyn
   const note = root().querySelector(".note.err");
   assert.ok(note, "an error note");
   assert.equal(note.getAttribute("role"), "alert");
-  assert.match(note.textContent, /The action failed/);
+  assert.match(note.textContent, /Start climate failed/);
   assert.match(note.textContent, /request failed; check the logs/);
   assert.ok(!root().querySelector('[data-act="climate-on"]').classList.contains("wait"));
 });
@@ -341,6 +386,93 @@ test("a successful action shows no error", async () => {
   root().querySelector('[data-act="climate-on"]').click();
   await settle();
   assert.equal(root().querySelector(".note.err"), null);
+});
+
+test("a failure while the target slider has focus is still drawn", async () => {
+  const slider = root().querySelector('input[data-slider="target"]');
+  slider.focus();
+  assert.equal(card.shadowRoot.activeElement, slider);
+  card.hass = rejecting("Audi did not answer");
+  card._call("number", "set_value", { entity_id: "number.target", value: 90 });
+  await settle();
+  assert.ok(root().querySelector(".note.err"), "the note is drawn");
+  assert.notEqual(card.shadowRoot.activeElement?.tagName, "INPUT");
+});
+
+test("a failed lock command is shown inside the open popup, not behind it", async () => {
+  openDoors();
+  card.hass = rejecting("Audi rejected the command");
+  root().querySelector('[data-act="lock"]').click();
+  await settle();
+  assert.ok(root().querySelector(".dlg .note.err"), "inside the dialog");
+  assert.match(root().querySelector(".dlg .note.err").textContent, /Unlock failed/);
+  assert.equal(root().querySelectorAll(".note.err").length, 1, "once, not also behind it");
+});
+
+test("the error text is shown as text, never as markup", async () => {
+  card.hass = rejecting('<img src=x onerror="window.pwned=1"><b>bold</b>');
+  root().querySelector('[data-act="climate-on"]').click();
+  await settle();
+  const note = root().querySelector(".note.err");
+  assert.equal(note.querySelector("img, b"), null);
+  assert.match(note.textContent, /<img src=x/);
+});
+
+test("a long message is cut with an ellipsis", async () => {
+  card.hass = rejecting("x".repeat(300));
+  root().querySelector('[data-act="climate-on"]').click();
+  await settle();
+  const sub = root().querySelector(".note.err .sub").textContent;
+  assert.equal(sub.length, 140);
+  assert.ok(sub.endsWith("…"));
+});
+
+test("a failure resets only the state of its own action", async () => {
+  card._ui.tempDraft = 25;
+  card.hass = rejecting("no");
+  card._call("lock", "unlock", { entity_id: "lock.car" });
+  await settle();
+  assert.equal(card._ui.tempDraft, 25, "a lock failure keeps the temperature draft");
+  card._call("climate", "set_temperature", { entity_id: "climate.car", temperature: 22 });
+  await settle();
+  assert.equal(card._ui.tempDraft, null, "a temperature failure drops it");
+});
+
+test("Home Assistant is told not to show its own toast", () => {
+  const seen = [];
+  card.hass = { ...build(), callService: (...args) => { seen.push(args); } };
+  card._call("climate", "turn_on", { entity_id: "climate.car" });
+  assert.equal(seen[0][4], false);
+});
+
+test("the sent temperature stays shown until the car reports it", () => {
+  const plus = () => root().querySelector('button[data-step="1"]');
+  plus().click(); plus().click(); plus().click();
+  tick(700);
+  tick(3000);
+  assert.ok(root().querySelector('[data-live="temp"]').textContent.includes("22.5"), "still the sent value after 3 s");
+  const base = build();
+  card.hass = { ...base, states: { ...base.states, "climate.car": { ...base.states["climate.car"], attributes: { ...base.states["climate.car"].attributes, temperature: 22.5 } } } };
+  assert.equal(card._ui.tempDraft, null, "settled once the car reports it");
+});
+
+test("a second click restarts the wait instead of ending with the first timer", () => {
+  const on = () => root().querySelector('[data-act="climate-on"]');
+  on().click();
+  tick(3000);
+  on().click();
+  tick(2500);
+  assert.ok(on().classList.contains("wait"), "5.5 s after the first click, 2.5 s after the second");
+  tick(2600);
+  assert.ok(!on().classList.contains("wait"));
+});
+
+test("removing the card cancels a pending temperature change", () => {
+  const plus = root().querySelector('button[data-step="1"]');
+  plus.click();
+  card.remove();
+  tick(700);
+  assert.deepEqual(calls, []);
 });
 
 test("the stepper sends one temperature after the taps stop", () => {

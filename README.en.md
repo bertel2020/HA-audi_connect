@@ -457,12 +457,12 @@ The integration ships its own dashboard card, `audi-connect-card`. There is noth
 What it shows:
 
 - Tap the title or the photo to open the integration; hold it to refresh the vehicle data.
-- Position, mileage and how old the data is, then one row of status icons for lock, doors, windows, plug, lights and warnings. Tapping doors or windows opens a top view with every door and window; the lock button in that pop-up locks or unlocks after a confirmation.
+- Position, mileage and how old the data is, then one row of status icons for lock, doors, windows, plug, lights and warnings. When no door or window sensor reports a value, it says "unknown" instead of "closed". Tapping doors or windows opens a top view with every door and window; the lock button in that pop-up locks or unlocks after a confirmation.
 - The state of charge as a bar, with the charge target as a marker (and a slider to change it). While charging the bar is animated and a band shows the power, the range gained per hour and when it will be done (with the day, for example "done tomorrow", when that is after midnight). A plugged-in car that is waiting, a reached charge target or a charging error is shown as a short note below the bar.
 - Last trip and long-term trip, each collapsed until you open it.
-- Electric range, days to the next inspection and how long the car has been parked.
+- The Vehicle section, collapsed until you open it: how long the car has been parked, parking brake, warning lights, security status, outside temperature, inspection and oil change (days and distance), charging type and maximum charge current, as far as the car reports them. The refresh-vehicle-data button is there too.
 - Climatisation with mode, temperature, start and stop. The driver and passenger zone buttons (seat heating) are hidden by default, because it is not confirmed what the zones control on a given car. Turn them on in the card editor with **Show seat/zone buttons**; the option only appears when the car has such zones.
-- When an action fails (for example because Audi does not answer), a red note with Home Assistant's message shows at the top of the card for a few seconds.
+- When an action fails (for example because Audi does not answer), a red note names the action (for example "Start climate failed") and shows Home Assistant's message at the top of the card (inside the doors popup while that is open) for a few seconds. Home Assistant then shows no second message.
 
 Entities are found through the vehicle's device and each entity's translation key, so they are picked up whatever you named them. Parts the car does not have are left out.
 

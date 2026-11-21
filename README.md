@@ -425,12 +425,12 @@ Die Integration bringt ihre eigene Dashboard-Karte `audi-connect-card` mit. Es g
 Was sie zeigt:
 
 - Titel oder Foto antippen öffnet die Integration; gedrückt halten aktualisiert die Fahrzeugdaten.
-- Position, Kilometerstand und wie alt die Daten sind, dann eine Reihe von Status-Symbolen für Schloss, Türen, Fenster, Stecker, Licht und Warnungen. Ein Tipp auf Türen oder Fenster öffnet eine Draufsicht mit allen Türen und Fenstern; die Schloss-Taste im Pop-up verriegelt oder entriegelt nach einer Bestätigung.
+- Position, Kilometerstand und wie alt die Daten sind, dann eine Reihe von Status-Symbolen für Schloss, Türen, Fenster, Stecker, Licht und Warnungen. Meldet kein Tür- oder Fenstersensor einen Wert, steht dort „unbekannt“ statt „zu“. Ein Tipp auf Türen oder Fenster öffnet eine Draufsicht mit allen Türen und Fenstern; die Schloss-Taste im Pop-up verriegelt oder entriegelt nach einer Bestätigung.
 - Der Ladestand als Balken, mit dem Ladeziel als Markierung (und einem Regler zum Ändern). Beim Laden ist der Balken animiert, und ein Band zeigt Leistung, gewonnene Reichweite pro Stunde und wann die Ladung fertig ist (bei einem Ende nach Mitternacht mit dem Tag, zum Beispiel „fertig morgen“). Ein angesteckt wartendes Auto, ein erreichtes Ladeziel oder ein Ladefehler erscheint als kurzer Hinweis unter dem Balken.
 - Letzte Fahrt und Langzeitfahrt, jeweils eingeklappt, bis du sie öffnest.
-- Elektrische Reichweite, Tage bis zur nächsten Inspektion und wie lange das Auto geparkt ist.
+- Der Bereich Fahrzeug, eingeklappt, bis du ihn öffnest: Parkdauer, Parkbremse, Warnleuchten, Sicherheitsstatus, Außentemperatur, Inspektion und Ölwechsel (Tage und Strecke), Ladeart und maximaler Ladestrom, soweit das Auto sie meldet. Dort steht auch der Knopf zum Aktualisieren der Fahrzeugdaten.
 - Klimatisierung mit Modus, Temperatur, Start und Stopp. Die Zonen-Tasten für Fahrer und Beifahrer (Sitzheizung) sind standardmäßig ausgeblendet, weil nicht belegt ist, was die Zonen beim jeweiligen Auto steuern. Im Karten-Editor lassen sie sich mit **Sitz-/Zonen-Tasten anzeigen** einschalten, die Option erscheint nur, wenn das Auto solche Zonen hat.
-- Scheitert eine Aktion (zum Beispiel weil Audi nicht antwortet), erscheint oben auf der Karte für einige Sekunden ein roter Hinweis mit der Meldung von Home Assistant.
+- Scheitert eine Aktion (zum Beispiel weil Audi nicht antwortet), erscheint oben auf der Karte (bei geöffnetem Türen-Popup im Popup) für einige Sekunden ein roter Hinweis, der die Aktion nennt (zum Beispiel „Klima starten fehlgeschlagen“) und die Meldung von Home Assistant zeigt. Home Assistant blendet dann keine zweite Meldung ein.
 
 Entities werden über das Gerät des Fahrzeugs und den Übersetzungsschlüssel jeder Entity gefunden, wie auch immer du sie benannt hast. Teile, die das Auto nicht hat, werden weggelassen.
 

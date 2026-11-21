@@ -34,7 +34,9 @@ const TEXT = {
     no_vehicle: "No Audi Connect vehicle found. Pick one in the card settings.",
     stale: "Data is outdated", days: "days", ago: "{t} ago", now: "now",
     min: "min", h: "h", d: "d", refresh: "Refresh", refresh_data: "Refresh vehicle data", flash: "Flash lights",
-    call_failed: "The action failed",
+    call_failed: "The action failed", failed: "{a} failed",
+    a_start_climate: "Start climate", a_stop_climate: "Stop climate", a_temp: "Set temperature", a_target: "Set charge target", a_mode: "Set mode", a_toggle: "Switch",
+    doors_unknown: "Doors: unknown", windows_unknown: "Windows: unknown",
     // editor
     e_device: "Vehicle", e_name: "Name", e_image: "Upload a photo (optional)", e_image_local: "…or pick one from the www folder", e_none: "none",
     e_icon: "Icon instead of the Audi logo (optional)", e_logo: "Show Audi logo", e_trips: "Show trips", e_climate: "Show climate", e_stats: "Show vehicle details", e_seats: "Show seat/zone buttons (only if the car has them)",
@@ -62,10 +64,19 @@ const TEXT = {
     no_vehicle: "Kein Audi-Connect-Fahrzeug gefunden. Wähle eines in den Karteneinstellungen.",
     stale: "Daten sind veraltet", days: "Tage", ago: "vor {t}", now: "gerade eben",
     min: "Min.", h: "Std.", d: "T.", refresh: "Aktualisieren", refresh_data: "Fahrzeugdaten aktualisieren", flash: "Lichthupe",
-    call_failed: "Aktion fehlgeschlagen",
+    call_failed: "Aktion fehlgeschlagen", failed: "{a} fehlgeschlagen",
+    a_start_climate: "Klima starten", a_stop_climate: "Klima stoppen", a_temp: "Temperatur setzen", a_target: "Ladeziel setzen", a_mode: "Modus setzen", a_toggle: "Umschalten",
+    doors_unknown: "Türen: unbekannt", windows_unknown: "Fenster: unbekannt",
     e_device: "Fahrzeug", e_name: "Name", e_image: "Foto hochladen (optional)", e_image_local: "…oder eines aus dem www-Ordner wählen", e_none: "keines",
     e_icon: "Icon statt Audi-Logo (optional)", e_logo: "Audi-Logo anzeigen", e_trips: "Fahrten anzeigen", e_climate: "Klimatisierung anzeigen", e_stats: "Fahrzeugdetails anzeigen", e_seats: "Sitz-/Zonen-Tasten anzeigen (nur wenn das Auto sie hat)",
   },
+};
+
+// What a failed call is called in the error note.
+const ACTION_TEXT = {
+  "climate.turn_on": "a_start_climate", "climate.turn_off": "a_stop_climate", "climate.set_temperature": "a_temp",
+  "lock.lock": "lock", "lock.unlock": "unlock", "button.press": "refresh_data",
+  "number.set_value": "a_target", "select.select_option": "a_mode", "homeassistant.toggle": "a_toggle",
 };
 
 // What an entity says when it has nothing to say.
@@ -124,15 +135,17 @@ input[type=range]{width:100%;margin:2px 0 0;accent-color:var(--primary-color)}
 .cell{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;min-width:0;padding:0 6px;cursor:pointer;text-align:center}
 .cell+.cell::before{content:"";position:absolute;left:0;top:14%;bottom:14%;width:1px;background:color-mix(in srgb,var(--primary-color) 30%,transparent)}
 .cell .ci{--mdc-icon-size:20px;margin-bottom:2px;color:var(--primary-color)}
-.cell .v{font-size:18px;font-weight:600;line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums}
-.cell .k,.cell .s{font-size:11px;color:var(--secondary-text-color)}
+.band{container-type:inline-size}
+.cell .v{font-size:18px;font-size:clamp(14px,5.4cqi,18px);font-weight:600;line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums}
+@container (max-width:300px){.cell .v{white-space:normal;overflow-wrap:anywhere}}
+.cell .k,.cell .s{font-size:11px;color:var(--primary-text-color);opacity:.78}
 .cell .k{letter-spacing:.02em}
 .note{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 14px;border-radius:12px;font-size:14px;cursor:pointer;background:var(--secondary-background-color);color:var(--primary-text-color)}
 .note ha-icon{--mdc-icon-size:22px;color:var(--secondary-text-color)}
 .note.bad{background:color-mix(in srgb,var(--error-color) 14%,transparent)}
 .note.bad ha-icon{color:var(--error-color)}
 .note.err{cursor:default;margin:10px 14px 0}
-.note .sub{display:block;margin-top:2px;font-size:12px;color:var(--secondary-text-color)}
+.note .sub{display:block;margin-top:2px;font-size:12px;color:var(--primary-text-color);opacity:.8}
 .note .nd{margin-left:auto;font-size:12px;color:var(--secondary-text-color)}
 .pulse{animation:pu 1.4s ease-in-out infinite}
 details{border-top:1px solid var(--divider-color)}
@@ -226,6 +239,7 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 @supports not (color:color-mix(in srgb,red,blue)){
 .band,.cstatus,.pill.on,.stp:active,.pill:active,.note.bad{background:var(--secondary-background-color)}
 .cell+.cell::before{background:var(--divider-color)}
+.note.bad{background:var(--secondary-background-color);border-left:3px solid var(--error-color)}
 .car .bd.lk{fill:var(--success-color)}.car .bd.ul,.car .bd.win{fill:var(--warning-color)}.car .bd.open{fill:var(--error-color)}
 .car{--c-edge:var(--divider-color);--c-mid:var(--card-background-color);--c-line:var(--divider-color);--c-bodyline:var(--divider-color);--c-trim:var(--secondary-text-color);--c-cavity:var(--secondary-text-color);--c-engine:var(--secondary-text-color);--c-gl-a:var(--secondary-text-color);--c-gl-b:var(--secondary-text-color);--c-gl-c:var(--secondary-text-color);--c-tail:var(--error-color);--c-head:var(--secondary-background-color);--c-drl:#8cc8f0;--c-ul:var(--secondary-background-color);--c-open:var(--secondary-background-color);--c-win:var(--secondary-background-color)}
 }
@@ -363,7 +377,25 @@ class AudiConnectCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    this._settleDraft();
     this._update();
+  }
+
+  // The sent temperature is no longer a draft once the car reports it.
+  _settleDraft() {
+    const draft = this._ui.tempDraft;
+    if (draft === null || draft === undefined) return;
+    const reported = Number(this._s("climatisation")?.attributes?.temperature);
+    if (reported === draft) {
+      clearTimeout(this._draftTimer);
+      this._ui.tempDraft = null;
+    }
+  }
+
+  disconnectedCallback() {
+    for (const t of [this._pressTimer, this._errTimer, this._tempTimer, this._draftTimer, ...Object.values(this._waitTimers || {})]) clearTimeout(t);
+    this._pressTimer = null;
+    this._waitTimers = {};
   }
 
   getCardSize() {
@@ -545,6 +577,8 @@ class AudiConnectCard extends HTMLElement {
   _a11y() {
     for (const el of this._root.querySelectorAll("[data-more],[data-act],[data-toggle]")) {
       if (el.matches(NATIVE) || el.dataset.act === "close-bg") continue;
+      // A zone or row for an entity the car does not have: nothing to open, so not a button.
+      if (el.hasAttribute("data-more") && !el.dataset.more && !el.dataset.act && !el.dataset.toggle) continue;
       el.setAttribute("role", "button");
       el.setAttribute("tabindex", "0");
       if (!el.hasAttribute("aria-label") && !(el.textContent || "").trim()) {
@@ -598,7 +632,7 @@ class AudiConnectCard extends HTMLElement {
     parts.push(`<div class="title tap${busy}"${act}>${c.icon ? `<ha-icon icon="${esc(c.icon)}"></ha-icon>` : c.show_logo ? RINGS : ""}<span>${esc(name)}</span></div>`);
     const photo = c.image_local || c.image;
     if (photo) parts.push(`<img class="photo tap${busy}"${act} src="${esc(photo)}" alt="">`);
-    parts.push(this._renderError());
+    if (!this._ui.popup) parts.push(this._renderError());
     parts.push(this._renderInfoRow());
     parts.push(this._renderIcons());
     parts.push(this._renderEnergy());
@@ -613,7 +647,8 @@ class AudiConnectCard extends HTMLElement {
   _renderError() {
     const e = this._ui.error;
     if (!e) return "";
-    return `<div class="note bad err" role="alert"><ha-icon icon="mdi:alert-circle-outline"></ha-icon><span>${esc(this._t("call_failed"))}${e.text ? `<span class="sub">${esc(e.text)}</span>` : ""}</span></div>`;
+    const title = e.action ? this._t("failed", { a: e.action }) : this._t("call_failed");
+    return `<div class="note bad err" role="alert"><ha-icon icon="mdi:alert-circle-outline"></ha-icon><span>${esc(title)}${e.text ? `<span class="sub">${esc(e.text)}</span>` : ""}</span></div>`;
   }
 
   _renderInfoRow() {
@@ -642,12 +677,15 @@ class AudiConnectCard extends HTMLElement {
     else if (lock === "unknown") { lockCls = ""; lockIcon = "mdi:lock-question"; lockTxt = this._t("lock_unknown"); }
     else { lockCls = "ok"; lockIcon = "mdi:lock"; lockTxt = this._t("locked"); }
 
+    // No sensor reporting at all (a cloud outage, a car without them) must not read as "closed".
+    const doorsKnown = Object.values(DOOR_KEYS).some((k) => this._known(k)) || this._known("any_door_open");
+    const winsKnown = Object.values(WINDOW_KEYS).some((k) => this._known(k)) || this._known("any_window_open");
     const items = [];
     if (this._has("door_lock") || this._has("any_door_unlocked")) {
       items.push(`<button class="ic ${lockCls}" data-more="${esc(this._id("door_lock") || this._id("any_door_unlocked"))}"><ha-icon icon="${lockIcon}"></ha-icon>${esc(lockTxt)}</button>`);
     }
-    items.push(`<button class="ic ${doors.length ? "bad" : "ok"}" data-act="popup" data-tab="doors"><ha-icon icon="mdi:car-door"></ha-icon>${esc(doors.length ? this._t("n_open", { n: doors.length }) : this._t("doors_closed"))}</button>`);
-    items.push(`<button class="ic ${wins.length ? "warn" : "ok"}" data-act="popup" data-tab="windows"><ha-icon icon="mdi:car-windshield-outline"></ha-icon>${esc(wins.length ? this._t("n_open", { n: wins.length }) : this._t("windows_closed"))}</button>`);
+    items.push(`<button class="ic ${doors.length ? "bad" : doorsKnown ? "ok" : ""}" data-act="popup" data-tab="doors"><ha-icon icon="mdi:car-door"></ha-icon>${esc(doors.length ? this._t("n_open", { n: doors.length }) : doorsKnown ? this._t("doors_closed") : this._t("doors_unknown"))}</button>`);
+    items.push(`<button class="ic ${wins.length ? "warn" : winsKnown ? "ok" : ""}" data-act="popup" data-tab="windows"><ha-icon icon="mdi:car-windshield-outline"></ha-icon>${esc(wins.length ? this._t("n_open", { n: wins.length }) : winsKnown ? this._t("windows_closed") : this._t("windows_unknown"))}</button>`);
     if (this._has("plug_state")) {
       const p = this._on("plug_state");
       items.push(`<button class="ic ${p ? "ok" : ""}" data-more="${esc(this._id("plug_state"))}"><ha-icon icon="mdi:power-plug"></ha-icon>${esc(p ? this._t("plugged") : this._t("unplugged"))}</button>`);
@@ -677,7 +715,8 @@ class AudiConnectCard extends HTMLElement {
 
     let slider = "";
     if (tState && target !== undefined && !useTank) {
-      const min = tState.attributes.min ?? 20, max = tState.attributes.max ?? 100, step = tState.attributes.step ?? 5;
+      const n = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
+      const min = n(tState.attributes.min, 20), max = n(tState.attributes.max, 100), step = n(tState.attributes.step, 5);
       slider = `<input type="range" data-slider="target" min="${min}" max="${max}" step="${step}" value="${target}" aria-label="${esc(this._t("charge_target"))}">`;
     }
     const band = active ? this._renderChargeBand() : this._renderChargeNotice();
@@ -708,7 +747,7 @@ class AudiConnectCard extends HTMLElement {
       cells.push(`<div class="cell" data-more="${esc(this._id("charging_power"))}"><ha-icon class="ci pulse" icon="mdi:flash"></ha-icon><span class="v">${esc(this._fmt("charging_power", "kW"))}</span><span class="k">${esc(this._t("power"))}</span></div>`);
     }
     const rate = this._num("actual_charge_rate");
-    if (this._known("actual_charge_rate") && rate !== undefined && rate >= 0) {
+    if (this._known("actual_charge_rate") && rate !== undefined && rate > 0) {
       const unit = this._s("actual_charge_rate").attributes.unit_of_measurement || "km/h";
       const shown = rate.toLocaleString(this._hass.language || undefined, { maximumFractionDigits: 0 });
       cells.push(`<div class="cell" data-more="${esc(this._id("actual_charge_rate"))}"><ha-icon class="ci" icon="mdi:map-marker-distance"></ha-icon><span class="v">+${esc(shown)} ${esc(unit)}</span><span class="k">${esc(this._t("rate"))}</span></div>`);
@@ -754,17 +793,29 @@ class AudiConnectCard extends HTMLElement {
   }
 
   _dur(minutes) {
-    const h = Math.floor(minutes / 60), m = Math.round(minutes % 60);
+    minutes = Math.round(minutes);
+    const h = Math.floor(minutes / 60), m = minutes % 60;
     return h ? (m ? `${h} ${this._t("h")} ${m} ${this._t("min")}` : `${h} ${this._t("h")}`) : `${m} ${this._t("min")}`;
+  }
+
+  _now() {
+    return new Date();
+  }
+
+  // The language for dates and times: Home Assistant's own, unless the card has no texts for it,
+  // so a label never reads "done demain".
+  _locale() {
+    const lang = this._hass?.language;
+    return lang && TEXT[lang.slice(0, 2)] ? lang : "en";
   }
 
   // "" for today, otherwise "tomorrow" or the weekday, so a finish time after midnight is not ambiguous.
   _dayOf(iso) {
     const d = new Date(iso);
     if (isNaN(d)) return "";
-    const lang = this._hass.language || undefined;
+    const lang = this._locale();
     const start = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
-    const diff = Math.round((start(d) - start(new Date())) / 86400000);
+    const diff = Math.round((start(d) - start(this._now())) / 86400000);
     if (diff <= 0) return "";
     if (diff === 1) return new Intl.RelativeTimeFormat(lang, { numeric: "auto" }).format(1, "day");
     return d.toLocaleDateString(lang, { weekday: "short" });
@@ -773,7 +824,7 @@ class AudiConnectCard extends HTMLElement {
   _timeOf(iso) {
     const d = new Date(iso);
     if (isNaN(d)) return "";
-    return d.toLocaleTimeString(this._hass.language || undefined, { hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleTimeString(this._locale(), { hour: "2-digit", minute: "2-digit" });
   }
 
   _renderTrips() {
@@ -1051,11 +1102,12 @@ class AudiConnectCard extends HTMLElement {
         list += `<div class="li" data-more="${esc(this._id(WINDOW_KEYS[k]))}"><span>${esc(this._t(k))}</span><span class="${open ? "c-warn" : "c-mute"}">${esc(txt)}</span></div>`;
       }
     }
-    const lockBtn = tab === "doors" && lock !== "unknown" && (this._has("door_lock") || this._has("any_door_unlocked"))
+    const lockBtn = tab === "doors" && lock !== "unknown" && this._has("door_lock")
       ? `<button class="pill big" data-act="lock"><ha-icon icon="${lock === "locked" ? "mdi:lock-open-variant" : "mdi:lock"}"></ha-icon>${esc(lock === "locked" ? this._t("unlock") : this._t("lock"))}</button>` : "";
     return `<div class="ov" data-act="close-bg"><div class="dlg">
       <div class="dh"><div><b>${esc(this._t("doors"))} / ${esc(this._t("windows"))}</b><span class="${cls}">${esc(sum)}</span></div>
       <button class="x" data-act="close" aria-label="${esc(this._t("close"))}"><ha-icon icon="mdi:close"></ha-icon></button></div>
+      ${this._renderError()}
       <div class="tabs"><button class="tab ${tab === "doors" ? "on" : ""}" data-tab-set="doors">${esc(this._t("doors"))}</button><button class="tab ${tab === "windows" ? "on" : ""}" data-tab-set="windows">${esc(this._t("windows"))}</button></div>
       ${svg}${list}${lockBtn}
     </div></div>`;
@@ -1137,7 +1189,10 @@ class AudiConnectCard extends HTMLElement {
     clearTimeout(this._tempTimer);
     this._tempTimer = setTimeout(() => {
       this._call("climate", "set_temperature", { entity_id: this._id("climatisation"), temperature: v });
-      setTimeout(() => { this._ui.tempDraft = null; this._sig = ""; this._update(); }, 3000);
+      // Audi takes minutes to report the new value. Keep showing the sent one until the car's value
+      // matches it (_settleDraft) or ninety seconds have passed, so the next tap starts from it.
+      clearTimeout(this._draftTimer);
+      this._draftTimer = setTimeout(() => { this._ui.tempDraft = null; this._sig = ""; this._update(); }, 90000);
     }, 700);
   }
 
@@ -1148,37 +1203,51 @@ class AudiConnectCard extends HTMLElement {
     (this._ui.wait ||= {})[key] = true;
     this._sig = "";
     this._update();
-    setTimeout(() => {
-      delete this._ui.wait[key];
+    // One timer per button, so an earlier click cannot end the wait of a later one.
+    this._waitTimers ||= {};
+    clearTimeout(this._waitTimers[key]);
+    this._waitTimers[key] = setTimeout(() => {
+      delete this._waitTimers[key];
+      if (this._ui.wait) delete this._ui.wait[key];
       this._sig = "";
       this._update();
     }, 5000);
   }
 
   // Every action goes through here. A call Home Assistant rejects is shown on the card instead of
-  // vanishing after the spinner, and the button that was waiting for the car stops waiting.
+  // vanishing after the spinner, and only the state that belongs to that action is reset.
   _call(domain, service, data, waitKey) {
+    const kind = `${domain}.${service}`;
     let result;
     try {
-      result = this._hass.callService(domain, service, data);
+      // The fifth argument keeps Home Assistant from also showing its own toast: the card shows the failure.
+      result = this._hass.callService(domain, service, data, undefined, false);
     } catch (err) {
       result = Promise.reject(err);
     }
-    Promise.resolve(result).catch((err) => this._fail(err, waitKey));
+    Promise.resolve(result).catch((err) => this._fail(err, { waitKey, kind }));
   }
 
-  _fail(err, waitKey) {
-    if (waitKey && this._ui.wait) delete this._ui.wait[waitKey];
-    this._ui.refreshing = false;
-    this._ui.tempDraft = null;
-    const raw = typeof err === "string" ? err : err?.message;
-    this._ui.error = { text: raw ? String(raw).slice(0, 140) : "" };
+  _fail(err, { waitKey, kind } = {}) {
+    if (waitKey) {
+      clearTimeout(this._waitTimers?.[waitKey]);
+      if (this._ui.wait) delete this._ui.wait[waitKey];
+    }
+    if (kind === "button.press") this._ui.refreshing = false;
+    if (kind === "climate.set_temperature") this._ui.tempDraft = null;
+    const raw = String((typeof err === "string" ? err : err?.message) ?? "");
+    const text = raw.length > 140 ? raw.slice(0, 139) + "…" : raw;
+    const named = ACTION_TEXT[kind];
+    this._ui.error = { action: named ? this._t(named) : "", text };
     clearTimeout(this._errTimer);
     this._errTimer = setTimeout(() => {
       this._ui.error = null;
       this._sig = "";
       this._update();
     }, 8000);
+    // A slider or dropdown that still has focus would keep the card from drawing the note.
+    const focused = this.shadowRoot.activeElement;
+    if (focused && (focused.tagName === "INPUT" || focused.tagName === "SELECT")) focused.blur();
     this._sig = "";
     this._update();
   }
