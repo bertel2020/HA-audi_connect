@@ -118,12 +118,13 @@ ha-card{overflow:hidden;position:relative;border-radius:24px}
 .eline b{font-weight:500;color:var(--primary-text-color)}
 .eline span[data-more],.barwrap[data-more]{cursor:pointer}
 input[type=range]{width:100%;margin:2px 0 0;accent-color:var(--primary-color)}
-.band{display:flex;align-items:stretch;margin-top:10px;padding:10px 6px;border-radius:12px;background:color-mix(in srgb,var(--primary-color) 14%,transparent);color:var(--primary-text-color)}
-.cell{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;padding:0 4px;cursor:pointer;text-align:center}
-.cell+.cell{border-left:1px solid color-mix(in srgb,var(--primary-color) 35%,transparent)}
-.cell .v{font-size:17px;font-weight:500;line-height:1.2;white-space:nowrap}
+.band{display:flex;align-items:stretch;margin-top:12px;padding:12px 4px;border-radius:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--primary-color) 18%,transparent),color-mix(in srgb,var(--primary-color) 8%,transparent));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary-color) 22%,transparent);color:var(--primary-text-color)}
+.cell{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;min-width:0;padding:0 6px;cursor:pointer;text-align:center}
+.cell+.cell::before{content:"";position:absolute;left:0;top:14%;bottom:14%;width:1px;background:color-mix(in srgb,var(--primary-color) 30%,transparent)}
+.cell .ci{--mdc-icon-size:20px;margin-bottom:2px;color:var(--primary-color)}
+.cell .v{font-size:18px;font-weight:600;line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums}
 .cell .k,.cell .s{font-size:11px;color:var(--secondary-text-color)}
-.cell ha-icon{--mdc-icon-size:18px;vertical-align:-4px;color:var(--primary-color)}
+.cell .k{letter-spacing:.02em}
 .note{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 14px;border-radius:12px;font-size:14px;cursor:pointer;background:var(--secondary-background-color);color:var(--primary-text-color)}
 .note ha-icon{--mdc-icon-size:22px;color:var(--secondary-text-color)}
 .note.bad{background:color-mix(in srgb,var(--error-color) 14%,transparent)}
@@ -220,7 +221,7 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 [role="button"]{cursor:pointer}
 @supports not (color:color-mix(in srgb,red,blue)){
 .band,.cstatus,.pill.on,.stp:active,.pill:active,.note.bad{background:var(--secondary-background-color)}
-.cell+.cell{border-left-color:var(--divider-color)}
+.cell+.cell::before{background:var(--divider-color)}
 .car .bd.lk{fill:var(--success-color)}.car .bd.ul,.car .bd.win{fill:var(--warning-color)}.car .bd.open{fill:var(--error-color)}
 .car{--c-edge:var(--divider-color);--c-mid:var(--card-background-color);--c-line:var(--divider-color);--c-bodyline:var(--divider-color);--c-trim:var(--secondary-text-color);--c-cavity:var(--secondary-text-color);--c-engine:var(--secondary-text-color);--c-gl-a:var(--secondary-text-color);--c-gl-b:var(--secondary-text-color);--c-gl-c:var(--secondary-text-color);--c-tail:var(--error-color);--c-head:var(--secondary-background-color);--c-drl:#8cc8f0;--c-ul:var(--secondary-background-color);--c-open:var(--secondary-background-color);--c-win:var(--secondary-background-color)}
 }
@@ -692,20 +693,20 @@ class AudiConnectCard extends HTMLElement {
   _renderChargeBand() {
     const cells = [];
     if (this._known("charging_power")) {
-      cells.push(`<div class="cell" data-more="${esc(this._id("charging_power"))}"><span class="v"><ha-icon class="pulse" icon="mdi:flash"></ha-icon> ${esc(this._fmt("charging_power", "kW"))}</span><span class="k">${esc(this._t("power"))}</span></div>`);
+      cells.push(`<div class="cell" data-more="${esc(this._id("charging_power"))}"><ha-icon class="ci pulse" icon="mdi:flash"></ha-icon><span class="v">${esc(this._fmt("charging_power", "kW"))}</span><span class="k">${esc(this._t("power"))}</span></div>`);
     }
     const rate = this._num("actual_charge_rate");
     if (this._known("actual_charge_rate") && rate !== undefined && rate >= 0) {
       const unit = this._s("actual_charge_rate").attributes.unit_of_measurement || "km/h";
       const shown = rate.toLocaleString(this._hass.language || undefined, { maximumFractionDigits: 0 });
-      cells.push(`<div class="cell" data-more="${esc(this._id("actual_charge_rate"))}"><span class="v">+${esc(shown)} ${esc(unit)}</span><span class="k">${esc(this._t("rate"))}</span></div>`);
+      cells.push(`<div class="cell" data-more="${esc(this._id("actual_charge_rate"))}"><ha-icon class="ci" icon="mdi:map-marker-distance"></ha-icon><span class="v">+${esc(shown)} ${esc(unit)}</span><span class="k">${esc(this._t("rate"))}</span></div>`);
     }
     const done = this._known("charging_complete_time") ? this._timeOf(this._s("charging_complete_time").state) : "";
     const mins = this._known("remaining_charging_time") ? this._num("remaining_charging_time") : undefined;
     const left = mins !== undefined && mins > 0 ? this._t("in", { t: this._dur(mins) }) : "";
     if (done || left) {
       const id = this._id(done ? "charging_complete_time" : "remaining_charging_time");
-      cells.push(`<div class="cell" data-more="${esc(id)}"><span class="v">${esc(done || left)}</span><span class="k">${esc(this._t("charging_done"))}</span>${done && left ? `<span class="s">${esc(left)}</span>` : ""}</div>`);
+      cells.push(`<div class="cell" data-more="${esc(id)}"><ha-icon class="ci" icon="mdi:clock-check-outline"></ha-icon><span class="v">${esc(done || left)}</span><span class="k">${esc(this._t("charging_done"))}</span>${done && left ? `<span class="s">${esc(left)}</span>` : ""}</div>`);
     }
     return cells.length ? `<div class="band">${cells.join("")}</div>` : "";
   }

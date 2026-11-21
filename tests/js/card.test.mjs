@@ -213,6 +213,20 @@ test("charging shows the band even when the car reports no charge target", () =>
   assert.ok(root().querySelector(".band"));
 });
 
+test("every cell of the charging band has an icon, a value and a label", () => {
+  setHass({
+    "sensor.rate": "20",
+    "sensor.done": "2026-11-20T22:51:00+00:00",
+  });
+  const cells = [...root().querySelectorAll(".band .cell")];
+  assert.ok(cells.length >= 1);
+  for (const cell of cells) {
+    assert.ok(cell.querySelector("ha-icon.ci"), "icon");
+    assert.ok(cell.querySelector(".v").textContent.trim(), "value");
+    assert.ok(cell.querySelector(".k").textContent.trim(), "label");
+  }
+});
+
 test("the temperature stepper has real labels", () => {
   card._ui.tempDraft = undefined;
   setHass({ "climate.car": "heat" });
