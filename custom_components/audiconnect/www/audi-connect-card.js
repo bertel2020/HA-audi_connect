@@ -183,13 +183,29 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 .tabs{display:flex;gap:4px;background:var(--secondary-background-color);border-radius:8px;padding:3px;margin-bottom:6px}
 .tab{flex:1;padding:7px 0;text-align:center;font-size:13px;border-radius:6px;cursor:pointer;color:var(--secondary-text-color);background:none;border:0;font-family:inherit}
 .tab.on{background:var(--card-background-color);color:var(--primary-text-color);font-weight:500;box-shadow:0 0 0 1px var(--divider-color)}
-.car{width:100%;max-height:210px;display:block;margin:0 auto}
-.seg{cursor:pointer;stroke-width:1.5}
-.seg.open{fill:color-mix(in srgb,var(--error-color) 28%,transparent);stroke:var(--error-color)}
-.seg.lk{fill:color-mix(in srgb,var(--success-color) 22%,transparent);stroke:var(--success-color)}
-.seg.ul{fill:color-mix(in srgb,var(--warning-color) 28%,transparent);stroke:var(--warning-color)}
-.gl{cursor:pointer;stroke-width:1.5;fill:color-mix(in srgb,var(--secondary-text-color) 18%,transparent);stroke:var(--secondary-text-color)}
-.gl.open{fill:color-mix(in srgb,var(--warning-color) 35%,transparent);stroke:var(--warning-color)}
+.car{width:100%;max-width:290px;display:block;margin:6px auto 4px;
+--c-edge:color-mix(in srgb,var(--primary-text-color) 22%,var(--secondary-background-color));
+--c-mid:color-mix(in srgb,var(--card-background-color) 55%,var(--secondary-background-color));
+--c-line:color-mix(in srgb,var(--primary-text-color) 34%,transparent);
+--c-bodyline:color-mix(in srgb,var(--primary-text-color) 28%,transparent);
+--c-trim:color-mix(in srgb,var(--primary-text-color) 78%,var(--card-background-color));
+--c-cavity:color-mix(in srgb,var(--primary-text-color) 70%,var(--card-background-color));
+--c-engine:color-mix(in srgb,var(--primary-text-color) 16%,var(--c-cavity));
+--c-gl-a:color-mix(in srgb,var(--primary-color) 30%,color-mix(in srgb,var(--primary-text-color) 42%,var(--card-background-color)));
+--c-gl-b:color-mix(in srgb,var(--primary-color) 20%,color-mix(in srgb,var(--primary-text-color) 58%,var(--card-background-color)));
+--c-gl-c:color-mix(in srgb,var(--primary-color) 14%,color-mix(in srgb,var(--primary-text-color) 70%,var(--card-background-color)));
+--c-tail:color-mix(in srgb,var(--error-color) 55%,var(--secondary-background-color));
+--c-head:color-mix(in srgb,var(--primary-text-color) 10%,var(--card-background-color));
+--c-drl:color-mix(in srgb,var(--primary-color) 70%,var(--card-background-color));
+--c-ul:color-mix(in srgb,var(--warning-color) 14%,var(--secondary-background-color));
+--c-open:color-mix(in srgb,var(--error-color) 40%,var(--secondary-background-color));
+--c-win:color-mix(in srgb,var(--warning-color) 45%,var(--c-cavity))}
+.car .pn{stroke-width:1.1}
+.car .pn.lk,.car .pn.unk{stroke:var(--c-line);stroke-width:.8}
+.car .pn.ul{fill:var(--c-ul);stroke:var(--warning-color)}
+.car .pn.open{fill:var(--c-open);stroke:var(--error-color)}
+.car .wn.open{fill:var(--c-win);stroke:var(--warning-color)}
+.car .hit{cursor:pointer}
 .li{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--divider-color);font-size:13px;color:var(--primary-text-color);cursor:pointer}
 .li:last-of-type{border:0}
 .c-ok{color:var(--success-color)}.c-warn{color:var(--warning-color)}.c-bad{color:var(--error-color)}.c-mute{color:var(--secondary-text-color)}
@@ -201,20 +217,83 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 @supports not (color:color-mix(in srgb,red,blue)){
 .band,.cstatus,.pill.on,.stp:active,.pill:active,.note.bad{background:var(--secondary-background-color)}
 .cell+.cell{border-left-color:var(--divider-color)}
-.seg.open,.seg.lk,.seg.ul,.gl,.gl.open{fill:var(--secondary-background-color)}
+.car{--c-edge:var(--divider-color);--c-mid:var(--card-background-color);--c-line:var(--divider-color);--c-bodyline:var(--divider-color);--c-trim:var(--secondary-text-color);--c-cavity:var(--secondary-text-color);--c-engine:var(--secondary-text-color);--c-gl-a:var(--secondary-text-color);--c-gl-b:var(--secondary-text-color);--c-gl-c:var(--secondary-text-color);--c-tail:var(--error-color);--c-head:var(--secondary-background-color);--c-drl:var(--primary-color);--c-ul:var(--secondary-background-color);--c-open:var(--secondary-background-color);--c-win:var(--secondary-background-color)}
 }
 @media (prefers-reduced-motion:reduce){.bar.charging::before,.pulse,.cstatus ha-icon,.pill.wait ha-icon{animation:none}}
 `;
 
-// Positions inside the 200 x 300 top view.
-const SEG = {
-  hood: [62, 18, 76, 46, 16], fl: [44, 72, 52, 68, 10], fr: [104, 72, 52, 68, 10],
-  rl: [44, 146, 52, 68, 10], rr: [104, 146, 52, 68, 10], trunk: [62, 222, 76, 60, 18],
+// Top view of the car, 300 x 342. The right side is drawn once; the left is its mirror.
+const CAR = {
+ "BODY": "M150 12C182 12 203 14 208 26C212 36 213 50 213 64C213 96 210 120 210 160C210 200 214 222 214 250C214 282 211 302 203 312C193 320 172 322 150 322C128 322 107 320 97 312C89 302 86 282 86 250C86 222 90 200 90 160C90 120 87 96 87 64C87 50 88 36 92 26C97 14 118 12 150 12Z",
+ "HOOD": "M150 25C170 25 186 26 194 31C198 50 200.5 72 201 93C190 89.5 172 88 150 88C128 88 110 89.5 99 93C99.5 72 102 50 106 31C114 26 130 25 150 25Z",
+ "GREEN": "M150 92C176 92 194 94 201.5 99C200 120 199 145 199 171C199 200 198.5 234 195 267C184 274 166 276 150 276C134 276 116 274 105 267C101.5 234 101 200 101 171C101 145 100 120 98.5 99C106 94 124 92 150 92Z",
+ "WIND": "M150 96.5C174 96.5 190 98.5 197.5 102.5L190 140.5C181 138.5 166 137.5 150 137.5C134 137.5 119 138.5 110 140.5L102.5 102.5C110 98.5 126 96.5 150 96.5Z",
+ "ROOF": "M150 138C168 138 182 139 190.5 142C191.5 170 191.5 195 190 222C178 226 164 227 150 227C136 227 122 226 110 222C108.5 195 108.5 170 109.5 142C118 139 132 138 150 138Z",
+ "PANO": "M150 147C166 147 178 147.5 184 150C185.5 172 185.5 196 184 214C176 217.5 164 218 150 218C136 218 124 217.5 116 214C114.5 196 114.5 172 116 150C122 147.5 134 147 150 147Z",
+ "REARW": "M150 228.5C166 228.5 179 227.5 189 224.5L193.2 264C182 270.5 166 272.5 150 272.5C134 272.5 118 270.5 106.80000000000001 264L111 224.5C121 227.5 134 228.5 150 228.5Z",
+ "TAILG": "M150 272.5C166 272.5 183 270.5 194 264.5C198 280 199 294 197 304C184 311 168 313 150 313C132 313 116 311 103 304C101 294 102 280 106 264.5C117 270.5 134 272.5 150 272.5Z",
+ "TAILL": "M150 305.5C170 305.5 189 303 200.5 298L201.5 301.5C190 307.5 170 309.5 150 309.5C130 309.5 110 307.5 98.5 301.5L99.5 298C111 303 130 305.5 150 305.5Z",
+ "BUMPF": "M163 14.2C180 14.6 195 16.5 203 20.5M137 14.2C120 14.6 105 16.5 97 20.5",
+ "BUMPR": "M170 318.5C185 317.5 196 314.5 202 309M130 318.5C115 317.5 104 314.5 98 309",
+ "WIN": {
+  "f": "M191 143L198.6 107C199.2 128 199.3 150 199.1 168.5L191.4 168.5C191.6 160 191.5 150 191 143Z",
+  "r": "M191.4 174L199 174C199 196 198.6 212 197.3 226L190.4 222C191 205 191.4 190 191.4 174Z"
+ },
+ "DOOR": {
+  "f": "M201.5 99L212.4 99C211 125 210 150 210 171L199 171C199 145 200 120 201.5 99Z",
+  "r": "M199 173L210 173C210.3 196 211.5 216 212.6 234C206 235 199.5 238 195.6 243C198 222 199 198 199 173Z"
+ },
+ "HINGE": {
+  "f": [
+   212,
+   100
+  ],
+  "r": [
+   210.3,
+   174
+  ]
+ },
+ "DOOR_CY": {
+  "f": 135,
+  "r": 207
+ },
+ "HANDLE": {
+  "f": [
+   208.2,
+   150
+  ],
+  "r": [
+   208.6,
+   214
+  ]
+ },
+ "MIRROR": "M202 103C209 100.5 219 101 223 106C224 110 220 113.5 213 112.5L203 110.5Z",
+ "HEAD": "M172 20C186 20.3 198 22 205.5 27L205 30.5C197 26.5 186 24.6 172 24Z",
+ "DRL": "M173 21.6C186 21.9 197 23.6 204.6 28.2",
+ "TIRES": [
+  [
+   205,
+   46,
+   12,
+   40
+  ],
+  [
+   206,
+   230,
+   12,
+   42
+  ]
+ ],
+ "FENDER": "M206.5 236C208.5 258 208 284 204 300",
+ "ICON": {
+  "help": "M10,19H13V22H10V19M12,2C17.35,2.22 19.68,7.62 16.5,11.67C15.67,12.67 14.33,13.33 13.67,14.17C13,15 13,16 13,17H10C10,15.33 10,13.92 10.67,12.92C11.33,11.92 12.67,11.33 13.5,10.67C15.92,8.43 15.32,5.26 12,5A3,3 0 0,0 9,8H6A6,6 0 0,1 12,2Z",
+  "lock": "M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z",
+  "unlock": "M18,1C15.24,1 13,3.24 13,6V8H4A2,2 0 0,0 2,10V20A2,2 0 0,0 4,22H16A2,2 0 0,0 18,20V10A2,2 0 0,0 16,8H15V6A3,3 0 0,1 18,3A3,3 0 0,1 21,6V8H23V6C23,3.24 20.76,1 18,1M10,13A2,2 0 0,1 12,15C12,16.11 11.11,17 10,17A2,2 0 0,1 8,15A2,2 0 0,1 10,13Z",
+  "open": "M11 3H13V15H11ZM11 18H13V21H11Z",
+  "down": "M11 3H13V15.2L17.6 10.6L19 12L12 19L5 12L6.4 10.6L11 15.2Z",
+  "check": "M9 16.2L4.8 12L3.4 13.4L9 19L21 7L19.6 5.6Z"
+ }
 };
-const GLASS = { fl: [33, 80, 11, 52], fr: [156, 80, 11, 52], rl: [33, 154, 11, 52], rr: [156, 154, 11, 52] };
-const ICON_AT = { hood: [100, 41], fl: [70, 106], fr: [130, 106], rl: [70, 180], rr: [130, 180], trunk: [100, 252] };
-const BODY =
-  "M100 6 C132 6 152 20 156 50 C158 68 160 90 160 118 L160 190 C160 222 158 246 154 266 C150 288 130 296 100 296 C70 296 50 288 46 266 C42 246 40 222 40 190 L40 118 C40 90 42 68 44 50 C48 20 68 6 100 6 Z";
 const RINGS =
   '<svg viewBox="0 0 100 32" fill="none" stroke="currentColor" stroke-width="3"><circle cx="20" cy="16" r="12"/><circle cx="40" cy="16" r="12"/><circle cx="60" cy="16" r="12"/><circle cx="80" cy="16" r="12"/></svg>';
 
@@ -783,6 +862,133 @@ class AudiConnectCard extends HTMLElement {
     </details>`;
   }
 
+  // The car seen from above. Colours come from the theme variables set on .car,
+  // so it follows light and dark. The click zones are separate, transparent
+  // shapes on top of the drawing.
+  _carSvg(tab) {
+    const C = CAR;
+    const doorsTab = tab === "doors";
+    const kindOf = (k) => {
+      const st = this._doorState(k);
+      return st.open ? "open" : st.unk ? "unk" : st.locked ? "lk" : "ul";
+    };
+    const COL = {
+      open: "var(--error-color)", ul: "var(--warning-color)", lk: "var(--success-color)",
+      unk: "var(--secondary-text-color)", win: "var(--warning-color)",
+    };
+    const MIR = ' transform="matrix(-1 0 0 1 300 0)"';
+    const mx = (x) => 300 - x;
+    const dim = doorsTab ? "" : ' opacity=".45"';
+    const pn = (d, kind) => `<path d="${d}" class="pn ${kind}"${kind === "lk" || kind === "unk" ? ' fill="url(#acbody)"' : ""}/>`;
+    const badge = (x, y, kind, icon) =>
+      `<g transform="translate(${x} ${y})" style="pointer-events:none">` +
+      `<circle r="9" cy=".8" fill="var(--primary-text-color)" opacity=".18" filter="url(#acsoft)"/>` +
+      `<circle r="8.5" fill="var(--card-background-color)" stroke="${COL[kind]}" stroke-opacity=".55" stroke-width="1"/>` +
+      `<path transform="translate(-6 -6) scale(.5)" fill="${COL[kind]}" d="${C.ICON[icon]}"/></g>`;
+    const mirror = `<path d="${C.MIRROR}" fill="url(#acbody)" stroke="var(--c-bodyline)" stroke-width=".8"/>`;
+    const hood = this._doorState("hood");
+    const trunk = this._doorState("trunk");
+    const trunkOpen = trunk.open;
+    const trunkKind = kindOf("trunk");
+
+    let s = `<svg class="car" viewBox="0 0 300 342"><defs>` +
+      `<linearGradient id="acbody" x1="0" x2="1"><stop offset="0" style="stop-color:var(--c-edge)"/><stop offset=".2" style="stop-color:var(--secondary-background-color)"/>` +
+      `<stop offset=".5" style="stop-color:var(--c-mid)"/><stop offset=".8" style="stop-color:var(--secondary-background-color)"/><stop offset="1" style="stop-color:var(--c-edge)"/></linearGradient>` +
+      `<linearGradient id="acglass" x1="0" y1="0" x2=".35" y2="1"><stop offset="0" style="stop-color:var(--c-gl-a)"/><stop offset=".45" style="stop-color:var(--c-gl-b)"/><stop offset="1" style="stop-color:var(--c-gl-c)"/></linearGradient>` +
+      `<linearGradient id="acsheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--card-background-color);stop-opacity:.55"/><stop offset="1" style="stop-color:var(--card-background-color);stop-opacity:0"/></linearGradient>` +
+      `<filter id="acblur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5"/></filter>` +
+      `<filter id="acsoft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6"/></filter></defs>`;
+    s += '<g transform="translate(150 0) scale(.92 1) translate(-150 0)">';
+    s += `<path d="${C.BODY}" transform="translate(150 170) scale(1.04 1.01) translate(-150 -167)" fill="var(--primary-text-color)" opacity=".16" filter="url(#acblur)"/>`;
+    const tires = C.TIRES.map(([x, y, w, h]) =>
+      `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4.5" fill="var(--c-cavity)"/>` +
+      `<rect x="${x + w - 4}" y="${y + 3}" width="2" height="${h - 6}" rx="1" fill="var(--card-background-color)" opacity=".18"/>`).join("");
+    s += `<g>${tires}</g><g${MIR}>${tires}</g>`;
+    s += `<path d="${C.BODY}" fill="url(#acbody)" stroke="var(--c-bodyline)" stroke-width="1"/>`;
+    s += `<path d="M136 26C135 46 135.5 70 137 86M164 26C165 46 164.5 70 163 86" fill="none" stroke="var(--c-line)" stroke-width=".6"/>`;
+    // hood
+    if (hood.open) {
+      s += `<g${dim}><path d="${C.HOOD}" fill="var(--c-cavity)"/><rect x="128" y="34" width="44" height="22" rx="5" fill="var(--c-engine)"/>` +
+        `<g transform="translate(0 90) scale(1 .42) translate(0 -90)">${pn(C.HOOD, "open")}</g></g>`;
+    } else {
+      s += `<g${dim}><path d="${C.HOOD}" fill="url(#acbody)" stroke="var(--c-line)" stroke-width=".8"/></g>`;
+    }
+    for (const tf of ["", MIR]) {
+      s += `<g${tf}><path d="${C.HEAD}" fill="var(--c-head)" stroke="var(--c-line)" stroke-width=".6"/>` +
+        `<path d="${C.DRL}" fill="none" stroke="var(--c-drl)" stroke-width="1.1" stroke-linecap="round"/>` +
+        `<path d="${C.FENDER}" fill="none" stroke="var(--c-line)" stroke-width=".8"/></g>`;
+    }
+    s += `<path d="${C.BUMPF} ${C.BUMPR}" fill="none" stroke="var(--c-line)" stroke-width=".8"/>`;
+    // greenhouse
+    s += `<path d="${C.GREEN}" fill="var(--c-trim)"/><path d="${C.WIND}" fill="url(#acglass)"/>`;
+    if (!trunkOpen) s += `<path d="${C.REARW}" fill="url(#acglass)"/>`;
+    s += `<path d="${C.ROOF}" fill="url(#acbody)" stroke="var(--c-line)" stroke-width=".8"/><path d="${C.PANO}" fill="url(#acglass)"/>`;
+    s += `<path d="M126 154C140 152 160 152 174 154L171 176C157 174 143 174 129 176Z" fill="url(#acsheen)" opacity=".5"/>` +
+      `<path d="M116 99C134 98 166 98 184 99L180 112C161 110 139 110 120 112Z" fill="url(#acsheen)" opacity=".55"/>`;
+    if (!trunkOpen) s += `<path d="M108 282C125 285.5 175 285.5 192 282" fill="none" stroke="var(--c-line)" stroke-width=".8"/>`;
+    // tailgate
+    if (trunkOpen) {
+      s += `<g${dim}><path d="${C.REARW}" fill="var(--c-cavity)"/><path d="${C.TAILG}" fill="var(--c-cavity)" stroke="var(--c-cavity)" stroke-width="2"/>` +
+        `<rect x="124" y="250" width="52" height="46" rx="6" fill="var(--c-engine)"/>` +
+        `<g transform="translate(0 226) scale(1 .3) translate(0 -226)"><path d="${C.REARW}" fill="url(#acglass)"/>${pn(C.TAILG, "open")}</g></g>`;
+    } else {
+      s += `<g${dim}>${pn(C.TAILG, trunkKind)}<path d="${C.TAILL}" fill="var(--c-tail)"/></g>`;
+    }
+    // doors and windows, right side drawn once and mirrored for the left
+    let opened = "";
+    let badges = "";
+    for (const side of ["r", "l"]) {
+      const tf = side === "l" ? MIR : "";
+      let closed = "";
+      let swung = "";
+      for (const pos of ["f", "r"]) {
+        const key = pos + side;
+        const kind = kindOf(key);
+        const wopen = this._on(WINDOW_KEYS[key]);
+        const [hx, hy] = C.HINGE[pos];
+        const handle = C.HANDLE[pos];
+        const panel = `<g${dim}>${pn(C.DOOR[pos], kind)}<rect x="${handle[0]}" y="${handle[1]}" width="1.6" height="9" rx=".8" fill="var(--c-line)"/></g>`;
+        if (kind === "open") {
+          closed += `<path d="${C.DOOR[pos]}" fill="var(--c-cavity)"/><path d="${C.WIN[pos]}" fill="var(--c-cavity)"/>`;
+          swung += `<g transform="rotate(-38 ${hx} ${hy})"${doorsTab ? "" : ' opacity=".4"'}>` +
+            `<path d="${C.DOOR[pos]}" transform="translate(2 2.5)" fill="var(--primary-text-color)" opacity=".25" filter="url(#acsoft)"/>` +
+            `<path d="${C.WIN[pos]}" fill="var(--c-trim)"/>${panel}${pos === "f" ? mirror : ""}</g>`;
+        } else {
+          closed += wopen
+            ? `<path d="${C.WIN[pos]}" class="wn open" stroke-width="${doorsTab ? ".9" : "1.2"}"/>`
+            : `<path d="${C.WIN[pos]}" fill="url(#acglass)"/>`;
+          closed += panel;
+          if (pos === "f") closed += mirror;
+        }
+        if (doorsTab) {
+          if (kind === "open") badges += badge(side === "r" ? 268 : mx(268), C.DOOR_CY[pos] + 8, "open", "open");
+          else badges += badge(side === "r" ? 236 : mx(236), C.DOOR_CY[pos], kind, kind === "lk" ? "lock" : kind === "unk" ? "help" : "unlock");
+        } else {
+          badges += badge(side === "r" ? 236 : mx(236), C.DOOR_CY[pos], wopen ? "win" : "lk", wopen ? "down" : "check");
+        }
+      }
+      s += `<g${tf}>${closed}</g>`;
+      opened += `<g${tf}>${swung}</g>`;
+    }
+    s += opened;
+    // click zones: transparent shapes carrying the entity to open
+    const zone = (cls, id, d, tf = "") => `<path class="hit ${cls}" data-more="${esc(id)}" d="${d}"${tf}/>`;
+    const DZ = { f: "M199 97H250V171H199Z", r: "M196 173H250V244H196Z" };
+    const WZ = { f: "M189 102H201V170H189Z", r: "M189 172H201V234H189Z" };
+    let hits = "";
+    for (const pos of ["f", "r"]) {
+      hits += zone("seg", this._id(DOOR_KEYS[pos + "r"]), DZ[pos]) + zone("seg", this._id(DOOR_KEYS[pos + "l"]), DZ[pos], MIR);
+      hits += zone("gl", this._id(WINDOW_KEYS[pos + "r"]), WZ[pos]) + zone("gl", this._id(WINDOW_KEYS[pos + "l"]), WZ[pos], MIR);
+    }
+    hits += zone("seg", this._id(DOOR_KEYS.hood), "M96 8H204V92H96Z") + zone("seg", this._id(DOOR_KEYS.trunk), "M96 236H204V342H96Z");
+    s += `<g fill="transparent">${hits}</g></g>`;
+    if (doorsTab) {
+      s += trunkOpen ? badge(150, 332, "open", "open") : badge(150, 332, trunkKind, trunkKind === "lk" ? "lock" : trunkKind === "unk" ? "help" : "unlock");
+      if (hood.open) s += badge(150, 52, "open", "open");
+    }
+    return s + badges + "</svg>";
+  }
+
   _renderPopup() {
     const tab = this._ui.tab;
     const { doors, wins } = this._openLists();
@@ -794,25 +1000,7 @@ class AudiConnectCard extends HTMLElement {
     else if (lock === "unknown") { sum = this._t("all_closed_unknown"); cls = "c-mute"; }
     else { sum = this._t("all_closed"); cls = "c-ok"; }
 
-    const dim = (isDoor) => (isDoor === (tab === "doors") ? 1 : 0.35);
-    let svg = `<svg class="car" viewBox="0 0 200 300" role="img"><path d="${BODY}" fill="var(--secondary-background-color)" stroke="var(--divider-color)" stroke-width="1.5"/>`;
-    for (const [k, [x, y, w, h, r]] of Object.entries(SEG)) {
-      const st = this._doorState(k);
-      const cls2 = st.open ? "open" : st.unk ? "lk" : st.locked ? "lk" : "ul";
-      svg += `<rect class="seg ${cls2}" data-more="${esc(this._id(DOOR_KEYS[k]))}" x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" style="opacity:${dim(true)}"/>`;
-    }
-    for (const [k, [x, y, w, h]] of Object.entries(GLASS)) {
-      const open = this._on(WINDOW_KEYS[k]);
-      svg += `<rect class="gl ${open ? "open" : ""}" data-more="${esc(this._id(WINDOW_KEYS[k]))}" x="${x}" y="${y}" width="${w}" height="${h}" rx="3" style="opacity:${dim(false)}"/>`;
-    }
-    if (tab === "doors") {
-      for (const [k, [x, y]] of Object.entries(ICON_AT)) {
-        const st = this._doorState(k);
-        if (st.open) continue;
-        svg += `<g transform="translate(${x - 10} ${y - 10}) scale(.83)" style="pointer-events:none"><path fill="${st.unk ? "var(--secondary-text-color)" : st.locked ? "var(--success-color)" : "var(--warning-color)"}" d="${st.locked ? "M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z" : "M18,1C15.24,1 13,3.24 13,6V8H4A2,2 0 0,0 2,10V20A2,2 0 0,0 4,22H16A2,2 0 0,0 18,20V10A2,2 0 0,0 16,8H15V6A3,3 0 0,1 18,3A3,3 0 0,1 21,6V8H23V6C23,3.24 20.76,1 18,1M10,13A2,2 0 0,1 12,15C12,16.11 11.11,17 10,17A2,2 0 0,1 8,15A2,2 0 0,1 10,13Z"}"/></g>`;
-      }
-    }
-    svg += "</svg>";
+    const svg = this._carSvg(tab);
 
     let list = "";
     if (tab === "doors") {

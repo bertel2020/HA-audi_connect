@@ -162,7 +162,7 @@ test("Tab wraps inside the dialog in both directions", () => {
 
 test("Space on a window shape opens that window's entity", () => {
   openDoors();
-  const shape = root().querySelector('rect[data-more="binary_sensor.wfr"]');
+  const shape = root().querySelector('path.gl[data-more="binary_sensor.wfr"]');
   shape.focus();
   key(shape, " ");
   assert.deepEqual(infos, ["binary_sensor.wfr"]);
@@ -352,4 +352,60 @@ test("the editor is labelled in the user's language", async () => {
   const el = editor({ language: "de" });
   await settle();
   assert.equal(el._form.computeLabel({ name: "show_trips" }), "Fahrten anzeigen");
+});
+
+// ---- the car drawing in the doors and windows popup ----------------------------
+
+const car = () => root().querySelector("svg.car");
+
+test("the car has a click zone for every door, the hood, the tailgate and each window", () => {
+  openDoors();
+  const zones = [...car().querySelectorAll("path.hit")].map((e) => e.dataset.more).sort();
+  assert.deepEqual(zones, [
+    "binary_sensor.fl", "binary_sensor.fr", "binary_sensor.hood", "binary_sensor.rl",
+    "binary_sensor.rr", "binary_sensor.trunk", "binary_sensor.wfl", "binary_sensor.wfr",
+    "binary_sensor.wrl", "binary_sensor.wrr",
+  ]);
+});
+
+test("a click on a door zone opens that door's entity", () => {
+  openDoors();
+  car().querySelector('path.seg[data-more="binary_sensor.fr"]').dispatchEvent(
+    new window.MouseEvent("click", { bubbles: true, composed: true }),
+  );
+  assert.deepEqual(infos, ["binary_sensor.fr"]);
+});
+
+test("a locked closed car shows only lock badges, an open door swings out", () => {
+  openDoors();
+  assert.equal(car().querySelectorAll(".pn.open").length, 0);
+  assert.equal(car().querySelectorAll('g[transform^="rotate("]').length, 0);
+  setHass({ "binary_sensor.fr": "on" });
+  openDoors();
+  assert.equal(car().querySelectorAll(".pn.open").length, 1);
+  assert.equal(car().querySelectorAll('g[transform^="rotate("]').length, 1);
+});
+
+test("an unlocked car marks its doors as unlocked, an unknown lock state does not claim locked", () => {
+  setHass({ "lock.car": "unlocked" });
+  openDoors();
+  assert.equal(car().querySelectorAll(".pn.ul").length, 4 + 1);
+  setHass({ "lock.car": "unknown" });
+  assert.equal(car().querySelectorAll(".pn.ul").length, 0);
+  assert.equal(car().querySelectorAll(".pn.unk").length, 4 + 1);
+});
+
+test("an open window is drawn amber on the doors tab and on the windows tab", () => {
+  openDoors();
+  assert.equal(car().querySelectorAll(".wn.open").length, 1);
+  root().querySelector('[data-tab-set="windows"]').click();
+  assert.equal(car().querySelectorAll(".wn.open").length, 1);
+});
+
+test("the open hood and tailgate are drawn folded up, the click zones stay", () => {
+  setHass({ "binary_sensor.hood": "on", "binary_sensor.trunk": "on" });
+  openDoors();
+  assert.equal(car().querySelectorAll(".pn.open").length, 2);
+  assert.ok(car().querySelector('path.seg[data-more="binary_sensor.hood"]'));
+  assert.ok(car().querySelector('path.seg[data-more="binary_sensor.trunk"]'));
 });
