@@ -409,3 +409,23 @@ test("the open hood and tailgate are drawn folded up, the click zones stay", () 
   assert.ok(car().querySelector('path.seg[data-more="binary_sensor.hood"]'));
   assert.ok(car().querySelector('path.seg[data-more="binary_sensor.trunk"]'));
 });
+
+test("each status badge is a filled circle in the colour of its state", () => {
+  openDoors();
+  assert.equal(car().querySelectorAll("circle.bd.lk").length, 5);
+  setHass({ "lock.car": "unlocked", "binary_sensor.fr": "on" });
+  assert.equal(car().querySelectorAll("circle.bd.ul").length, 3 + 1);
+  assert.equal(car().querySelectorAll("circle.bd.open").length, 1);
+  setHass({ "lock.car": "unknown" });
+  assert.equal(car().querySelectorAll("circle.bd.unk").length, 5);
+});
+
+test("the badges stay inside the drawing", () => {
+  openDoors();
+  const [, , w, h] = car().getAttribute("viewBox").split(" ").map(Number);
+  for (const g of car().querySelectorAll('g[style*="pointer-events"]')) {
+    const m = /translate\(([\d.]+) ([\d.]+)\)/.exec(g.getAttribute("transform"));
+    const [x, y] = [Number(m[1]), Number(m[2])];
+    assert.ok(x - 13 >= 0 && x + 13 <= w && y - 13 >= 0 && y + 13 <= h, `${x},${y}`);
+  }
+});

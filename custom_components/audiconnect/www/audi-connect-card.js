@@ -206,6 +206,10 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 .car .pn.open{fill:var(--c-open);stroke:var(--error-color)}
 .car .wn.open{fill:var(--c-win);stroke:var(--warning-color)}
 .car .hit{cursor:pointer}
+.car .bd{fill:var(--secondary-text-color)}
+.car .bd.lk{fill:color-mix(in srgb,var(--success-color) 65%,#000)}
+.car .bd.ul,.car .bd.win{fill:color-mix(in srgb,var(--warning-color) 65%,#000)}
+.car .bd.open{fill:color-mix(in srgb,var(--error-color) 72%,#000)}
 .li{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--divider-color);font-size:13px;color:var(--primary-text-color);cursor:pointer}
 .li:last-of-type{border:0}
 .c-ok{color:var(--success-color)}.c-warn{color:var(--warning-color)}.c-bad{color:var(--error-color)}.c-mute{color:var(--secondary-text-color)}
@@ -217,6 +221,7 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 @supports not (color:color-mix(in srgb,red,blue)){
 .band,.cstatus,.pill.on,.stp:active,.pill:active,.note.bad{background:var(--secondary-background-color)}
 .cell+.cell{border-left-color:var(--divider-color)}
+.car .bd.lk{fill:var(--success-color)}.car .bd.ul,.car .bd.win{fill:var(--warning-color)}.car .bd.open{fill:var(--error-color)}
 .car{--c-edge:var(--divider-color);--c-mid:var(--card-background-color);--c-line:var(--divider-color);--c-bodyline:var(--divider-color);--c-trim:var(--secondary-text-color);--c-cavity:var(--secondary-text-color);--c-engine:var(--secondary-text-color);--c-gl-a:var(--secondary-text-color);--c-gl-b:var(--secondary-text-color);--c-gl-c:var(--secondary-text-color);--c-tail:var(--error-color);--c-head:var(--secondary-background-color);--c-drl:#8cc8f0;--c-ul:var(--secondary-background-color);--c-open:var(--secondary-background-color);--c-win:var(--secondary-background-color)}
 }
 @media (prefers-reduced-motion:reduce){.bar.charging::before,.pulse,.cstatus ha-icon,.pill.wait ha-icon{animation:none}}
@@ -882,16 +887,18 @@ class AudiConnectCard extends HTMLElement {
     const pn = (d, kind) => `<path d="${d}" class="pn ${kind}"${kind === "lk" || kind === "unk" ? ' fill="url(#acbody)"' : ""}/>`;
     const badge = (x, y, kind, icon) =>
       `<g transform="translate(${x} ${y})" style="pointer-events:none">` +
-      `<circle r="9" cy=".8" fill="var(--primary-text-color)" opacity=".18" filter="url(#acsoft)"/>` +
-      `<circle r="8.5" fill="var(--card-background-color)" stroke="${COL[kind]}" stroke-opacity=".55" stroke-width="1"/>` +
-      `<path transform="translate(-6 -6) scale(.5)" fill="${COL[kind]}" d="${C.ICON[icon]}"/></g>`;
+      `<circle r="12.5" cy="1.2" fill="var(--primary-text-color)" opacity=".2" filter="url(#acsoft)"/>` +
+      `<circle class="bd ${kind}" r="12" stroke="var(--card-background-color)" stroke-width="1.6"/>` +
+      `<path transform="translate(-8.4 -8.4) scale(.7)" fill="#fff" d="${C.ICON[icon]}"/></g>`;
+    // thin line from the car's flank to the badge, so it is clear what it belongs to
+    const lead = (y, side) => `<path d="M${side === "r" ? 203 : mx(203)} ${y}H${side === "r" ? 217 : mx(217)}" stroke="var(--c-line)" stroke-width="1.2" stroke-linecap="round"/>`;
     const mirror = `<path d="${C.MIRROR}" fill="url(#acbody)" stroke="var(--c-bodyline)" stroke-width=".8"/>`;
     const hood = this._doorState("hood");
     const trunk = this._doorState("trunk");
     const trunkOpen = trunk.open;
     const trunkKind = kindOf("trunk");
 
-    let s = `<svg class="car" viewBox="0 0 300 342"><defs>` +
+    let s = `<svg class="car" viewBox="0 0 300 352"><defs>` +
       `<linearGradient id="acbody" x1="0" x2="1"><stop offset="0" style="stop-color:var(--c-edge)"/><stop offset=".2" style="stop-color:var(--secondary-background-color)"/>` +
       `<stop offset=".5" style="stop-color:var(--c-mid)"/><stop offset=".8" style="stop-color:var(--secondary-background-color)"/><stop offset="1" style="stop-color:var(--c-edge)"/></linearGradient>` +
       `<linearGradient id="acglass" x1="0" y1="0" x2=".35" y2="1"><stop offset="0" style="stop-color:var(--c-gl-a)"/><stop offset=".45" style="stop-color:var(--c-gl-b)"/><stop offset="1" style="stop-color:var(--c-gl-c)"/></linearGradient>` +
@@ -962,9 +969,9 @@ class AudiConnectCard extends HTMLElement {
         }
         if (doorsTab) {
           if (kind === "open") badges += badge(side === "r" ? 268 : mx(268), C.DOOR_CY[pos] + 8, "open", "open");
-          else badges += badge(side === "r" ? 236 : mx(236), C.DOOR_CY[pos], kind, kind === "lk" ? "lock" : kind === "unk" ? "help" : "unlock");
+          else badges += lead(C.DOOR_CY[pos], side) + badge(side === "r" ? 229 : mx(229), C.DOOR_CY[pos], kind, kind === "lk" ? "lock" : kind === "unk" ? "help" : "unlock");
         } else {
-          badges += badge(side === "r" ? 236 : mx(236), C.DOOR_CY[pos], wopen ? "win" : "lk", wopen ? "down" : "check");
+          badges += lead(C.DOOR_CY[pos], side) + badge(side === "r" ? 229 : mx(229), C.DOOR_CY[pos], wopen ? "win" : "lk", wopen ? "down" : "check");
         }
       }
       s += `<g${tf}>${closed}</g>`;
@@ -983,7 +990,7 @@ class AudiConnectCard extends HTMLElement {
     hits += zone("seg", this._id(DOOR_KEYS.hood), "M96 8H204V92H96Z") + zone("seg", this._id(DOOR_KEYS.trunk), "M96 236H204V342H96Z");
     s += `<g fill="transparent">${hits}</g></g>`;
     if (doorsTab) {
-      s += trunkOpen ? badge(150, 332, "open", "open") : badge(150, 332, trunkKind, trunkKind === "lk" ? "lock" : trunkKind === "unk" ? "help" : "unlock");
+      s += trunkOpen ? badge(150, 337, "open", "open") : badge(150, 337, trunkKind, trunkKind === "lk" ? "lock" : trunkKind === "unk" ? "help" : "unlock");
       if (hood.open) s += badge(150, 52, "open", "open");
     }
     return s + badges + "</svg>";
