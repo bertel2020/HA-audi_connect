@@ -192,6 +192,8 @@ Jeder Schalter sendet das ganze Einstellungsobjekt mit einem geänderten Feld zu
 
 Bei Auth0-Fahrzeugen startet und stoppt der Schalter **Climatisation ON/OFF** die Klimatisierung mit den im Auto gespeicherten Einstellungen und folgt dem vom Auto gemeldeten Zustand. Die Option _Quick start climate using car-stored settings_ lässt die Climate-Entity dasselbe tun, statt die in Home Assistant angezeigte Temperatur zu senden. Die Auswahl `Climatisation mode` (Komfort oder Eco) erscheint, wenn das Auto einen Modus meldet.
 
+Welche dieser Schalter es gibt, entscheidet das Auto: Antwortet es auf eine Einstellung ausdrücklich mit „nicht unterstützt“ (zum Beispiel `supportsWindowHeatingEnabled: false` beim A6 e-tron), legt die Integration den Schalter nicht an. Fehlt eine Antwort, bleibt er erhalten. Was dein Auto meldet, steht im Diagnose-Download der Integration unter `capability_inventory`: `capability_ids` (alle Fähigkeiten) und `supports_flags` (die Antworten für Klimatisierung und Ladeprofile). Die Flags werden beim Start der Integration einmal gelesen; nach einem Neuladen stehen sie in der Diagnose.
+
 Klima-Timer im Auto melden Sensoren (Anzahl aktiver Timer, nächster Timer in Ortszeit). Angelegt, geschaltet und gelöscht werden sie mit den Timer-Service-Aktionen weiter unten.
 
 ## Warum eine Entity manchmal verschwindet

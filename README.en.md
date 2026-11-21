@@ -226,6 +226,8 @@ Each toggle sends the whole settings object back with one field changed, because
 
 On Auth0 vehicles the **Climatisation ON/OFF** switch starts and stops climatisation with the settings stored in the car and follows the car's reported state. The option _Quick start climate using car-stored settings_ makes the climate entity do the same instead of sending the temperature shown in Home Assistant. The `Climatisation mode` select (comfort or economy) appears where the car reports a mode.
 
+Which of these switches exist is up to the car: when it answers a setting with an explicit "not supported" (for example `supportsWindowHeatingEnabled: false` on the A6 e-tron), the integration does not create the switch. A missing answer keeps it. What your car reports is in the integration's diagnostics download under `capability_inventory`: `capability_ids` (every capability) and `supports_flags` (the answers for climatisation and charging profiles). The flags are read once when the integration starts; after a reload they show up in the diagnostics.
+
 Climatisation timers in the car are reported by sensors (number of enabled timers, next timer in local time). They are created, switched and deleted with the timer service actions below.
 
 ## Why an entity sometimes disappears
