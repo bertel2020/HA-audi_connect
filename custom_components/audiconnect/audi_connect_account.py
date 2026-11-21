@@ -11,7 +11,7 @@ from aiohttp import ClientConnectionError, ClientResponseError, ClientSession
 
 from .audi_api import AudiAPI
 from .audi_connect_vehicle import AudiConnectVehicle
-from .audi_services import AudiAuthError, AudiService
+from .audi_services import AudiAuthError, AudiService, AudiVehicleRequestFailed
 from .util import log_exception, mask_vins
 import builtins
 
@@ -409,6 +409,17 @@ class AudiConnectAccount:
                 "VEHICLE REFRESH: the vehicle did not answer in time for VIN: %s; "
                 "it may be asleep or out of coverage.",
                 redacted_vin,
+            )
+            return False
+        except AudiVehicleRequestFailed as err:
+            # Audi accepted the wake-up and the car then reported it as failed.
+            # Like a timeout, that is the car's state, not an error of ours.
+            _LOGGER.warning(
+                "VEHICLE REFRESH: Audi accepted the request for VIN: %s, but the "
+                "vehicle did not carry it out (%s); it may be asleep or out of "
+                "coverage.",
+                redacted_vin,
+                err,
             )
             return False
         except ClientResponseError as cre:

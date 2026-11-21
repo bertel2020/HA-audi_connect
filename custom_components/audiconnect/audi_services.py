@@ -34,6 +34,7 @@ __all__ = [
     "AudiAuthError",
     "AudiService",
     "AudiTokenRefreshError",
+    "AudiVehicleRequestFailed",
     "build_climatisation_settings_update",
     "build_climatisation_start_body",
     "build_profile_change",
@@ -82,6 +83,14 @@ def _utc_offset_of(stamp: Any) -> timedelta | None:
         return datetime.fromisoformat(stamp).utcoffset()
     except (TypeError, ValueError):
         return None
+
+
+class AudiVehicleRequestFailed(Exception):
+    """Audi took the request, but the car reported it as not carried out.
+
+    Not a fault of the integration: the car may be asleep or out of coverage.
+    Still an ``Exception``, so callers that do not know it behave as before.
+    """
 
 
 class AudiService(AudiAuthMixin):
@@ -1822,7 +1831,7 @@ class AudiService(AudiAuthMixin):
                     if pending_request["status"] == "successful":
                         return
 
-                    raise Exception(
+                    raise AudiVehicleRequestFailed(
                         "Request {} reached unexpected status {}".format(
                             request_id, pending_request["status"]
                         )
