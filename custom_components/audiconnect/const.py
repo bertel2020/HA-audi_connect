@@ -20,7 +20,6 @@ CONF_CLIMATE_SEAT_RL = "seat_rl"
 CONF_CLIMATE_SEAT_RR = "seat_rr"
 CONF_CLIMATE_AT_UNLOCK = "climatisation_at_unlock"
 CONF_CLIMATE_MODE = "climatisation_mode"
-CONF_SCAN_INITIAL = "scan_initial"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_API_LEVEL = "api_level"
 CONF_DURATION = "duration"
@@ -77,6 +76,12 @@ def entry_uses_auth0(entry_data: Mapping[str, Any]) -> bool:
 
 API_LEVELS: list[int] = [0, 1]
 
+# What the car reports as climatisation state when it is doing nothing, and when
+# it has no reading at all. One definition for the climate entity and the quick
+# switch, so they cannot disagree about whether the car is climatising.
+CLIMATISATION_OFF_STATES = frozenset({"off", "inactive", "stopped"})
+CLIMATISATION_NO_READING_STATES = frozenset({"invalid", "unsupported", "error", ""})
+
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.BUTTON,
@@ -113,7 +118,6 @@ __all__ = [
     "CONF_REFRESH_AFTER_ACTION",
     "CONF_REFRESH_TOKEN",
     "CONF_REGION",
-    "CONF_SCAN_INITIAL",
     "CONF_SCAN_INTERVAL",
     "CONF_SPIN",
     "CONF_CHARGE_MODE",

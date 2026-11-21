@@ -20,6 +20,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import AudiRuntimeData
 from .audi_entity import AudiEntity, entity_unique_id, should_create_entity
+from .const import CLIMATISATION_NO_READING_STATES, CLIMATISATION_OFF_STATES
 from .coordinator import AudiDataUpdateCoordinator
 
 _ATTR_KEY = "climatisation_state"
@@ -29,7 +30,7 @@ _MAX_TEMP_C = 30
 _DEFAULT_TEMP_C = 21.0
 # What the car reports when climatisation is doing nothing. Anything else is a
 # running mode, so unknown modes read as on rather than silently as off.
-_INACTIVE_STATES = frozenset({"off", "invalid", "unsupported", "error", ""})
+_INACTIVE_STATES = CLIMATISATION_OFF_STATES | CLIMATISATION_NO_READING_STATES
 
 _ACTIONS = {
     "heating": HVACAction.HEATING,
@@ -63,7 +64,7 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
     """
 
     _backing_attr = _ATTR_KEY
-    _attr_name = "Climatisation"
+    _attr_translation_key = "climatisation"
     _attr_hvac_modes = [HVACMode.OFF, HVACMode.HEAT_COOL]
     _attr_supported_features = (
         ClimateEntityFeature.TARGET_TEMPERATURE
@@ -75,11 +76,9 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
     # warn when both are provided.
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
-    # The api_level 1 payload truncates the target to a whole number
-    # (int(temp_c)), so a half-degree step would advertise a precision the car
-    # never receives. api_level 0 keeps the fraction, but the step has to hold
-    # for both.
-    _attr_target_temperature_step = 1.0
+    # The car stores half degrees, and both requests that carry the target
+    # (the settings write and the start) send them.
+    _attr_target_temperature_step = 0.5
     _attr_min_temp = _MIN_TEMP_C
     _attr_max_temp = _MAX_TEMP_C
 
@@ -91,6 +90,15 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
         super().__init__(coordinator, vehicle)
         self._attr_unique_id = entity_unique_id(vehicle, "climate", "climatisation")
         self._attr_native_target_temperature = _DEFAULT_TEMP_C
+        # A value we asked for, shown until the car reports something other than
+        # what it reported when we asked.
+        self._requested_temperature: float | None = None
+        self._reported_at_request: float | None = None
+
+    @property
+    def _reported_temperature(self) -> float | None:
+        reported = getattr(self._vehicle, "climatisation_target_temperature", None)
+        return float(reported) if isinstance(reported, (int, float)) else None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -117,10 +125,14 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
 
     @property
     def native_target_temperature(self) -> float | None:
-        """Prefer what the car reports over what we last asked for."""
-        reported = getattr(self._vehicle, "climatisation_target_temperature", None)
-        if isinstance(reported, (int, float)):
-            return float(reported)
+        """What we just asked for, until the car reports a change; else the car's."""
+        reported = self._reported_temperature
+        if self._requested_temperature is not None:
+            if reported == self._reported_at_request:
+                return self._requested_temperature
+            self._requested_temperature = None
+        if reported is not None:
+            return reported
         return self._attr_native_target_temperature
 
     @property
@@ -164,35 +176,74 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
         else:
             await self.async_turn_on()
 
-    async def async_turn_on(self) -> None:
+    async def async_turn_on(
+        self, *, force_temperature: bool = False, temperature: float | None = None
+    ) -> None:
         connection = self.coordinator.account.connection
-        # Only temp_c is sent: the service prefers temp_f when both are given,
-        # so passing a converted Fahrenheit value would quantise the 0.5 step.
+        # Some CARIAD cars accept start only with no body: use stored car
+        # settings when explicitly enabled. Never silently override user temp.
+        entry = getattr(self.coordinator, "config_entry", None)
+        options = getattr(entry, "options", {}) if entry is not None else {}
+        data = getattr(entry, "data", {}) if entry is not None else {}
+        quick_start = bool(options.get("climate_quick_start", False))
+        service = getattr(connection, "_audi_service", None)
+        modern_api = (
+            bool(getattr(service, "uses_auth0", False)) or data.get("api_level", 0) == 1
+        )
+        if temperature is None:
+            temperature = (
+                None
+                if quick_start and modern_api and not force_temperature
+                else self.native_target_temperature
+            )
+        started = self._command_started()
         if not await connection.start_climate_control(
-            self._vehicle.vin, temp_c=self.native_target_temperature
+            self._vehicle.vin, temp_c=temperature
         ):
             raise HomeAssistantError(
                 "Failed to start climatisation; see the log for details"
             )
-        await self.coordinator.async_request_refresh()
+        await self._refresh_after_command(started)
 
     async def async_turn_off(self) -> None:
         connection = self.coordinator.account.connection
+        started = self._command_started()
         if not await connection.set_vehicle_climatisation(self._vehicle.vin, False):
             raise HomeAssistantError(
                 "Failed to stop climatisation; see the log for details"
             )
-        await self.coordinator.async_request_refresh()
+        await self._refresh_after_command(started)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             return
         self._attr_native_target_temperature = float(temperature)
+        self._requested_temperature = float(temperature)
+        self._reported_at_request = self._reported_temperature
         self.async_write_ha_state()
+        connection = self.coordinator.account.connection
+        service = getattr(connection, "_audi_service", None)
+        # Stopped: store it in the car, which is what the myAudi app does. This
+        # does not start the climatisation. Without a way to write the setting
+        # the value stays here and is used at the next start.
+        if not self._is_running and getattr(service, "uses_auth0", False):
+            started = self._command_started()
+            if not await connection.set_climatisation_setting(
+                self._vehicle.vin, "targetTemperature", float(temperature)
+            ):
+                raise HomeAssistantError(
+                    "Failed to set the target temperature; see the log for details"
+                )
+            await self._refresh_after_command(started)
+            return
         # Re-send only if it is already running, so setting a temperature while
         # off does not start the car climatising.
         if self._is_running:
-            await self.async_turn_on()
+            # An explicit temperature change must never be silently discarded
+            # by the optional bodyless quick-start mode.
+            await self.async_turn_on(
+                force_temperature=True, temperature=float(temperature)
+            )
 
 
 __all__ = ["AudiClimate", "async_setup_entry"]

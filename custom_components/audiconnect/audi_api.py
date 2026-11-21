@@ -3,38 +3,91 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
+from collections import deque
 from contextlib import suppress
 from datetime import UTC, datetime
 from typing import Any
 
 from aiohttp import ClientResponseError, ClientSession
 from aiohttp.hdrs import METH_GET, METH_POST, METH_PUT
-import builtins
+
+from .diagnostic_events import build_http_event
 
 # ===========================================
 # VERBOSE DEBUG TOGGLE
 # Set to True to log EVERYTHING (full headers, full body, raw JSON, etc.)
 # Set to False for normal operation (minimal debug output)
+# WARNING: when True this also logs access tokens and Authorization headers.
+# Never enable it on a system whose logs you share.
 DEBUG_VERBOSE = False
 # ===========================================
 
 TIMEOUT = 30
 _LOGGER = logging.getLogger(__name__)
+_WRITE_METHODS = frozenset({METH_POST, METH_PUT})
+_ERROR_BODY_CHARS = 300
+_VIN_PATTERN = re.compile(r"[A-HJ-NPR-Z0-9]{17}")
+# Request-body keys that carry a secret or a position; matched lower-cased.
+_SECRET_BODY_KEYS = frozenset(
+    {
+        "spin",
+        "securitypin",
+        "securitypinhash",
+        "securitytoken",
+        "securedactivationdata",
+        "userpromptproof",
+        "challenge",
+        "token",
+        "password",
+        "userposition",
+        "accesstoken",
+        "refreshtoken",
+    }
+)
+_SECRET_TEXT = re.compile(
+    r"""(["']?(?:{})["']?\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,&}}]+)""".format(
+        "|".join(sorted(_SECRET_BODY_KEYS))
+    ),
+    re.IGNORECASE,
+)
+
+
+def _redact_secrets(value: Any) -> Any:
+    """Return ``value`` with PINs, tokens and positions replaced by a marker."""
+    if isinstance(value, dict):
+        return {
+            k: "<redacted>"
+            if str(k).lower().replace("_", "") in _SECRET_BODY_KEYS
+            else _redact_secrets(v)
+            for k, v in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [_redact_secrets(v) for v in value]
+    if isinstance(value, (bytes, bytearray)):
+        value = value.decode("utf-8", "replace")
+    if isinstance(value, str):
+        stripped = value.lstrip()
+        if stripped[:1] in "{[":
+            try:
+                return _redact_secrets(json.loads(value))
+            except ValueError:
+                pass
+        return _SECRET_TEXT.sub(r"\1<redacted>", value)
+    return value
 
 
 class AudiAPI:
     HDR_XAPP_VERSION = "4.31.0"
     HDR_USER_AGENT = "Android/4.31.0 (Build 800341641.root project 'myaudi_android'.ext.buildTime) Android/13"
 
-    def __init__(self, session: ClientSession, proxy: str | None = None) -> None:
+    def __init__(self, session: ClientSession) -> None:
         self.__token: dict[str, Any] | None = None
         self.__xclientid: str | None = None
         self._session = session
-        self.__proxy: dict[str, str | None] | None = (
-            {"http": proxy, "https": proxy} if proxy else None
-        )
         self.vcf_remaining_calls: int | None = None
         self.vcf_remaining_calls_last_observed: datetime | None = None
+        self.diagnostic_events = deque(maxlen=40)
 
     def use_token(self, token: dict[str, Any] | None) -> None:
         self.__token = token
@@ -45,6 +98,34 @@ class AudiAPI:
         self.__xclientid = xclientid
         if DEBUG_VERBOSE:
             _LOGGER.debug("[set_xclient_id] X-Client-ID set: %s", xclientid)
+
+    async def _log_rejected_write(
+        self, method: str, url: str, response: Any, sent: Any = None
+    ) -> None:
+        """Say why Audi refused a write.
+
+        The status line alone ("502 Bad Gateway") cannot tell a rejected body
+        from a sleeping car. The reply body usually can, and the body we sent
+        says what was asked. Settings are logged, headers never are: PINs, tokens and
+        positions are redacted, the VIN is masked and the length capped.
+        """
+        try:
+            text = await response.text()
+        except Exception:  # noqa: BLE001 - diagnostics must never mask the error
+            return
+        route = re.sub(r"/vehicles/[A-Za-z0-9]+", "/vehicles/<vin>", url.split("?")[0])
+        reply = re.sub(r"[A-HJ-NPR-Z0-9]{17}", "<vin>", text.strip())[
+            :_ERROR_BODY_CHARS
+        ]
+        _LOGGER.warning(
+            "Audi rejected %s %s with %s %s: %s (sent: %s)",
+            method.upper(),
+            route,
+            response.status,
+            response.reason,
+            reply or "(empty reply)",
+            _VIN_PATTERN.sub("<vin>", str(_redact_secrets(sent)))[:_ERROR_BODY_CHARS],
+        )
 
     async def request(
         self,
@@ -64,13 +145,16 @@ class AudiAPI:
             _LOGGER.debug("Data: %s", data)
             _LOGGER.debug("Headers: %s", headers)
             _LOGGER.debug("Kwargs: %s", kwargs)
-            _LOGGER.debug("Proxy: %s", self.__proxy)
 
         try:
             async with asyncio.timeout(TIMEOUT):
                 async with self._session.request(
                     method, url, headers=headers, data=data, **kwargs
                 ) as response:
+                    # Record status and route only; never retain URL, VIN, body or headers.
+                    event = build_http_event(method, url, response.status)
+                    if event is not None:
+                        self.diagnostic_events.append(event)
                     if DEBUG_VERBOSE:
                         _LOGGER.debug("[RESPONSE RECEIVED]")
                         _LOGGER.debug("Status: %s", response.status)
@@ -128,11 +212,18 @@ class AudiAPI:
                             _LOGGER.debug(
                                 "Raw JSON text (before parsing): %s", raw_body
                             )
+                        # Some CARIAD mutation endpoints acknowledge with
+                        # HTTP 200/202 and an empty body (not JSON). Accept the
+                        # transport response without inventing vehicle success.
+                        if not raw_body.strip():
+                            return None
                         json_data = json_loads(raw_body)
                         if DEBUG_VERBOSE:
                             _LOGGER.debug("Parsed JSON data (full): %s", json_data)
                         else:
-                            _LOGGER.debug("Returning JSON data: %s", json_data)
+                            _LOGGER.debug(
+                                "Returning parsed JSON response (payload redacted)"
+                            )
                         return json_data
 
                     else:
@@ -147,6 +238,10 @@ class AudiAPI:
                                 response.status,
                                 response.reason,
                             )
+                            if method.upper() in _WRITE_METHODS:
+                                await self._log_rejected_write(
+                                    method, url, response, data
+                                )
                             if DEBUG_VERBOSE:
                                 _LOGGER.debug(
                                     "Response url: %s, body: %s",
@@ -160,12 +255,7 @@ class AudiAPI:
                             message=response.reason,
                         )
 
-        except asyncio.CancelledError as err:
-            if DEBUG_VERBOSE:
-                _LOGGER.debug("Request cancelled (CancelledError).")
-            raise builtins.TimeoutError("Timeout error") from err
-
-        except builtins.TimeoutError:
+        except TimeoutError:
             if DEBUG_VERBOSE:
                 _LOGGER.debug("Request timed out after %s seconds.", TIMEOUT)
             raise

@@ -57,6 +57,8 @@ def build(vehicle, connection=None):
     entities = [
         AudiProfileChargeTarget(coordinator, vehicle, p) for p in _profiles(vehicle)
     ]
+    for entity in entities:
+        entity.async_write_ha_state = lambda: None  # not added to a hass here
     return coordinator, entities
 
 
@@ -65,7 +67,11 @@ def build(vehicle, connection=None):
 
 def test_one_entity_per_profile_in_the_payload(vehicle):
     _, entities = build(vehicle)
-    assert [e.name for e in entities] == ["Home charge target", "Work charge target"]
+    assert {e.translation_key for e in entities} == {"charge_profile_target"}
+    assert [e.translation_placeholders["profile"] for e in entities] == [
+        "Home",
+        "Work",
+    ]
     assert [e.native_value for e in entities] == [60.0, 100.0]
 
 
@@ -84,13 +90,13 @@ def test_renaming_a_profile_in_the_car_keeps_the_same_entity(vehicle):
     vehicle.charging_profiles[0]["name"] = "Nanna's"
     _, after = build(vehicle)
     assert after[0].unique_id == before[0].unique_id
-    assert after[0].name == "Nanna's charge target"
+    assert after[0].translation_placeholders == {"profile": "Nanna's"}
 
 
 def test_profile_without_a_name_falls_back_to_its_id(vehicle):
     vehicle.charging_profiles[0]["name"] = None
     _, entities = build(vehicle)
-    assert entities[0].name == "Profile 1 charge target"
+    assert entities[0].translation_placeholders == {"profile": "Profile 1"}
 
 
 def test_entries_without_an_id_are_skipped(vehicle):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 from typing import Any
 
 from .util import get_attr
@@ -37,6 +38,80 @@ def _count_error_objects(data: Any) -> int:
     return 0
 
 
+_PERMANENT_YEAR = 2100
+
+# What the "charging" capability calls the limits of the global charge target.
+_CHARGE_TARGET_PARAMETERS = {
+    "targetStateOfChargeMinimumAllowedValue": "min",
+    "targetStateOfChargeStepSize": "step",
+}
+
+
+def _charge_target_limits(parameters: Any) -> dict[str, int]:
+    """The lowest charge target and the step size the car accepts.
+
+    The car sends every parameter as a string and an empty one when it has no
+    value; anything that is not a sensible whole percentage is left out so the
+    caller falls back to its defaults.
+    """
+    limits: dict[str, int] = {}
+    if not isinstance(parameters, list):
+        return limits
+    for item in parameters:
+        if not isinstance(item, dict):
+            continue
+        name = _CHARGE_TARGET_PARAMETERS.get(item.get("key"))
+        try:
+            number = int(str(item.get("value")).strip())
+        except ValueError:
+            continue
+        if name and 1 <= number <= 100:
+            limits[name] = number
+    return limits
+
+
+def _supports_flags(parameters: Any) -> dict[str, bool]:
+    """The "supports..." answers of one capability, as booleans.
+
+    The car sends every parameter as a string, "true" or "false", and an empty
+    string when it has no answer. Only a real answer is kept, so a missing flag
+    never reads as a "no".
+    """
+    flags: dict[str, bool] = {}
+    if not isinstance(parameters, list):
+        return flags
+    for item in parameters:
+        if not isinstance(item, dict):
+            continue
+        key, value = item.get("key"), str(item.get("value")).strip().lower()
+        if (
+            isinstance(key, str)
+            and key.startswith("supports")
+            and value in {"true", "false"}
+        ):
+            flags[key] = value == "true"
+    return flags
+
+
+def _service_end(value: Any) -> datetime | None:
+    """A real end date, or None for no date / "never" (a hundred years out)."""
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except ValueError:
+            return None
+        # A bare date ("2033-09-30") carries no zone; the car's dates are UTC.
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=UTC)
+    if (
+        isinstance(value, datetime)
+        and value.tzinfo is not None
+        and value.year < _PERMANENT_YEAR
+    ):
+        return value
+    return None
+
+
 class VehicleDataResponse:
     OLDAPI_MAPPING = {
         "frontRightLock": "LOCK_STATE_RIGHT_FRONT_DOOR",
@@ -66,6 +141,7 @@ class VehicleDataResponse:
         return self.error_count > 0 and not self.data_fields and not self.states
 
     def __init__(self, data: dict[str, Any]) -> None:
+        # The payload as received, kept for diagnostics.
         self.data_fields: list[Field] = []
         self.states: list[dict[str, Any]] = []
         # #793: count the error objects up front, so an all-error outage (200 but
@@ -127,6 +203,21 @@ class VehicleDataResponse:
             ],
         )
 
+        # The warning list has no capture timestamp of its own, and an empty
+        # object is the car's way of saying there is none, so it cannot go
+        # through the timestamped fields.
+        warnings = (data.get("vehicleHealthWarnings") or {}).get("warningLights")
+        warning_value = warnings.get("value") if isinstance(warnings, dict) else None
+        if isinstance(warning_value, dict):
+            lights = warning_value.get("warningLights")
+            self.states.append(
+                {
+                    "name": "warningLights",
+                    "value": lights if isinstance(lights, list) else [],
+                    "measure_time": None,
+                }
+            )
+
         self._tryAppendFieldWithTs(
             data,
             "OIL_LEVEL_DIPSTICKS_PERCENTAGE",
@@ -153,6 +244,15 @@ class VehicleDataResponse:
             "doorLockStatus",
             -1,
             ["access", "accessStatus", "value", "doorLockStatus"],
+        )
+
+        # The car's one-word verdict on doors, windows and locks together
+        # ("safe" when everything is closed and locked).
+        self._tryAppendStateWithTs(
+            data,
+            "accessOverallStatus",
+            -1,
+            ["access", "accessStatus", "value", "overallStatus"],
         )
 
         self._tryAppendStateWithTs(
@@ -362,9 +462,70 @@ class VehicleDataResponse:
                 "remainingClimatisationTime_min",
             ],
         )
+        # Additional modern CARIAD fields interpreted by CarConnectivity:
+        # keep numeric charging limits distinct from qualitative settings.
+        for name, key in (
+            ("chargingCurrentLimitA", "maxChargeCurrentAC_A"),
+            ("chargingCurrentLimitMode", "maxChargeCurrentAC"),
+            ("chargingPlugAutoUnlock", "autoUnlockPlugWhenChargedAC"),
+        ):
+            self._tryAppendStateWithTs(
+                data, name, -1, ["charging", "chargingSettings", "value", key]
+            )
+        # Settings and states the car reports that nothing exposed before.
+        for name, path in (
+            (
+                "chargingScenario",
+                ["charging", "chargingStatus", "value", "chargingScenario"],
+            ),
+            (
+                "climatisationMode",
+                [
+                    "climatisation",
+                    "climatisationSettings",
+                    "value",
+                    "climatisationMode",
+                ],
+            ),
+            ("parkingBrake", ["parkingBrake", "parkingBrakeStatus", "value", "value"]),
+        ):
+            self._tryAppendStateWithTs(data, name, -1, list(path))
+        # The care setting arrives without a capture time (the A6 sends just
+        # {"batteryCareMode": ...}), which _tryAppendStateWithTs would drop. It
+        # is a setting, not a reading, so it is kept with no timestamp rather
+        # than given an invented one; the last-update scan skips such states.
+        care_mode = self._getFromJson(
+            data, ["charging", "chargingCareSettings", "value", "batteryCareMode"]
+        )
+        if care_mode is not None:
+            self.states.append(
+                {"name": "batteryCareMode", "value": care_mode, "measure_time": None}
+            )
+        # Audi reports online/active at the vehicle, not at the cloud gateway.
+        # This readiness block may have no capture time: never assign an
+        # invented timestamp or claim every other status is freshly measured.
+        connection = self._getFromJson(
+            data, ["readiness", "readinessStatus", "value", "connectionState"]
+        )
+        if isinstance(connection, dict):
+            for name, source in (
+                ("vehicleReportedOnline", "isOnline"),
+                ("vehicleReportedActive", "isActive"),
+            ):
+                if isinstance(connection.get(source), bool):
+                    self.states.append(
+                        {
+                            "name": name,
+                            "value": connection[source],
+                            "measure_time": None,
+                        }
+                    )
+
         self._parseChargingProfiles(data)
         self._parseChargingTimers(data)
+        self._parseClimatisationTimers(data)
         self._parseUserCapabilities(data)
+        self._parseWindowPositions(data)
 
     def _appendState(self, name: str, value: Any, ts: Any) -> None:
         """Append a derived state. Used by the charging-profile and timer parsers,
@@ -373,6 +534,44 @@ class VehicleDataResponse:
         if value is None or not ts:
             return
         self.states.append({"name": name, "value": value, "measure_time": ts})
+
+    def _clearStates(self, *names: str, only_if: Any = True) -> None:
+        """Reset derived states the latest report no longer backs.
+
+        The vehicle keeps the last value of every state name, so a parser that
+        merely leaves a value out would keep showing the previous one: the home
+        charging profile after the car drove away, a timer that was switched off.
+        ``only_if`` carries the block's capture time: without one the block is
+        incomplete and says nothing about what is gone.
+        """
+        if not only_if:
+            return
+        for name in names:
+            self.states.append({"name": name, "value": None, "measure_time": None})
+
+    def _parseWindowPositions(self, data: dict[str, Any]) -> None:
+        """How far each window is open, in percent, from the access job.
+
+        The open/closed state is parsed elsewhere; this is the figure the car
+        reports beside it. A window with no percentage, or an unreadable one, is
+        left out rather than shown as closed.
+        """
+        block = get_attr(data, "access.accessStatus.value", {})
+        windows = block.get("windows") if isinstance(block, dict) else None
+        if not isinstance(windows, list):
+            return
+        ts = block.get("carCapturedTimestamp")
+        for window in windows:
+            if not isinstance(window, dict):
+                continue
+            name, pct = window.get("name"), window.get("windowOpen_pct")
+            if (
+                isinstance(name, str)
+                and isinstance(pct, (int, float))
+                and not isinstance(pct, bool)
+                and 0 <= pct <= 100
+            ):
+                self._appendState(f"windowOpenPct_{name}", pct, ts)
 
     def _parseUserCapabilities(self, data: dict[str, Any]) -> None:
         """Record what the car says it can do, as distinct from what this poll
@@ -394,6 +593,8 @@ class VehicleDataResponse:
 
         ids = []
         impaired = []
+        expiry: dict[str, datetime] = {}
+        limits: dict[str, int] = {}
         for entry in value:
             if not isinstance(entry, dict):
                 continue
@@ -401,10 +602,15 @@ class VehicleDataResponse:
             if not isinstance(cap_id, str) or not cap_id:
                 continue
             ids.append(cap_id)
+            ends = _service_end(entry.get("expirationDate"))
+            if ends is not None:
+                expiry[cap_id] = ends
             # A listed capability can still be reporting an error, so it is not
             # the same as a working one.
             if entry.get("status"):
                 impaired.append(cap_id)
+            if cap_id == "charging":
+                limits = _charge_target_limits(entry.get("parameters"))
 
         if not ids:
             return
@@ -414,6 +620,18 @@ class VehicleDataResponse:
         self.states.append(
             {"name": "userCapabilities", "value": sorted(ids), "measure_time": None}
         )
+        if expiry:
+            # When each time-limited online service ends. Dates a century out
+            # are the car's way of saying "does not expire" and are left out.
+            self.states.append(
+                {"name": "serviceExpiry", "value": expiry, "measure_time": None}
+            )
+        if limits:
+            self.states.append(
+                {"name": "chargeTargetLimits", "value": limits, "measure_time": None}
+            )
+        if not impaired:
+            self._clearStates("userCapabilitiesImpaired")
         if impaired:
             self.states.append(
                 {
@@ -468,6 +686,17 @@ class VehicleDataResponse:
         self._appendState("activeChargingProfileId", active_id, ts)
 
         if active is None:
+            self._clearStates(
+                "activeChargingProfileName",
+                "activeChargingProfileTargetSoc",
+                "activeChargingProfileMinSoc",
+                "activeChargingProfileMaxCurrent",
+                "activeChargingProfileUsesPreferredTimes",
+                "preferredChargingTimeStart",
+                "preferredChargingTimeEnd",
+                "preferredChargingTimeEnabled",
+                only_if=ts,
+            )
             return
 
         self._appendState("activeChargingProfileName", active.get("name"), ts)
@@ -475,6 +704,17 @@ class VehicleDataResponse:
             "activeChargingProfileTargetSoc", active.get("targetSOC_pct"), ts
         )
         self._appendState("activeChargingProfileMinSoc", active.get("minSOC_pct"), ts)
+        max_current = active.get("maxChargingCurrent")
+        if isinstance(max_current, str) and max_current not in ("", "invalid"):
+            self._appendState("activeChargingProfileMaxCurrent", max_current, ts)
+        options = active.get("options")
+        if isinstance(options, dict):
+            uses_times = options.get("usePreferredChargingTimes")
+            # A bool is appended explicitly: False is a meaningful answer.
+            if isinstance(uses_times, bool):
+                self._appendState(
+                    "activeChargingProfileUsesPreferredTimes", uses_times, ts
+                )
 
         # The preferred charging window is the per-location time band; this is the
         # field a smart-tariff scheduler writes when it moves a charge.
@@ -486,10 +726,14 @@ class VehicleDataResponse:
             )
             if window is not None:
                 self._appendState(
-                    "preferredChargingTimeStart", window.get("startTimeLocal"), ts
+                    "preferredChargingTimeStart",
+                    window.get("startTimeLocal", window.get("startTime")),
+                    ts,
                 )
                 self._appendState(
-                    "preferredChargingTimeEnd", window.get("endTimeLocal"), ts
+                    "preferredChargingTimeEnd",
+                    window.get("endTimeLocal", window.get("endTime")),
+                    ts,
                 )
                 # bool is appended explicitly: _appendState drops None, and False
                 # is a meaningful value here.
@@ -497,16 +741,25 @@ class VehicleDataResponse:
                 if enabled is not None:
                     self._appendState("preferredChargingTimeEnabled", bool(enabled), ts)
 
+    def _timer_block(self, data: dict[str, Any], job: str, status: str) -> Any:
+        """A timer status block from its own job, else from departureTimers.
+
+        Some cars report the same status blocks under departureTimers instead
+        of their own jobs.
+        """
+        for source in (job, "departureTimers"):
+            value = self._getFromJson(data, [source, status, "value"])
+            if isinstance(value, dict):
+                return value
+        return None
+
     def _parseChargingTimers(self, data: dict[str, Any]) -> None:
         """Parse the departure/charging timers.
 
-        Note these are the *chargingTimers* job. departureTimers/departureProfiles
-        are requested by get_stored_vehicle_data but are not returned for every
-        model (a Q8 e-tron returns neither), so nothing here may depend on them.
+        The Q8 reports them in the chargingTimers job, the A6 in departureTimers
+        (same block name). Either is read; nothing depends on both being there.
         """
-        value = self._getFromJson(
-            data, ["chargingTimers", "chargingTimersStatus", "value"]
-        )
+        value = self._timer_block(data, "chargingTimers", "chargingTimersStatus")
         if not isinstance(value, dict):
             return
 
@@ -542,6 +795,68 @@ class VehicleDataResponse:
             self._appendState(
                 "nextChargingTimerDeparture", active[0].get("departureTimeLocal"), ts
             )
+        else:
+            self._clearStates("nextChargingTimerDeparture", only_if=ts)
+
+    def _parseClimatisationTimers(self, data: dict[str, Any]) -> None:
+        """Expose the Q8's real climate timers without pretending local time is UTC.
+
+        Audi returns each timer's startDateTimeLocal in the car's local clock.
+        Until an explicit timezone is supplied, it must remain a string, not
+        a HA timestamp sensor with a guessed offset. Keep the state bounded and
+        strip every field except the small, documented timer subset.
+        """
+        block = self._timer_block(
+            data, "climatisationTimers", "climatisationTimersStatus"
+        )
+        if not isinstance(block, dict):
+            return
+        ts = block.get("carCapturedTimestamp")
+        timers = block.get("timers")
+        if not isinstance(timers, list):
+            return
+        entries: list[dict[str, Any]] = []
+        for timer in timers[:12]:
+            if not isinstance(timer, dict):
+                continue
+            record: dict[str, Any] = {}
+            if isinstance(timer.get("id"), (int, str)):
+                record["id"] = timer["id"]
+            if isinstance(timer.get("enabled"), bool):
+                record["enabled"] = timer["enabled"]
+            single = timer.get("singleTimer")
+            if isinstance(single, dict):
+                local_start = single.get("startDateTimeLocal")
+                if isinstance(local_start, str) and len(local_start) <= 40:
+                    record["startDateTimeLocal"] = local_start
+            recurring = timer.get("recurringTimer")
+            if isinstance(recurring, dict):
+                local_time = recurring.get("departureTimeLocal")
+                if isinstance(local_time, str) and len(local_time) <= 40:
+                    record["departureTimeLocal"] = local_time
+                days = recurring.get("repetitionDays")
+                if isinstance(days, list):
+                    record["repetitionDays"] = [
+                        day for day in days[:7] if isinstance(day, (str, int))
+                    ]
+            entries.append(record)
+
+        self._appendState("climatisationTimers", entries, ts)
+        self._appendState("climatisationTimerCount", len(entries), ts)
+        self._appendState(
+            "climatisationTimerEnabledCount",
+            sum(item.get("enabled") is True for item in entries),
+            ts,
+        )
+        enabled_starts = sorted(
+            item["startDateTimeLocal"]
+            for item in entries
+            if item.get("enabled") is True and "startDateTimeLocal" in item
+        )
+        if enabled_starts:
+            self._appendState("nextClimatisationTimerLocal", enabled_starts[0], ts)
+        else:
+            self._clearStates("nextClimatisationTimerLocal", only_if=ts)
 
     def _tryAppendStateWithTs(
         self, json: dict[str, Any], name: str, tsoff: int, loc: list[str]
@@ -856,30 +1171,47 @@ class Vehicle:
         self.vin: str = ""
         self.csid: str = ""
         self.model: str = ""
+        self.model_source: str = "unavailable"
         self.model_year: str = ""
         self.model_family: str = ""
         self.title: str = ""
 
+    @staticmethod
+    def _clean_label(value: Any) -> str:
+        """Accept a non-blank Audi string, never the literal None or object."""
+        return value.strip() if isinstance(value, str) else ""
+
     def parse(self, data: dict[str, Any]) -> None:
-        self.vin = data.get("vin")
-        self.csid = data.get("csid")
-        if (
-            data.get("vehicle") is not None
-            and data.get("vehicle").get("media") is not None
-        ):
-            self.model = data.get("vehicle").get("media").get("longName")
-        if (
-            data.get("vehicle") is not None
-            and data.get("vehicle").get("core") is not None
-        ):
-            self.model_year = data.get("vehicle").get("core").get("modelYear")
-        if data.get("nickname") is not None and len(data.get("nickname")) > 0:
-            self.title = data.get("nickname")
-        elif (
-            data.get("vehicle") is not None
-            and data.get("vehicle").get("media") is not None
-        ):
-            self.title = data.get("vehicle").get("media").get("shortName")
+        self.vin = data.get("vin") or ""
+        self.csid = data.get("csid") or ""
+        vehicle = data.get("vehicle") or {}
+        if not isinstance(vehicle, dict):
+            vehicle = {}
+        media = vehicle.get("media") or {}
+        if not isinstance(media, dict):
+            media = {}
+        core = vehicle.get("core") or {}
+        if not isinstance(core, dict):
+            core = {}
+
+        # Auth0 GraphQL returns a nonfatal enrichment error on some cars;
+        # media.longName is then absent. shortName is still manufacturer data.
+        long_name = self._clean_label(media.get("longName"))
+        short_name = self._clean_label(media.get("shortName"))
+        nickname = self._clean_label(data.get("nickname"))
+        if long_name:
+            self.model, self.model_source = long_name, "audi_long_name"
+        elif short_name:
+            self.model, self.model_source = short_name, "audi_short_name"
+        elif nickname:
+            # Last resort: a user-defined vehicle label, NOT a verified model.
+            self.model, self.model_source = nickname, "nickname_fallback"
+        else:
+            self.model, self.model_source = "", "unavailable"
+
+        year = core.get("modelYear")
+        self.model_year = str(year) if year is not None and str(year).strip() else ""
+        self.title = nickname or short_name or long_name or "Audi vehicle"
 
     def __str__(self) -> str:
         return str(self.__dict__)

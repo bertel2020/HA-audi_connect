@@ -13,11 +13,8 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-from custom_components.audiconnect.audi_services import (
-    AudiAuthError,
-    AudiService,
-    DEVICE_CODE_SCOPE,
-)
+from custom_components.audiconnect.audi_auth import DEVICE_CODE_SCOPE, AudiAuthError
+from custom_components.audiconnect.audi_services import AudiService
 
 TOKEN_ENDPOINT = "https://identity.vwgroup.io/oidc/v1/token"
 AUTH0_TOKEN_ENDPOINT = "https://group.identity.vwgroup.io/oauth/token"
@@ -315,7 +312,7 @@ async def test_vehicle_information_keeps_data_with_nonfatal_enrichment_errors(
         "data": {
             "userVehicles": [
                 {
-                    "vin": "WAUZZZ4M1RD012345",
+                    "vin": "WAUZZZ4M1RD000001",
                     "csid": None,
                     "vehicle": None,
                     "nickname": "Test Car",
@@ -328,7 +325,7 @@ async def test_vehicle_information_keeps_data_with_nonfatal_enrichment_errors(
     result = await service.get_vehicle_information()
 
     assert len(result.vehicles) == 1
-    assert result.vehicles[0].vin == "WAUZZZ4M1RD012345"
+    assert result.vehicles[0].vin == "WAUZZZ4M1RD000001"
     assert result.vehicles[0].title == "Test Car"
 
 

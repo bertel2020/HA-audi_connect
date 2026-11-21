@@ -81,7 +81,8 @@ async def system_health_info(hass: HomeAssistant) -> dict[str, Any]:
 
         # Last update error (coordinator built-in)
         if coordinator.last_exception is not None:
-            last_error = str(coordinator.last_exception)
+            # The class only: the message can carry a URL with the VIN in it.
+            last_error = type(coordinator.last_exception).__name__
 
     info["logged_in"] = all_logged_in
     info["vehicles"] = total_vehicles

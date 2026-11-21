@@ -191,6 +191,21 @@ def test_setting_a_temperature_while_off_does_not_start_the_car():
     assert coordinator.refreshed == 0
 
 
+def test_with_a_modern_account_a_stopped_car_gets_the_setting_written():
+    """Not just remembered here: the car reports its own target, which would
+    otherwise overwrite the value again and make the change look ignored."""
+    from types import SimpleNamespace as NS
+
+    connection = RecordingConnection()
+    connection._audi_service = NS(uses_auth0=True)
+    coordinator, entity = build("off", connection)
+    asyncio.run(entity.async_set_temperature(**{ATTR_TEMPERATURE: 19.5}))
+    assert connection.calls == [
+        ("set_climatisation_setting", (VIN, "targetTemperature", 19.5), {})
+    ]
+    assert coordinator.refreshed == 1
+
+
 def test_setting_a_temperature_while_running_re_sends_it():
     connection = RecordingConnection()
     _, entity = build("heating", connection)
@@ -210,6 +225,32 @@ def test_turn_on_uses_the_live_start_path_and_sends_only_celsius():
     asyncio.run(entity.async_set_hvac_mode(HVACMode.HEAT_COOL))
     assert connection.calls == [("start_climate_control", (VIN,), {"temp_c": 21.0})]
     assert coordinator.refreshed == 1
+
+
+def test_optional_auth0_quick_start_uses_vehicle_stored_settings():
+    from types import SimpleNamespace as NS
+
+    connection = RecordingConnection()
+    connection._audi_service = NS(uses_auth0=True)
+    coordinator, entity = build("off", connection)
+    coordinator.config_entry = NS(
+        options={"climate_quick_start": True}, data={"api_level": 0}
+    )
+    asyncio.run(entity.async_turn_on())
+    assert connection.calls == [("start_climate_control", (VIN,), {"temp_c": None})]
+
+
+def test_explicit_temp_change_is_not_ignored_in_quick_start_mode():
+    from types import SimpleNamespace as NS
+
+    connection = RecordingConnection()
+    connection._audi_service = NS(uses_auth0=True)
+    coordinator, entity = build("heating", connection)
+    coordinator.config_entry = NS(
+        options={"climate_quick_start": True}, data={"api_level": 0}
+    )
+    asyncio.run(entity.async_set_temperature(**{ATTR_TEMPERATURE: 23.0}))
+    assert connection.calls == [("start_climate_control", (VIN,), {"temp_c": 23.0})]
 
 
 def test_turn_off_uses_the_stop_action_which_is_still_live():
@@ -242,18 +283,17 @@ def test_a_failed_command_raises_and_does_not_refresh(mode):
 
 
 def test_the_advertised_step_matches_what_the_car_receives():
-    """api_level 1 sends int(temp_c), so a 0.5 step would promise a precision
-    the car discards. Same class of defect as #751's Fahrenheit round trip,
-    reached by truncation instead."""
-    import inspect
+    """The car stores half degrees and both requests that carry the target send
+    them, so a 0.5 step promises nothing the car discards."""
+    from custom_components.audiconnect.audi_payloads import (
+        build_climatisation_start_body,
+    )
 
-    from custom_components.audiconnect import audi_services
-
-    source = inspect.getsource(audi_services.build_climatisation_start_body)
-    assert "int(temp_c)" in source  # control: the truncation is still there
+    assert build_climatisation_start_body({}, temp_c=19.5)["targetTemperature"] == 19.5
+    assert build_climatisation_start_body({}, temp_c=19.7)["targetTemperature"] == 19.5
 
     _, entity = build()
-    assert entity.target_temperature_step == 1.0
+    assert entity.target_temperature_step == 0.5
 
 
 def test_turn_on_and_off_are_advertised():
@@ -261,3 +301,51 @@ def test_turn_on_and_off_are_advertised():
     assert entity.supported_features & ClimateEntityFeature.TURN_ON
     assert entity.supported_features & ClimateEntityFeature.TURN_OFF
     assert entity.hvac_modes == [HVACMode.OFF, HVACMode.HEAT_COOL]
+
+
+# --- a requested temperature wins over the car's stale one -----------------------
+
+
+def test_a_new_temperature_is_sent_even_when_the_car_reports_another():
+    """The car reports 22.0; asking for 19.5 must send 19.5, not echo 22.0 back."""
+    connection = RecordingConnection()
+    _, entity = build("heating", connection, climatisation_target_temperature=22.0)
+    asyncio.run(entity.async_set_temperature(**{ATTR_TEMPERATURE: 19.5}))
+    assert connection.calls == [("start_climate_control", (VIN,), {"temp_c": 19.5})]
+    # Shown as asked while the car still reports the old value ...
+    assert entity.target_temperature == 19.5
+    # ... and the car's word counts again once it reports something new.
+    entity._vehicle.climatisation_target_temperature = 19.5
+    assert entity.target_temperature == 19.5
+    entity._vehicle.climatisation_target_temperature = 23.0
+    assert entity.target_temperature == 23.0
+
+
+@pytest.mark.parametrize("state", ["inactive", "stopped"])
+def test_inactive_and_stopped_read_as_off_like_the_quick_switch(state):
+    _, entity = build(state)
+    assert entity.hvac_mode is HVACMode.OFF
+    assert entity.hvac_action is HVACAction.OFF
+
+
+def test_climate_and_quick_switch_agree_on_every_reported_state():
+    from custom_components.audiconnect.switch import AudiClimateQuickSwitch
+
+    for state in [
+        "off",
+        "inactive",
+        "stopped",
+        "invalid",
+        "unsupported",
+        "error",
+        "",
+        "heating",
+        "cooling",
+        "ventilation",
+        "defrosting",
+    ]:
+        _, climate = build(state)
+        switch = AudiClimateQuickSwitch(StubCoordinator(), StubVehicle(state))
+        running = climate.hvac_mode is HVACMode.HEAT_COOL
+        # No reading: the climate entity says off, the switch says unavailable.
+        assert (switch.is_on is True) == running, state

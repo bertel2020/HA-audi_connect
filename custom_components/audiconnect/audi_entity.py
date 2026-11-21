@@ -1,14 +1,112 @@
 from __future__ import annotations
 
+import json
+import time
+from datetime import UTC, datetime
+from functools import cache
+from pathlib import Path
 from typing import Any
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import AudiDataUpdateCoordinator
+
+
+@cache
+def _english_entity_names() -> dict[str, dict[str, str]]:
+    """{domain: {translation_key: English name}} from the shipped en.json."""
+    path = Path(__file__).parent / "translations" / "en.json"
+    try:
+        entities = json.loads(path.read_text(encoding="utf-8")).get("entity", {})
+    except (OSError, ValueError):
+        return {}
+    return {
+        domain: {
+            key: value["name"]
+            for key, value in keys.items()
+            if isinstance(value, dict) and isinstance(value.get("name"), str)
+        }
+        for domain, keys in entities.items()
+        if isinstance(keys, dict)
+    }
+
+
+def english_object_name(
+    domain: str | None, key: str | None, placeholders: dict[str, str] | None
+) -> str | None:
+    """The English name an entity id is built from, or None when there is none."""
+    if not key:
+        return None
+    names = _english_entity_names()
+    if domain is not None:
+        name = names.get(domain, {}).get(key)
+    else:
+        found = {n[key] for n in names.values() if key in n}
+        name = found.pop() if len(found) == 1 else None
+    if name is None:
+        return None
+    try:
+        return name.format(**(placeholders or {}))
+    except (KeyError, IndexError, ValueError):
+        return None
+
+
+# How long a written value is shown before the car's own reading counts again.
+# Longer than the default poll interval, so a car that never confirms the write
+# (it was refused, or changed back) does not leave a stale guess on screen.
+ASSUMED_VALUE_TTL = 20 * 60
+
+
+class AssumedValueMixin:
+    """Show what was just written until the car reports something else.
+
+    The car acknowledges a write before it reports the new value, so the refresh
+    that follows usually reads the old one and the entity would snap back for up
+    to a poll interval, which looks like the command failed. The guess is dropped
+    as soon as the car reports anything other than what it said at the time of
+    the write (even if that differs from what was asked: another client may have
+    changed it), and after ASSUMED_VALUE_TTL.
+
+    Put it before the entity base in the class list and implement
+    ``_reported_value``.
+    """
+
+    _assumed_active = False
+    _assumed_value: Any = None
+    _reported_at_write: Any = None
+    _assumed_at = 0.0
+
+    def _reported_value(self) -> Any:
+        raise NotImplementedError
+
+    def _shown_value(self) -> Any:
+        if self._assumed_active:
+            if time.monotonic() - self._assumed_at < ASSUMED_VALUE_TTL:
+                return self._assumed_value
+            self._drop_assumption()
+        return self._reported_value()
+
+    def _assume(self, value: Any) -> None:
+        self._reported_at_write = self._reported_value()
+        self._assumed_value = value
+        self._assumed_at = time.monotonic()
+        self._assumed_active = True
+        self.async_write_ha_state()
+
+    def _drop_assumption(self) -> None:
+        self._assumed_active = False
+        self._assumed_value = None
+        self._reported_at_write = None
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        if self._assumed_active and self._reported_value() != self._reported_at_write:
+            self._drop_assumption()
+        super()._handle_coordinator_update()
 
 
 def entity_unique_id(vehicle: Any, platform: str, key: str) -> str:
@@ -124,6 +222,25 @@ class AudiEntity(CoordinatorEntity[AudiDataUpdateCoordinator]):
     # has no entity_description to carry it.
     _backing_attr: str | None = None
 
+    @staticmethod
+    def _command_started() -> datetime:
+        """Take before sending a command; see ``_refresh_after_command``."""
+        return datetime.now(UTC)
+
+    async def _refresh_after_command(self, started: datetime) -> None:
+        """Refresh the cloud data, unless the command already did.
+
+        Most commands schedule their own refresh once the car has had time to
+        take them (the account's notify step). A second request here would be
+        held back by the coordinator's cooldown and run as another full poll
+        right after the first. A poll that began after the command started is
+        that refresh, so nothing more is asked for.
+        """
+        attempt = getattr(self.coordinator, "last_cloud_poll_attempt", None)
+        if isinstance(attempt, datetime) and attempt >= started:
+            return
+        await self.coordinator.async_request_refresh()
+
     @property
     def available(self) -> bool:
         """Unavailable when the car is not reporting this entity's value.
@@ -156,13 +273,39 @@ class AudiEntity(CoordinatorEntity[AudiDataUpdateCoordinator]):
         self._vehicle = vehicle
 
     @property
+    def suggested_object_id(self) -> str | None:
+        """Entity ids are English, whatever language Home Assistant runs in.
+
+        The names shown follow the user's language; the id is what automations
+        and dashboards refer to, so it must not change with it.
+        """
+        platform_data = getattr(self, "platform_data", None)
+        english = english_object_name(
+            getattr(platform_data, "domain", None),
+            self.translation_key,
+            getattr(self, "translation_placeholders", None),
+        )
+        return english if english is not None else super().suggested_object_id
+
+    @property
     def device_info(self) -> DeviceInfo:
-        model_info = (self._vehicle.model or "Unknown").replace("Audi ", "")
+        model_info = (self._vehicle.model or self._vehicle.title or "Unknown").strip()
+        if model_info.startswith("Audi "):
+            model_info = model_info[5:]
+        model_year = getattr(self._vehicle, "model_year", "") or ""
+        # What kind of drive the car has belongs to the car, not to a sensor.
+        car_type = getattr(self._vehicle, "car_type", None)
+        details = [str(model_year)] if model_year else []
+        if isinstance(car_type, str) and car_type.strip():
+            details.append(car_type.strip().capitalize())
+        display_model = (
+            f"{model_info} ({', '.join(details)})" if details else model_info
+        )
         return DeviceInfo(
             identifiers={(DOMAIN, self._vehicle.vin.lower())},
             manufacturer="Audi",
-            name=self._vehicle.title,
-            model=f"{model_info} ({self._vehicle.model_year})",
+            name=self._vehicle.title or "Audi vehicle",
+            model=display_model,
         )
 
 

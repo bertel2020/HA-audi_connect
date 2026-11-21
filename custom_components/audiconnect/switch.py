@@ -17,7 +17,13 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AudiRuntimeData
-from .audi_entity import AudiEntity, entity_unique_id, should_create_entity
+from .audi_entity import (
+    AudiEntity,
+    entity_unique_id,
+    is_entity_supported,
+    should_create_entity,
+)
+from .const import CLIMATISATION_NO_READING_STATES, CLIMATISATION_OFF_STATES
 from .coordinator import AudiDataUpdateCoordinator
 
 
@@ -29,57 +35,81 @@ class AudiSwitchEntityDescription(SwitchEntityDescription):
     turn_on_fn: Callable[[Any, str], Coroutine[Any, Any, bool]]
     turn_off_fn: Callable[[Any, str], Coroutine[Any, Any, bool]]
     value_fn: Callable[[Any], bool] = bool
+    # Writes whose exact format the car has not been seen to accept yet.
+    experimental: bool = False
+    # Controls the legacy fuel-fired parking heater. An Auth0 (CARIAD) car has
+    # none: the state falls back to climatisationState, so the switch would
+    # only mirror the air conditioning and its command targets the wrong API.
+    legacy_api_only: bool = False
+    # The "supports..." answer of the car's climatisation capability this
+    # setting depends on. Only a plain "no" hides it; no answer keeps it.
+    supports_key: str | None = None
 
 
 # Climatisation settings the car stores and reports back. Writable through
 # PUT climatisation/settings without starting climatisation, unlike the myAudi
 # app, which only offers them while starting the air conditioning.
-_CLIMATISATION_SETTINGS: tuple[tuple[str, str, str, str], ...] = (
+_CLIMATISATION_SETTINGS: tuple[tuple[str, str, str], ...] = (
     (
         "climatisation_window_heating",
         "climatisation_window_heating_enabled",
         "windowHeatingEnabled",
-        "Window heating",
     ),
     (
         "climatisation_at_unlock",
         "climatisation_at_unlock",
         "climatizationAtUnlock",
-        "Climatisation at unlock",
     ),
     (
         "climatisation_zone_front_left",
         "climatisation_zone_front_left",
         "zoneFrontLeftEnabled",
-        "Climatisation zone front left",
     ),
     (
         "climatisation_zone_front_right",
         "climatisation_zone_front_right",
         "zoneFrontRightEnabled",
-        "Climatisation zone front right",
     ),
     (
         "climatisation_zone_rear_left",
         "climatisation_zone_rear_left",
         "zoneRearLeftEnabled",
-        "Climatisation zone rear left",
     ),
     (
         "climatisation_zone_rear_right",
         "climatisation_zone_rear_right",
         "zoneRearRightEnabled",
-        "Climatisation zone rear right",
     ),
 )
 
 
-def _setting_switch(key, attr_key, field, name) -> AudiSwitchEntityDescription:
+_SETTING_ICONS = {
+    "climatisation_window_heating": "mdi:car-defrost-front",
+    "climatisation_at_unlock": "mdi:car-key",
+    "climatisation_zone_front_left": "mdi:car-seat-heater",
+    "climatisation_zone_front_right": "mdi:car-seat-heater",
+    "climatisation_zone_rear_left": "mdi:car-seat-heater",
+    "climatisation_zone_rear_right": "mdi:car-seat-heater",
+}
+
+
+_SETTING_SUPPORTS = {
+    "climatisation_window_heating": "supportsWindowHeatingEnabled",
+    "climatisation_at_unlock": "supportsClimatisationAtUnlock",
+    "climatisation_zone_front_left": "supportsZoneFrontLeftEnabled",
+    "climatisation_zone_front_right": "supportsZoneFrontRightEnabled",
+    "climatisation_zone_rear_left": "supportsZoneRearLeftEnabled",
+    "climatisation_zone_rear_right": "supportsZoneRearRightEnabled",
+}
+
+
+def _setting_switch(key, attr_key, field) -> AudiSwitchEntityDescription:
     return AudiSwitchEntityDescription(
         key=key,
+        supports_key=_SETTING_SUPPORTS[key],
         attr_key=attr_key,
-        name=name,
-        icon="mdi:car-seat-heater" if "zone" in key else "mdi:car-defrost-front",
+        translation_key=key,
+        icon=_SETTING_ICONS[key],
         entity_category=EntityCategory.CONFIG,
         turn_on_fn=lambda conn, vin, f=field: conn.set_climatisation_setting(
             vin, f, True
@@ -94,13 +124,35 @@ SWITCH_DESCRIPTIONS: tuple[AudiSwitchEntityDescription, ...] = (
     AudiSwitchEntityDescription(
         key="preheater_active",
         attr_key="preheater_active",
-        name="Preheater",
+        translation_key="preheater_active",
         icon="mdi:radiator",
+        legacy_api_only=True,
         turn_on_fn=lambda conn, vin: conn.set_vehicle_pre_heater(vin, True),
         turn_off_fn=lambda conn, vin: conn.set_vehicle_pre_heater(vin, False),
     ),
     *(_setting_switch(*row) for row in _CLIMATISATION_SETTINGS),
+    AudiSwitchEntityDescription(
+        key="plug_auto_unlock",
+        attr_key="charging_plug_auto_unlock",
+        translation_key="plug_auto_unlock",
+        icon="mdi:ev-plug-type2",
+        entity_category=EntityCategory.CONFIG,
+        value_fn=lambda value: value == "enabled",
+        turn_on_fn=lambda conn, vin: conn.set_plug_auto_unlock(vin, True),
+        turn_off_fn=lambda conn, vin: conn.set_plug_auto_unlock(vin, False),
+        experimental=True,
+    ),
 )
+
+
+def car_says_unsupported(
+    vehicle: Any, description: AudiSwitchEntityDescription
+) -> bool:
+    """True only when the car answered "no" to the flag this switch depends on."""
+    if description.supports_key is None:
+        return False
+    flags = getattr(vehicle, "climatisation_supports", None)
+    return isinstance(flags, dict) and flags.get(description.supports_key) is False
 
 
 async def async_setup_entry(
@@ -119,9 +171,104 @@ async def async_setup_entry(
             description.key,
             vehicle := config_vehicle.vehicle,
             description.attr_key,
+            configured=(
+                not description.experimental
+                or config_entry.options.get("experimental_commands", False)
+            )
+            and not car_says_unsupported(vehicle, description)
+            and not (
+                description.legacy_api_only
+                and getattr(
+                    getattr(vehicle, "_audi_service", None), "uses_auth0", False
+                )
+            ),
         )
     ]
+    # One stateful ON/OFF control for the two physically verified Q8 climate
+    # commands. Existing climate and button unique IDs are left untouched.
+    for config_vehicle in runtime_data.account.config_vehicles:
+        vehicle = config_vehicle.vehicle
+        service = getattr(vehicle, "_audi_service", None)
+        if (
+            getattr(service, "uses_auth0", False)
+            and is_entity_supported(vehicle, "climatisation_state", "climatisation")
+            and should_create_entity(
+                hass,
+                "switch",
+                "climate_quick_control",
+                vehicle,
+                "climatisation_state",
+            )
+        ):
+            entities.append(AudiClimateQuickSwitch(runtime_data.coordinator, vehicle))
     async_add_entities(entities)
+
+
+class AudiClimateQuickSwitch(AudiEntity, SwitchEntity):
+    """A native switch around the Q8's proven bodyless climate start/stop.
+
+    Do not present an HTTP 200 as a physical state: the source-of-truth is
+    the vehicle's actual climatisationState, never a speculative toggle.
+    Existing HA climate entity keeps temperature/mode controls.
+    """
+
+    _attr_translation_key = "climate_quick_control"
+    _attr_icon = "mdi:air-conditioner"
+    _backing_attr = "climatisation_state"
+
+    def __init__(self, coordinator: AudiDataUpdateCoordinator, vehicle: Any) -> None:
+        super().__init__(coordinator, vehicle)
+        self._attr_unique_id = entity_unique_id(
+            vehicle, "switch", "climate_quick_control"
+        )
+
+    @property
+    def is_on(self) -> bool | None:
+        reported = getattr(self._vehicle, "climatisation_state", None)
+        if not isinstance(reported, str):
+            return None
+        state = reported.strip().lower()
+        if state in CLIMATISATION_NO_READING_STATES:
+            return None
+        return state not in CLIMATISATION_OFF_STATES
+
+    @property
+    def available(self) -> bool:
+        return super().available and self.is_on is not None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {
+            "vehicle_climatisation_state": getattr(
+                self._vehicle, "climatisation_state", None
+            ),
+            "source": "Audi car reported state",
+            "start_mode": "Use stored vehicle climate settings",
+        }
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        if self.is_on is True:
+            return
+        # Exactly the same bodyless start as the already proven HA button.
+        if not await self.coordinator.account.connection.start_climate_control(
+            self._vehicle.vin
+        ):
+            raise HomeAssistantError(
+                "Audi climate start failed; check the integration log"
+            )
+        # The connection already schedules the post-command coordinator refresh.
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        if self.is_on is False:
+            return
+        # Exactly the same stop route as the already proven HA button.
+        if not await self.coordinator.account.connection.set_vehicle_climatisation(
+            self._vehicle.vin, False
+        ):
+            raise HomeAssistantError(
+                "Audi climate stop failed; check the integration log"
+            )
+        # No duplicate cloud GET: the account wrapper notifies the coordinator.
 
 
 class AudiSwitch(AudiEntity, SwitchEntity):
@@ -166,9 +313,11 @@ class AudiSwitch(AudiEntity, SwitchEntity):
         self, fn: Callable[[Any, str], Coroutine[Any, Any, bool]], target: bool
     ) -> None:
         connection = self.coordinator.account.connection
+        started = self._command_started()
         if not await fn(connection, self._vehicle.vin):
             raise HomeAssistantError(
-                f"Failed to switch {self.name}; see the log for details"
+                f"Failed to switch {self.entity_id or self.unique_id}; "
+                "see the log for details"
             )
         # The car acknowledges the write before it reports the new value, so the
         # refresh below usually re-reads the old one and the switch snaps back to
@@ -179,7 +328,7 @@ class AudiSwitch(AudiEntity, SwitchEntity):
         self._reported_at_write = self._reported()
         self._assumed = target
         self.async_write_ha_state()
-        await self.coordinator.async_request_refresh()
+        await self._refresh_after_command(started)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self._run(self.entity_description.turn_on_fn, True)
@@ -188,4 +337,4 @@ class AudiSwitch(AudiEntity, SwitchEntity):
         await self._run(self.entity_description.turn_off_fn, False)
 
 
-__all__ = ["AudiSwitch", "async_setup_entry"]
+__all__ = ["AudiSwitch", "AudiClimateQuickSwitch", "async_setup_entry"]

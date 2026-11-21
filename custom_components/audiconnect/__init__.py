@@ -3,20 +3,31 @@
 from __future__ import annotations
 
 import logging
+import re
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.core import (
+    HomeAssistant,
+    ServiceCall,
+    ServiceResponse,
+    SupportsResponse,
+)
+from homeassistant.exceptions import ConfigEntryAuthFailed, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceEntry
+from homeassistant.helpers.typing import ConfigType
 
 from .audi_account import (
     SERVICE_EXECUTE_VEHICLE_ACTION,
     SERVICE_EXECUTE_VEHICLE_ACTION_SCHEMA,
+    SERVICE_PROBE_API,
+    SERVICE_PROBE_API_SCHEMA,
     SERVICE_REFRESH_CLOUD_DATA,
     SERVICE_REFRESH_VEHICLE_DATA,
     SERVICE_REFRESH_VEHICLE_DATA_SCHEMA,
@@ -34,7 +45,16 @@ from .audi_account import (
     SERVICE_START_ENGINE_SCHEMA,
     SERVICE_STOP_ENGINE,
     SERVICE_STOP_ENGINE_SCHEMA,
+    SERVICE_CREATE_CLIMATISATION_TIMER,
+    SERVICE_CREATE_CLIMATISATION_TIMER_SCHEMA,
+    SERVICE_DELETE_CLIMATISATION_TIMER,
+    SERVICE_SET_CLIMATISATION_TIMER_ENABLED,
+    SERVICE_SET_CLIMATISATION_TIMER_ENABLED_SCHEMA,
+    SERVICE_DELETE_CLIMATISATION_TIMER_SCHEMA,
+    SERVICE_TEST_CLIMATISATION_WRITE,
+    SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA,
     AudiAccount,
+    _single_device_id,
 )
 from .const import (
     CONF_API_LEVEL,
@@ -42,14 +62,18 @@ from .const import (
     CONF_PASSWORD,
     CONF_REFRESH_TOKEN,
     CONF_REGION,
-    CONF_SCAN_INITIAL,
     CONF_USERNAME,
     DEFAULT_API_LEVEL,
     DOMAIN,
     PLATFORMS,
     uses_auth0,
 )
+from .capability_jobs import BASE_SELECTIVE_JOBS
+from .audi_entity import _english_entity_names
+from .card import async_register_card
 from .coordinator import AudiDataUpdateCoordinator
+from .diagnostics_payload import redact
+from .local_extensions import DEALER_FIELDS, update_local_dealer_options
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -149,22 +173,41 @@ def _get_account_for_vin(hass: HomeAssistant, vin: str) -> AudiAccount | None:
     return None
 
 
+SERVICE_PROBE_API_PATHS = "probe_api_paths"
+SERVICE_SET_LOCAL_DEALER = "set_local_dealer"
+PROBE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Optional("extended", default=False): bool,
+    }
+)
+LOCAL_DEALER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Optional("clear", default=False): bool,
+        **{vol.Optional(field): cv.string for field in DEALER_FIELDS},
+    }
+)
+
+_PROBE_PATH = re.compile(r"[A-Za-z0-9_/\-.?=&,{}]+")
+
+
 def _resolve_service_call(
     hass: HomeAssistant, service: ServiceCall
-) -> tuple[str, AudiAccount] | None:
+) -> tuple[str, AudiAccount]:
     """Resolve device_id from a service call to (vin, account).
 
-    Returns None and logs an error if resolution fails.
+    Raises ServiceValidationError so the caller sees the problem in the UI.
     """
     device_id = service.data[CONF_DEVICE_ID]
     vin = _resolve_device_to_vin(hass, device_id)
     if vin is None:
-        _LOGGER.error("No VIN found for device %s", device_id)
-        return None
+        raise ServiceValidationError(f"No Audi vehicle found for device {device_id}")
     account = _get_account_for_vin(hass, vin)
     if account is None:
-        _LOGGER.error("No account found for VIN associated with device %s", device_id)
-        return None
+        raise ServiceValidationError(
+            f"The Audi Connect account for device {device_id} is not loaded"
+        )
     return vin, account
 
 
@@ -209,143 +252,180 @@ async def _async_update_listener(
     await hass.config_entries.async_reload(config_entry.entry_id)
 
 
+def _vehicle_service(
+    hass: HomeAssistant,
+    method: str,
+    *,
+    pass_call: bool = True,
+) -> Callable[[ServiceCall], Awaitable[None]]:
+    """Build a handler that resolves the vehicle and calls ``account.<method>``."""
+
+    async def _handler(service: ServiceCall) -> None:
+        vin, account = _resolve_service_call(hass, service)
+        func = getattr(account, method)
+        if pass_call:
+            await func(vin, service)
+        else:
+            await func(vin)
+
+    return _handler
+
+
 def _async_register_services(hass: HomeAssistant) -> None:
-    """Register global services once (multi-account safe via device lookup)."""
+    """Register the integration's services (once, from async_setup)."""
 
     async def _handle_refresh_cloud_data(service: ServiceCall) -> None:
         for coordinator in _get_all_coordinators(hass):
             await coordinator.async_request_refresh()
 
-    async def _handle_refresh_vehicle_data(service: ServiceCall) -> None:
-        result = _resolve_service_call(hass, service)
-        if result is None:
-            return
-        vin, account = result
-        await account.refresh_vehicle_data(vin)
+    hass.services.async_register(
+        DOMAIN, SERVICE_REFRESH_CLOUD_DATA, _handle_refresh_cloud_data
+    )
 
-    async def _handle_execute_vehicle_action(service: ServiceCall) -> None:
-        result = _resolve_service_call(hass, service)
-        if result is None:
-            return
-        vin, account = result
-        await account.execute_vehicle_action(vin, service)
+    async def _handle_probe_api(service: ServiceCall) -> ServiceResponse:
+        """Read-only discovery: ask the API for jobs or a path and return the answer."""
+        vin, account = _resolve_service_call(hass, service)
+        preset = service.data.get("graphql")
+        if preset is not None:
+            result = await account.connection.probe_graphql(preset, vin)
+            pattern = re.compile(re.escape(vin), re.IGNORECASE)
+            return {"query": f"graphql:{preset}", **redact(result, pattern)}
+        path = service.data.get("path")
+        if path is not None:
+            if not _PROBE_PATH.fullmatch(path) or ".." in path:
+                raise ServiceValidationError(
+                    "path may only contain letters, digits and /_-.?=&,"
+                )
+            query = path
+        else:
+            jobs = service.data.get("jobs") or list(BASE_SELECTIVE_JOBS)
+            query = "selectivestatus?jobs=" + ",".join(jobs)
+        result = await account.connection.probe(vin, query)
+        pattern = re.compile(re.escape(vin), re.IGNORECASE)
+        return {"query": query, **redact(result, pattern)}
 
-    async def _handle_start_climate_control(service: ServiceCall) -> None:
-        result = _resolve_service_call(hass, service)
-        if result is None:
-            return
-        vin, account = result
-        await account.start_climate_control(vin, service)
-
-    async def _handle_start_auxiliary_heating(service: ServiceCall) -> None:
-        result = _resolve_service_call(hass, service)
-        if result is None:
-            return
-        vin, account = result
-        await account.start_auxiliary_heating(vin, service)
-
-    async def _handle_set_location_charge_target(service: ServiceCall) -> None:
-        result = _resolve_service_call(hass, service)
-        if result is None:
-            return
-        vin, account = result
-        await account.set_location_charge_target(vin, service)
-
-    async def _handle_set_charge_mode(service: ServiceCall) -> None:
-        result = _resolve_service_call(hass, service)
-        if result is None:
-            return
-        vin, account = result
-        await account.set_charge_mode(vin, service)
-
-    async def _handle_set_target_soc(service: ServiceCall) -> None:
-        result = _resolve_service_call(hass, service)
-        if result is None:
-            return
-        vin, account = result
-        await account.set_target_soc(vin, service)
-
-    async def _handle_start_engine(service: ServiceCall) -> None:
-        result = _resolve_service_call(hass, service)
-        if result is None:
-            return
-        vin, account = result
-        await account.start_engine(vin)
-
-    async def _handle_stop_engine(service: ServiceCall) -> None:
-        result = _resolve_service_call(hass, service)
-        if result is None:
-            return
-        vin, account = result
-        await account.stop_engine(vin)
-
-    if not hass.services.has_service(DOMAIN, SERVICE_REFRESH_CLOUD_DATA):
-        hass.services.async_register(
-            DOMAIN, SERVICE_REFRESH_CLOUD_DATA, _handle_refresh_cloud_data
+    async def _handle_probe_api_paths(service: ServiceCall) -> None:
+        """Explicit user action. A diagnostics download never triggers probes."""
+        vin, account = _resolve_service_call(hass, service)
+        await account.connection.probe_read_only_api(
+            vin, extended=service.data.get("extended", False)
         )
-    if not hass.services.has_service(DOMAIN, SERVICE_REFRESH_VEHICLE_DATA):
-        hass.services.async_register(
-            DOMAIN,
+
+    async def _handle_set_local_dealer(service: ServiceCall) -> None:
+        """Opt-in local metadata only; no Audi network calls."""
+        vin, account = _resolve_service_call(hass, service)
+        fields = {
+            key: service.data[key] for key in DEALER_FIELDS if key in service.data
+        }
+        current = dict(account.config_entry.options)
+        options = update_local_dealer_options(
+            current, vin, fields, clear=service.data.get("clear", False)
+        )
+        if options != current:
+            hass.config_entries.async_update_entry(
+                account.config_entry, options=options
+            )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_PROBE_API,
+        _handle_probe_api,
+        schema=SERVICE_PROBE_API_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_PROBE_API_PATHS,
+        _handle_probe_api_paths,
+        schema=PROBE_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_LOCAL_DEALER,
+        _handle_set_local_dealer,
+        schema=LOCAL_DEALER_SCHEMA,
+    )
+
+    vehicle_services: tuple[tuple[str, vol.Schema, str, bool], ...] = (
+        (
             SERVICE_REFRESH_VEHICLE_DATA,
-            _handle_refresh_vehicle_data,
-            schema=SERVICE_REFRESH_VEHICLE_DATA_SCHEMA,
-        )
-    if not hass.services.has_service(DOMAIN, SERVICE_EXECUTE_VEHICLE_ACTION):
-        hass.services.async_register(
-            DOMAIN,
+            SERVICE_REFRESH_VEHICLE_DATA_SCHEMA,
+            "refresh_vehicle_data",
+            False,
+        ),
+        (
             SERVICE_EXECUTE_VEHICLE_ACTION,
-            _handle_execute_vehicle_action,
-            schema=SERVICE_EXECUTE_VEHICLE_ACTION_SCHEMA,
-        )
-    if not hass.services.has_service(DOMAIN, SERVICE_START_CLIMATE_CONTROL):
-        hass.services.async_register(
-            DOMAIN,
+            SERVICE_EXECUTE_VEHICLE_ACTION_SCHEMA,
+            "execute_vehicle_action",
+            True,
+        ),
+        (
             SERVICE_START_CLIMATE_CONTROL,
-            _handle_start_climate_control,
-            schema=SERVICE_START_CLIMATE_CONTROL_SCHEMA,
-        )
-    if not hass.services.has_service(DOMAIN, SERVICE_START_AUXILIARY_HEATING):
-        hass.services.async_register(
-            DOMAIN,
+            SERVICE_START_CLIMATE_CONTROL_SCHEMA,
+            "start_climate_control",
+            True,
+        ),
+        (
             SERVICE_START_AUXILIARY_HEATING,
-            _handle_start_auxiliary_heating,
-            schema=SERVICE_START_AUXILIARY_HEATING_SCHEMA,
-        )
-    if not hass.services.has_service(DOMAIN, SERVICE_SET_LOCATION_CHARGE_TARGET):
-        hass.services.async_register(
-            DOMAIN,
+            SERVICE_START_AUXILIARY_HEATING_SCHEMA,
+            "start_auxiliary_heating",
+            True,
+        ),
+        (
             SERVICE_SET_LOCATION_CHARGE_TARGET,
-            _handle_set_location_charge_target,
-            schema=SERVICE_SET_LOCATION_CHARGE_TARGET_SCHEMA,
-        )
-    if not hass.services.has_service(DOMAIN, SERVICE_SET_CHARGE_MODE):
-        hass.services.async_register(
-            DOMAIN,
+            SERVICE_SET_LOCATION_CHARGE_TARGET_SCHEMA,
+            "set_location_charge_target",
+            True,
+        ),
+        (
             SERVICE_SET_CHARGE_MODE,
-            _handle_set_charge_mode,
-            schema=SERVICE_SET_CHARGE_MODE_SCHEMA,
-        )
-    if not hass.services.has_service(DOMAIN, SERVICE_SET_TARGET_SOC):
+            SERVICE_SET_CHARGE_MODE_SCHEMA,
+            "set_charge_mode",
+            True,
+        ),
+        (SERVICE_SET_TARGET_SOC, SERVICE_SET_TARGET_SOC_SCHEMA, "set_target_soc", True),
+        (SERVICE_START_ENGINE, SERVICE_START_ENGINE_SCHEMA, "start_engine", False),
+        (SERVICE_STOP_ENGINE, SERVICE_STOP_ENGINE_SCHEMA, "stop_engine", False),
+        (
+            SERVICE_CREATE_CLIMATISATION_TIMER,
+            SERVICE_CREATE_CLIMATISATION_TIMER_SCHEMA,
+            "create_climatisation_timer",
+            True,
+        ),
+        (
+            SERVICE_SET_CLIMATISATION_TIMER_ENABLED,
+            SERVICE_SET_CLIMATISATION_TIMER_ENABLED_SCHEMA,
+            "set_climatisation_timer_enabled",
+            True,
+        ),
+        (
+            SERVICE_DELETE_CLIMATISATION_TIMER,
+            SERVICE_DELETE_CLIMATISATION_TIMER_SCHEMA,
+            "delete_climatisation_timer",
+            True,
+        ),
+        (
+            SERVICE_TEST_CLIMATISATION_WRITE,
+            SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA,
+            "test_climatisation_write",
+            True,
+        ),
+    )
+    for name, schema, method, pass_call in vehicle_services:
         hass.services.async_register(
             DOMAIN,
-            SERVICE_SET_TARGET_SOC,
-            _handle_set_target_soc,
-            schema=SERVICE_SET_TARGET_SOC_SCHEMA,
+            name,
+            _vehicle_service(hass, method, pass_call=pass_call),
+            schema=schema,
         )
-    if not hass.services.has_service(DOMAIN, SERVICE_START_ENGINE):
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_START_ENGINE,
-            _handle_start_engine,
-            schema=SERVICE_START_ENGINE_SCHEMA,
-        )
-    if not hass.services.has_service(DOMAIN, SERVICE_STOP_ENGINE):
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_STOP_ENGINE,
-            _handle_stop_engine,
-            schema=SERVICE_STOP_ENGINE_SCHEMA,
-        )
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up the integration: services are registered once, not per entry."""
+    _async_register_services(hass)
+    await async_register_card(hass)
+    return True
 
 
 def _async_cleanup_orphaned_devices(
@@ -364,6 +444,14 @@ def _async_cleanup_orphaned_devices(
     for vehicle_data in runtime_data.account.config_vehicles:
         if vehicle_data.vehicle and vehicle_data.vehicle.vin:
             active_vins.add(vehicle_data.vehicle.vin.lower())
+
+    # No vehicle known means no poll has succeeded (startup refresh disabled, or
+    # the account answered with an empty list once). That says nothing about
+    # which devices are gone, and removing them would also drop the user's
+    # renames, areas and disabled entities.
+    if not active_vins:
+        _LOGGER.debug("Skipping device cleanup: no vehicle is known yet")
+        return
 
     device_registry = dr.async_get(hass)
     devices = dr.async_entries_for_config_entry(device_registry, config_entry.entry_id)
@@ -417,11 +505,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         config_entry.add_update_listener(_async_update_listener)
     )
 
-    if config_entry.options.get(CONF_SCAN_INITIAL, True):
-        await coordinator.async_config_entry_first_refresh()
+    # Always: the platforms create their entities from the vehicles this poll
+    # finds, so skipping it (the former "Cloud Update at Startup" option) left a
+    # set-up entry with no entities and no way to add them later.
+    await coordinator.async_config_entry_first_refresh()
 
     _async_cleanup_orphaned_devices(hass, config_entry)
-    _async_register_services(hass)
+    # Entity ids are built from en.json; read it off the event loop once so the
+    # cached lookup is already warm when the platforms add their entities.
+    await hass.async_add_executor_job(_english_entity_names)
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     return True
 
@@ -431,33 +523,25 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     unload_ok = await hass.config_entries.async_unload_platforms(
         config_entry, PLATFORMS
     )
-    if not unload_ok:
-        return False
-
-    if len(hass.config_entries.async_entries(DOMAIN)) <= 1:
-        for service in (
-            SERVICE_REFRESH_CLOUD_DATA,
-            SERVICE_REFRESH_VEHICLE_DATA,
-            SERVICE_EXECUTE_VEHICLE_ACTION,
-            SERVICE_START_CLIMATE_CONTROL,
-            SERVICE_START_AUXILIARY_HEATING,
-            SERVICE_SET_CHARGE_MODE,
-            SERVICE_SET_LOCATION_CHARGE_TARGET,
-            SERVICE_SET_TARGET_SOC,
-            SERVICE_START_ENGINE,
-            SERVICE_STOP_ENGINE,
-        ):
-            if hass.services.has_service(DOMAIN, service):
-                hass.services.async_remove(DOMAIN, service)
-
-    return True
+    return unload_ok
 
 
 async def async_remove_config_entry_device(
     hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
 ) -> bool:
-    """Remove a config entry from a device."""
-    return True
+    """Allow removing a device only if its vehicle is no longer in the account."""
+    runtime_data: AudiRuntimeData | None = getattr(config_entry, "runtime_data", None)
+    if runtime_data is None:
+        return True
+    active_vins = {
+        v.vehicle.vin.lower()
+        for v in runtime_data.account.config_vehicles
+        if v.vehicle and v.vehicle.vin
+    }
+    return not any(
+        domain == DOMAIN and identifier.lower() in active_vins
+        for domain, identifier in device_entry.identifiers
+    )
 
 
 __all__ = [

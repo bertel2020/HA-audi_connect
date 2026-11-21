@@ -4,13 +4,19 @@
       "already_configured": "Tili on jo määritetty",
       "reauth_successful": "Uudelleentodennus onnistui",
       "reconfigure_successful": "Uudelleenmääritys onnistui",
-      "device_auth_failed": "Laitekirjautumista Audiin ei voitu aloittaa. Yritä myöhemmin uudelleen."
+      "device_auth_failed": "Laitekirjautumista Audiin ei voitu aloittaa. Yritä myöhemmin uudelleen.",
+      "auth0_auth_failed": "Selainkirjautumista Audiin ei voitu aloittaa. Yritä myöhemmin uudelleen.",
+      "wrong_account": "Tämä on eri myAudi-tili kuin tähän määritetty. Kirjaudu alkuperäisellä tilillä tai lisää tälle uusi kohde."
     },
     "create_entry": {},
     "error": {
       "authorization_pending": "Kirjautumista ei ole vielä havaittu. Hyväksy pyyntö selaimessasi ja paina sitten OK.",
       "device_auth_failed": "Laitekirjautuminen epäonnistui. Aloita uudelleen.",
-      "invalid_credentials": "Virheelliset tunnistetiedot"
+      "invalid_credentials": "Virheelliset tunnistetiedot",
+      "invalid_auth0_callback": "myAudi-paluuosoite on virheellinen tai kuuluu eri kirjautumisyritykseen.",
+      "auth0_denied": "Audi-kirjautuminen peruttiin tai evättiin.",
+      "auth0_auth_failed": "Audi hylkäsi valtuutuskoodin. Aloita kirjautuminen uudelleen.",
+      "unexpected": "Odottamaton virhe"
     },
     "step": {
       "user": {
@@ -27,13 +33,19 @@
           "api_level": "Audi-ajoneuvoissa API-pyyntöjen rakenne vaihtelee mallin mukaan. Uudemmat ajoneuvot käyttävät päivitettyä tietorakennetta vanhempiin malleihin verrattuna. Tämän voi muuttaa myöhemmin Määritä uudelleen -valinnalla."
         }
       },
-      "device": {
+      "auth0": {
         "title": "Kirjaudu Audiin",
-        "description": "Avaa seuraava linkki ja kirjaudu Audi-tililläsi valtuuttaaksesi Home Assistantin:\n\n[{verification_uri}]({verification_uri})\n\nJos sinulta pyydetään koodia, syötä: **{user_code}**\n\nKun olet hyväksynyt pyynnön, paina **OK**."
+        "description": "Avaa [{authorization_url}]({authorization_url}) yksityisessä selainikkunassa ja kirjaudu sisään. Audi ohjaa sen jälkeen localhost-sivulle, joka saattaa näyttää yhteysvirheen; tämä on odotettua. Kopioi koko URL-osoite selaimen osoiteriviltä ja liitä se alle.",
+        "data": {
+          "callback_url": "myAudi-paluuosoite"
+        }
       },
-      "reauth_confirm": {
+      "reauth_auth0": {
         "title": "Todenna uudelleen Audiin",
-        "description": "Audi-valtuutuksesi on vanhentunut. Avaa seuraava linkki ja kirjaudu uudelleen:\n\n[{verification_uri}]({verification_uri})\n\nJos sinulta pyydetään koodia, syötä: **{user_code}**\n\nKun olet hyväksynyt pyynnön, paina **OK**."
+        "description": "Avaa [{authorization_url}]({authorization_url}) yksityisessä selainikkunassa ja kirjaudu sisään. Audi ohjaa sen jälkeen localhost-sivulle, joka saattaa näyttää yhteysvirheen; tämä on odotettua. Kopioi koko URL-osoite selaimen osoiteriviltä ja liitä se alle.",
+        "data": {
+          "callback_url": "myAudi-paluuosoite"
+        }
       },
       "reconfigure": {
         "title": "Päivitä Audi Connect -määritykset",
@@ -70,15 +82,52 @@
     "step": {
       "init": {
         "data": {
-          "scan_initial": "Päivitä pilwestä käynnistyksessä",
-          "scan_interval": "Aikaväli"
+          "refresh_vehicle_data_after_action": "Päivitä ajoneuvon tiedot toiminnon jälkeen",
+          "climate_quick_start": "Ilmastoinnin pikakäynnistys auton tallennetuilla asetuksilla",
+          "update_sleep": "Pilvipäivityksen viive",
+          "scan_interval": "Aikaväli",
+          "filter_vins": "Poissuljetut VIN-tunnukset",
+          "edit_local_dealer": "Muokkaa myyjän ja paikallisia huoltotietoja",
+          "experimental_commands": "Ota kokeelliset ajoneuvon ohjaukset käyttöön"
         },
         "title": "Audi Connect -asetukset",
         "data_description": {
-          "scan_initial": "Päivitä pilwestä heti käynnistyksen yhteydessä.",
-          "scan_interval": "Minuutit pilvikyselyjen välillä."
+          "climate_quick_start": "Kun ilmastointikortti kytketään päälle, lähetetään CARIADille sisällötön käynnistyspyyntö ajoneuvoon jo tallennetuilla asetuksilla. Home Assistantissa näkyvää lämpötilaa ei lähetetä. Valinnainen ratkaisu uudemmille autoille; jätä pois käytöstä, ellei tarvita.",
+          "refresh_vehicle_data_after_action": "Lähetä ajoneuvon päivityskomento jokaisen palvelutoiminnon (esim. ilmastointi, lukitus) jälkeen. Tätä ei yleensä tarvita, koska ajoneuvo ottaa komennon jälkeen itse yhteyden pilveen. Jokainen ajoneuvon päivitys kuluttaa API-rajaa. Parempaa reagointia saat kasvattamalla pilvipäivityksen viivettä.",
+          "update_sleep": "Sekuntia, jotka odotetaan palvelutoiminnon jälkeen ennen pilvitietojen päivitystä. Pidempi viive antaa ajoneuvolle enemmän aikaa raportoida päivitetty tilansa pilveen.",
+          "scan_interval": "Minuutit pilvikyselyjen välillä.",
+          "filter_vins": "Pilkuilla erotettu luettelo VIN-tunnuksista, jotka suljetaan pois käyttöönotosta ja päivityksistä.",
+          "edit_local_dealer": "Avaa lomake, jolla tallennetaan myyjän, huoltoajan ja takuun tiedot paikallisesti ilman Audi API -pyyntöjä.",
+          "experimental_commands": "Näytä lisää käyttäjän käynnistämiä CARIADin ikkunalämmitystoimintoja ja latausliittimen vapautuskytkin. Oletuksena pois päältä. Tarkista toiminta itse; HTTP 200 ei todista, että ajoneuvo toimi."
+        }
+      },
+      "dealer_vehicle": {
+        "title": "Valitse ajoneuvo",
+        "data": {
+          "vehicle": "Audi-ajoneuvo"
+        }
+      },
+      "dealer": {
+        "title": "Myyjä ja huolto (paikallinen)",
+        "description": "Tiedot pysyvät Home Assistantissa. Tämä toiminto ei hae myyjätietoja Audilta.",
+        "data": {
+          "dealer_name": "Myyjän nimi",
+          "dealer_city": "Kaupunki",
+          "dealer_address": "Osoite",
+          "dealer_phone": "Puhelin",
+          "dealer_website": "Verkkosivusto",
+          "next_service_date": "Seuraava huoltoaika",
+          "warranty_expiry": "Takuun päättyminen",
+          "clear": "Poista tämän ajoneuvon paikalliset tiedot"
         }
       }
+    },
+    "error": {
+      "invalid_dealer": "Tarkista päivämäärä, verkkosivusto ja kenttien pituudet.",
+      "invalid_vehicle": "Valitse kelvollinen ajoneuvo."
+    },
+    "abort": {
+      "no_vehicle_available": "Yhtään Audi-ajoneuvoa ei ole tällä hetkellä ladattu."
     }
   },
   "selector": {
@@ -101,7 +150,7 @@
   "services": {
     "refresh_vehicle_data": {
       "name": "Päivitä ajoneuvon tiedot",
-      "description": "Pyytää ajoneuvon tilan päivitystä suoraan, pilwestä päivitystä odottamatta - toisin kuin normaali päivitys, joka hakee vain pilvitietoja.",
+      "description": "Pyytää ajoneuvon tilan päivitystä suoraan, pilvestä päivitystä odottamatta - toisin kuin normaali päivitys, joka hakee vain pilvitietoja.",
       "fields": {
         "device_id": {
           "name": "Ajoneuvo",
@@ -159,6 +208,14 @@
         "seat_rr": {
           "name": "Automaattinen istuimen mukavuustoiminto: oikea takaistuin",
           "description": "(Valinnainen) Ota oikean takaistuimen automaattinen istuimen mukavuustoiminto käyttöön tai pois käytöstä."
+        },
+        "climatisation_at_unlock": {
+          "name": "Ilmastointi avattaessa",
+          "description": "(Valinnainen) Anna ilmastoinnin jatkua, kun ajoneuvo avataan."
+        },
+        "climatisation_mode": {
+          "name": "Ilmastointitila",
+          "description": "(Valinnainen) Suurin mukavuus (Comfort) tai energiansäästö (Economy). Oletus on Comfort."
         }
       }
     },
@@ -178,6 +235,674 @@
           "name": "Kesto",
           "description": "Lisälämmittimen käyntiaika minuutteina ennen sammuttamista. Oletusarvo on 20 minuuttia, jos arvoa ei anneta."
         }
+      }
+    },
+    "set_location_charge_target": {
+      "name": "Aseta sijainnin latauksen tavoite",
+      "description": "Aseta sijainnin latausprofiilin varaustilan tavoite. Tämä arvo ratkaisee, missä lataus pysähtyy kyseisessä sijainnissa, toisin kuin yleinen tavoite. Se on pysyvä asetus: se koskee jokaista latausta kyseisessä sijainnissa, kunnes sitä muutetaan.",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo."
+        },
+        "profile_id": {
+          "name": "Profiili",
+          "description": "Muutettavan latausprofiilin tunnus. Jätä tyhjäksi, jos haluat muuttaa profiilia, jossa auto on parhaillaan pysäköitynä."
+        },
+        "target_soc": {
+          "name": "Varaustilan tavoite",
+          "description": "Tämän sijainnin latauksen tavoitetaso, 20-100 % 5 prosentin askelin."
+        }
+      }
+    },
+    "set_charge_mode": {
+      "name": "Aseta lataustila",
+      "description": "Aseta, missä tilassa ajoneuvo latautuu. Tämä on asetus, eikä se käynnistä tai pysäytä käynnissä olevaa latausta.",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo, jonka lataustila asetetaan."
+        },
+        "charge_mode": {
+          "name": "Lataustila",
+          "description": "manual lataa aina, kun johto on kiinni; timer lataa vain ajoneuvon ajastettuina aikoina."
+        }
+      }
+    },
+    "set_target_soc": {
+      "name": "Aseta varaustilan tavoite",
+      "description": "Aseta ajoneuvon varaustilan tavoite (akku-%).",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo, jonka latauksen tavoitetaso asetetaan."
+        },
+        "target_soc": {
+          "name": "Varaustilan tavoite",
+          "description": "Varaustilan tavoite prosentteina (20-100 %)."
+        }
+      }
+    },
+    "start_engine": {
+      "name": "Käynnistä moottori",
+      "description": "Käynnistä ajoneuvon moottori etänä. Vaatii, että S-PIN on asetettu määrityksissä.",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo, jonka moottori käynnistetään."
+        }
+      }
+    },
+    "stop_engine": {
+      "name": "Pysäytä moottori",
+      "description": "Pysäytä ajoneuvon moottori etänä.",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo, jonka moottori pysäytetään."
+        }
+      }
+    },
+    "probe_api": {
+      "name": "Koesta API (diagnostiikka)",
+      "description": "Kysyy Audi API:lta vain lukien ja palauttaa vastauksen. Vain tutkimiseen; kuluttaa API-rajaa.",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo."
+        },
+        "jobs": {
+          "name": "Jobs",
+          "description": "Pyydettävät selectivestatus-jobit (oletus: kaikki tunnetut)."
+        },
+        "path": {
+          "name": "Polku",
+          "description": "Vaihtoehtoisesti polku ajoneuvon URL-osoitteen alla, esim. capabilities."
+        },
+        "graphql": {
+          "name": "GraphQL-kysely",
+          "description": "Kiinteä vain lukua tekevä kysely sovelluksen ajoneuvopalveluun."
+        }
+      }
+    },
+    "test_climatisation_write": {
+      "name": "Testaa ilmastointiasetuksen kirjoitus",
+      "description": "Kokeellinen: kirjoittaa yhden ilmastointiasetuksen valitulla pyynnön sisällöllä selvittääkseen, mitä ajoneuvo hyväksyy. Muuttaa autoon tallennettua asetusta.",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo."
+        },
+        "setting": {
+          "name": "Asetus",
+          "description": "Muutettava asetus."
+        },
+        "value": {
+          "name": "Arvo",
+          "description": "Uusi arvo."
+        },
+        "variant": {
+          "name": "Sisältövariantti",
+          "description": "full: kaikki asetukset; without_window_heating: jättää ikkunalämmityksen pois; single_field: vain muutettu kenttä; full_json: kuten full JSON-sisältötyypillä; app_dto: myAudi-sovelluksen käyttämät kentät ja nimet JSON-sisältötyypillä; app_full: kuten app_dto, mutta kaikki sovelluksen pyynnön kaksitoista kenttää, null kohdissa, joista auto ei raportoi mitään."
+        },
+        "method": {
+          "name": "HTTP-metodi",
+          "description": "PUT (oletus) tai POST."
+        }
+      }
+    },
+    "create_climatisation_timer": {
+      "name": "Luo ilmastointiajastin",
+      "description": "Luo ilmastointiajastimen autoon. Aika on auton paikallista aikaa.",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo."
+        },
+        "time": {
+          "name": "Aika",
+          "description": "Aloitusaika, esimerkiksi 07:30."
+        },
+        "days": {
+          "name": "Päivät",
+          "description": "Viikonpäivät. Yksittäinen ajastin ottaa täsmälleen yhden päivän."
+        },
+        "repeat": {
+          "name": "Toista",
+          "description": "Joka viikko valittuina päivinä. Pois = kerran."
+        },
+        "enabled": {
+          "name": "Käytössä",
+          "description": "Ajastin kytketään päälle luomisen jälkeen."
+        }
+      }
+    },
+    "delete_climatisation_timer": {
+      "name": "Poista ilmastointiajastin",
+      "description": "Poistaa ilmastointiajastimen autosta numeron perusteella.",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo."
+        },
+        "timer_id": {
+          "name": "Ajastimen numero",
+          "description": "Ajastimen numero (katso ilmastoinnin ajastinantureiden attribuutit)."
+        }
+      }
+    },
+    "set_climatisation_timer_enabled": {
+      "name": "Kytke ilmastointiajastin päälle tai pois",
+      "description": "Kytkee olemassa olevan ilmastointiajastimen autossa päälle tai pois.",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo."
+        },
+        "timer_id": {
+          "name": "Ajastimen numero",
+          "description": "Ajastimen numero."
+        },
+        "enabled": {
+          "name": "Käytössä",
+          "description": "Päällä = kytketty päälle, pois = kytketty pois."
+        }
+      }
+    },
+    "probe_api_paths": {
+      "name": "Koesta tunnetut vain luettavat Audi API -polut",
+      "description": "Tarvittaessa suoritettava, nopeusrajoitettu tarkistus kahdeksalle tunnetulle vain luettavalle CARIAD-päätepisteelle yhdelle ajoneuvolle. Ei etäohjaustoimintoja. Tulokset näkyvät seuraavassa diagnostiikkalatauksessa. Suorita vain, kun tutkit puuttuvia ajoneuvotietoja. Laajennettu tila lisää viisi kokeellista vain luettavaa tarkistusta, mm. ilmastointiajastimet, mittaukset, määräaikaishuolto ja matkatilastot. Uudelleen suorittaminen eri tilassa 15 minuutin sisällä hylätään.",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo."
+        },
+        "extended": {
+          "name": "Laajennettu",
+          "description": "Suorita myös kokeelliset vain luettavat tarkistukset."
+        }
+      }
+    },
+    "set_local_dealer": {
+      "name": "Aseta paikalliset myyjä- ja huoltotiedot",
+      "description": "Valinnaiset tiedot, jotka säilytetään paikallisesti Home Assistantissa. Ei Audi API -pyyntöjä. Antamatta jätetyt kentät säilyttävät aiemmat arvonsa. Tyhjä teksti poistaa kentän. Tyhjennä poistaa tämän ajoneuvon koko paikallisen tietueen.",
+      "fields": {
+        "device_id": {
+          "name": "Ajoneuvo",
+          "description": "Audi-ajoneuvo."
+        },
+        "dealer_name": {
+          "name": "Myyjän nimi",
+          "description": "Myyjän nimi."
+        },
+        "dealer_city": {
+          "name": "Kaupunki",
+          "description": "Myyjän kaupunki."
+        },
+        "dealer_address": {
+          "name": "Osoite",
+          "description": "Myyjän katuosoite."
+        },
+        "dealer_phone": {
+          "name": "Puhelin",
+          "description": "Myyjän puhelinnumero."
+        },
+        "dealer_website": {
+          "name": "Verkkosivusto",
+          "description": "Myyjän verkkosivusto."
+        },
+        "next_service_date": {
+          "name": "Seuraava huolto",
+          "description": "Seuraavan huollon päivämäärä."
+        },
+        "warranty_expiry": {
+          "name": "Takuun päättyminen",
+          "description": "Takuun päättymispäivä."
+        },
+        "clear": {
+          "name": "Tyhjennä",
+          "description": "Poista tämän ajoneuvon koko paikallinen tietue."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "active_charging_profile_max_current": {
+        "name": "Aktiivisen profiilin latausvirta"
+      },
+      "last_update_time": {
+        "name": "Viimeisin päivitys"
+      },
+      "shortterm_current": {
+        "name": "Lyhyen aikavälin matkatiedot"
+      },
+      "shortterm_reset": {
+        "name": "Lyhyen aikavälin matkan käyttäjänollaus"
+      },
+      "longterm_current": {
+        "name": "Pitkän aikavälin matkatiedot"
+      },
+      "longterm_reset": {
+        "name": "Pitkän aikavälin matkan käyttäjänollaus"
+      },
+      "model": {
+        "name": "Malli"
+      },
+      "mileage": {
+        "name": "Mittarilukema"
+      },
+      "service_adblue_distance": {
+        "name": "AdBlue-toimintamatka"
+      },
+      "range": {
+        "name": "Toimintamatka"
+      },
+      "hybrid_range": {
+        "name": "Hybridin toimintamatka"
+      },
+      "service_inspection_time": {
+        "name": "Huoltotarkastuksen aika"
+      },
+      "service_inspection_distance": {
+        "name": "Huoltotarkastuksen matka"
+      },
+      "oil_change_time": {
+        "name": "Öljynvaihdon aika"
+      },
+      "oil_change_distance": {
+        "name": "Öljynvaihdon matka"
+      },
+      "oil_level": {
+        "name": "Öljytaso"
+      },
+      "charging_state": {
+        "name": "Latauksen tila"
+      },
+      "charging_mode": {
+        "name": "Lataustila"
+      },
+      "charging_scenario": {
+        "name": "Latausskenaario"
+      },
+      "access_overall_status": {
+        "name": "Turvallisuustila"
+      },
+      "last_trip_distance": {
+        "name": "Viimeisen matkan pituus"
+      },
+      "last_trip_duration": {
+        "name": "Viimeisen matkan kesto"
+      },
+      "last_trip_consumption": {
+        "name": "Viimeisen matkan kulutus"
+      },
+      "last_trip_energy": {
+        "name": "Viimeisen matkan energia"
+      },
+      "last_trip_speed": {
+        "name": "Viimeisen matkan keskinopeus"
+      },
+      "trip_totals_distance": {
+        "name": "Pitkän aikavälin matkan pituus"
+      },
+      "trip_totals_duration": {
+        "name": "Pitkän aikavälin matkan kesto"
+      },
+      "trip_totals_consumption": {
+        "name": "Pitkän aikavälin matkan kulutus"
+      },
+      "trip_totals_energy": {
+        "name": "Pitkän aikavälin matkan energia"
+      },
+      "trip_totals_speed": {
+        "name": "Pitkän aikavälin matkan keskinopeus"
+      },
+      "battery_care_mode": {
+        "name": "Akunhoitotila"
+      },
+      "climatisation_mode": {
+        "name": "Ilmastointitila"
+      },
+      "charging_type": {
+        "name": "Latauksen tyyppi"
+      },
+      "energy_flow": {
+        "name": "Energiavirta"
+      },
+      "max_charge_current": {
+        "name": "Suurin latausvirta"
+      },
+      "charging_current_limit_a": {
+        "name": "AC-latausvirran raja"
+      },
+      "charging_current_limit_mode": {
+        "name": "Latausvirran tila"
+      },
+      "charging_plug_auto_unlock": {
+        "name": "Vapauta latausliitin latauksen jälkeen"
+      },
+      "vehicle_reported_online": {
+        "name": "Ajoneuvon ilmoittama yhteystila"
+      },
+      "vehicle_reported_active": {
+        "name": "Ajoneuvon ilmoittama aktiivisuus"
+      },
+      "primary_engine_type": {
+        "name": "Ensisijaisen moottorin tyyppi"
+      },
+      "secondary_engine_type": {
+        "name": "Toissijaisen moottorin tyyppi"
+      },
+      "primary_engine_range": {
+        "name": "Ensisijaisen moottorin toimintamatka"
+      },
+      "secondary_engine_range": {
+        "name": "Toissijaisen moottorin toimintamatka"
+      },
+      "primary_engine_range_percent": {
+        "name": "Ensisijaisen moottorin prosentti"
+      },
+      "secondary_engine_range_percent": {
+        "name": "Toissijaisen moottorin prosentti"
+      },
+      "charging_power": {
+        "name": "Latausteho"
+      },
+      "actual_charge_rate": {
+        "name": "Latausnopeus"
+      },
+      "tank_level": {
+        "name": "Polttoainetaso"
+      },
+      "state_of_charge": {
+        "name": "Varaustila"
+      },
+      "remaining_charging_time": {
+        "name": "Latausaikaa jäljellä"
+      },
+      "charging_complete_time": {
+        "name": "Latauksen valmistumisaika"
+      },
+      "external_power": {
+        "name": "Ulkoinen virta"
+      },
+      "plug_led_color": {
+        "name": "Liittimen LED-väri"
+      },
+      "doors_trunk_status": {
+        "name": "Ovien/takaluukun tila"
+      },
+      "climatisation_state": {
+        "name": "Ilmastoinnin tila"
+      },
+      "outdoor_temperature": {
+        "name": "Ulkolämpötila"
+      },
+      "park_time": {
+        "name": "Pysäköintiaika"
+      },
+      "position_last_updated": {
+        "name": "Sijainti päivitetty viimeksi"
+      },
+      "remaining_climatisation_time": {
+        "name": "Ilmastointiaikaa jäljellä"
+      },
+      "preheater_duration": {
+        "name": "Lisälämmittimen käyntiaika"
+      },
+      "preheater_remaining": {
+        "name": "Lisälämmitintä jäljellä"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Aktiivisen latausprofiilin varaustavoite"
+      },
+      "active_charging_profile_name": {
+        "name": "Aktiivinen latausprofiili"
+      },
+      "active_charging_profile_min_soc": {
+        "name": "Aktiivisen latausprofiilin vähimmäisvaraus"
+      },
+      "preferred_charging_time_start": {
+        "name": "Ensisijaisen latausikkunan alku"
+      },
+      "preferred_charging_time_end": {
+        "name": "Ensisijaisen latausikkunan loppu"
+      },
+      "climatisation_timer_enabled_count": {
+        "name": "Ilmastointiajastimia käytössä"
+      },
+      "next_climatisation_timer_local": {
+        "name": "Seuraava ilmastointiajastin (auton paikallista aikaa)"
+      },
+      "charging_timer_enabled_count": {
+        "name": "Latausajastimia käytössä"
+      },
+      "vehicle_data_freshness": {
+        "name": "Ajoneuvon tietojen tuoreus",
+        "state": {
+          "fresh": "Tuore",
+          "delayed": "Viivästynyt",
+          "stale": "Vanhentunut",
+          "unknown": "Tuntematon"
+        }
+      },
+      "vehicle_data_age": {
+        "name": "Ajoneuvon tietojen ikä"
+      },
+      "cloud_last_successful_poll": {
+        "name": "Pilven viimeisin onnistunut kysely"
+      },
+      "dealer_local": {
+        "name": "Myyjä (paikallinen)"
+      },
+      "service_overview": {
+        "name": "Huoltoyhteenveto"
+      },
+      "api_requests_remaining": {
+        "name": "API-pyyntöjä jäljellä"
+      },
+      "service_expiry_date": {
+        "name": "Verkkopalvelut päättyvät"
+      },
+      "warning_light_count": {
+        "name": "Varoitusvalot"
+      },
+      "window_open_pct_front_left": {
+        "name": "Vasemman etuikkunan aukeaminen"
+      },
+      "window_open_pct_front_right": {
+        "name": "Oikean etuikkunan aukeaminen"
+      },
+      "window_open_pct_rear_left": {
+        "name": "Vasemman takaikkunan aukeaminen"
+      },
+      "window_open_pct_rear_right": {
+        "name": "Oikean takaikkunan aukeaminen"
+      }
+    },
+    "binary_sensor": {
+      "active_charging_profile_uses_preferred_times": {
+        "name": "Aktiivinen profiili käyttää ensisijaisia latausaikoja"
+      },
+      "plug_state": {
+        "name": "Liittimen tila"
+      },
+      "plug_lock_state": {
+        "name": "Liittimen lukituksen tila"
+      },
+      "glass_surface_heating": {
+        "name": "Lasipintojen lämmitys"
+      },
+      "sun_roof": {
+        "name": "Kattoluukku"
+      },
+      "roof_cover": {
+        "name": "Kattoverho"
+      },
+      "parking_light": {
+        "name": "Pysäköintivalo"
+      },
+      "any_window_open": {
+        "name": "Ikkunat"
+      },
+      "any_door_unlocked": {
+        "name": "Ovien lukitus"
+      },
+      "any_door_open": {
+        "name": "Ovet"
+      },
+      "trunk_unlocked": {
+        "name": "Takaluukun lukitus"
+      },
+      "trunk_open": {
+        "name": "Takaluukku"
+      },
+      "hood_open": {
+        "name": "Konepelti"
+      },
+      "left_front_door_open": {
+        "name": "Vasen etuovi"
+      },
+      "right_front_door_open": {
+        "name": "Oikea etuovi"
+      },
+      "left_rear_door_open": {
+        "name": "Vasen takaovi"
+      },
+      "right_rear_door_open": {
+        "name": "Oikea takaovi"
+      },
+      "left_front_window_open": {
+        "name": "Vasen etuikkuna"
+      },
+      "right_front_window_open": {
+        "name": "Oikea etuikkuna"
+      },
+      "left_rear_window_open": {
+        "name": "Vasen takaikkuna"
+      },
+      "right_rear_window_open": {
+        "name": "Oikea takaikkuna"
+      },
+      "braking_status": {
+        "name": "Jarrutuksen tila"
+      },
+      "parking_brake": {
+        "name": "Seisontajarru"
+      },
+      "oil_level_binary": {
+        "name": "Öljytason hälytys"
+      },
+      "is_moving": {
+        "name": "Liikkeessä"
+      },
+      "warning_lights": {
+        "name": "Varoitusvalo palaa"
+      }
+    },
+    "button": {
+      "refresh_vehicle_data": {
+        "name": "Päivitä ajoneuvon tiedot"
+      },
+      "flash_lights": {
+        "name": "Vilkuta"
+      },
+      "start_window_heating_modern": {
+        "name": "Käynnistä ikkunalämmitys (kokeellinen)"
+      },
+      "stop_window_heating_modern": {
+        "name": "Pysäytä ikkunalämmitys (kokeellinen)"
+      },
+      "wake_vehicle_modern": {
+        "name": "Herätä ajoneuvo"
+      },
+      "start_engine": {
+        "name": "Käynnistä moottori"
+      },
+      "stop_engine": {
+        "name": "Pysäytä moottori"
+      },
+      "honk_horn": {
+        "name": "Äänitorvi ja vilkut"
+      }
+    },
+    "number": {
+      "target_state_of_charge": {
+        "name": "Yleinen latauksen tavoite"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Nykyisen sijainnin latauksen tavoite"
+      },
+      "charge_profile_target": {
+        "name": "{profile}: latauksen tavoite"
+      }
+    },
+    "switch": {
+      "preheater_active": {
+        "name": "Lisälämmitin"
+      },
+      "climatisation_window_heating": {
+        "name": "Ikkunalämmitys"
+      },
+      "plug_auto_unlock": {
+        "name": "Vapauta liitin latauksen jälkeen"
+      },
+      "climatisation_at_unlock": {
+        "name": "Ilmastointi avattaessa"
+      },
+      "climatisation_zone_front_left": {
+        "name": "Ilmastointialue vasen etu"
+      },
+      "climatisation_zone_front_right": {
+        "name": "Ilmastointialue oikea etu"
+      },
+      "climatisation_zone_rear_left": {
+        "name": "Ilmastointialue vasen taka"
+      },
+      "climatisation_zone_rear_right": {
+        "name": "Ilmastointialue oikea taka"
+      },
+      "climate_quick_control": {
+        "name": "Ilmastointi PÄÄLLE/POIS"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Lataustila",
+        "state": {
+          "manual": "Manuaalinen",
+          "timer": "Ajastin"
+        }
+      },
+      "climatisation_mode": {
+        "name": "Ilmastointitila",
+        "state": {
+          "comfort": "Mukavuus",
+          "economy": "Säästö"
+        }
+      },
+      "profile_charging_current": {
+        "name": "Profiilin latausvirta",
+        "state": {
+          "max": "Suurin",
+          "reduced": "Pienennetty"
+        }
+      }
+    },
+    "climate": {
+      "climatisation": {
+        "name": "Ilmastointi"
+      }
+    },
+    "lock": {
+      "door_lock": {
+        "name": "Ovilukko"
+      }
+    },
+    "device_tracker": {
+      "position": {
+        "name": "Sijainti"
       }
     }
   }

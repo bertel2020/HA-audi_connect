@@ -31,40 +31,40 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[AudiBinarySensorEntityDescription, ...] = (
     AudiBinarySensorEntityDescription(
         key="plug_state",
         attr_key="plug_state",
-        name="Plug state",
+        translation_key="plug_state",
         icon="mdi:ev-plug-type1",
         device_class=BinarySensorDeviceClass.PLUG,
     ),
     AudiBinarySensorEntityDescription(
         key="plug_lock_state",
         attr_key="plug_lock_state",
-        name="Plug Lock state",
+        translation_key="plug_lock_state",
         icon="mdi:ev-plug-type1",
         device_class=BinarySensorDeviceClass.LOCK,
     ),
     AudiBinarySensorEntityDescription(
         key="glass_surface_heating",
         attr_key="glass_surface_heating",
-        name="Glass Surface Heating",
+        translation_key="glass_surface_heating",
         icon="mdi:car-defrost-front",
         device_class=BinarySensorDeviceClass.RUNNING,
     ),
     AudiBinarySensorEntityDescription(
         key="sun_roof",
         attr_key="sun_roof",
-        name="Sun roof",
+        translation_key="sun_roof",
         device_class=BinarySensorDeviceClass.WINDOW,
     ),
     AudiBinarySensorEntityDescription(
         key="roof_cover",
         attr_key="roof_cover",
-        name="Roof Cover",
+        translation_key="roof_cover",
         device_class=BinarySensorDeviceClass.WINDOW,
     ),
     AudiBinarySensorEntityDescription(
         key="parking_light",
         attr_key="parking_light",
-        name="Parking light",
+        translation_key="parking_light",
         device_class=BinarySensorDeviceClass.SAFETY,
         icon="mdi:lightbulb",
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -72,106 +72,126 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[AudiBinarySensorEntityDescription, ...] = (
     AudiBinarySensorEntityDescription(
         key="any_window_open",
         attr_key="any_window_open",
-        name="Windows",
+        translation_key="any_window_open",
         device_class=BinarySensorDeviceClass.WINDOW,
     ),
     AudiBinarySensorEntityDescription(
         key="any_door_unlocked",
         attr_key="any_door_unlocked",
-        name="Doors lock",
+        translation_key="any_door_unlocked",
         device_class=BinarySensorDeviceClass.LOCK,
     ),
     AudiBinarySensorEntityDescription(
         key="any_door_open",
         attr_key="any_door_open",
-        name="Doors",
+        translation_key="any_door_open",
         device_class=BinarySensorDeviceClass.DOOR,
     ),
     AudiBinarySensorEntityDescription(
         key="trunk_unlocked",
         attr_key="trunk_unlocked",
-        name="Trunk lock",
+        translation_key="trunk_unlocked",
         device_class=BinarySensorDeviceClass.LOCK,
     ),
     AudiBinarySensorEntityDescription(
         key="trunk_open",
         attr_key="trunk_open",
-        name="Trunk",
+        translation_key="trunk_open",
         device_class=BinarySensorDeviceClass.DOOR,
     ),
     AudiBinarySensorEntityDescription(
         key="hood_open",
         attr_key="hood_open",
-        name="Hood",
+        translation_key="hood_open",
         device_class=BinarySensorDeviceClass.DOOR,
     ),
     AudiBinarySensorEntityDescription(
         key="left_front_door_open",
         attr_key="left_front_door_open",
-        name="Left front door",
+        translation_key="left_front_door_open",
         device_class=BinarySensorDeviceClass.DOOR,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiBinarySensorEntityDescription(
         key="right_front_door_open",
         attr_key="right_front_door_open",
-        name="Right front door",
+        translation_key="right_front_door_open",
         device_class=BinarySensorDeviceClass.DOOR,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiBinarySensorEntityDescription(
         key="left_rear_door_open",
         attr_key="left_rear_door_open",
-        name="Left rear door",
+        translation_key="left_rear_door_open",
         device_class=BinarySensorDeviceClass.DOOR,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiBinarySensorEntityDescription(
         key="right_rear_door_open",
         attr_key="right_rear_door_open",
-        name="Right rear door",
+        translation_key="right_rear_door_open",
         device_class=BinarySensorDeviceClass.DOOR,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiBinarySensorEntityDescription(
         key="left_front_window_open",
         attr_key="left_front_window_open",
-        name="Left front window",
+        translation_key="left_front_window_open",
         device_class=BinarySensorDeviceClass.WINDOW,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiBinarySensorEntityDescription(
         key="right_front_window_open",
         attr_key="right_front_window_open",
-        name="Right front window",
+        translation_key="right_front_window_open",
         device_class=BinarySensorDeviceClass.WINDOW,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiBinarySensorEntityDescription(
         key="left_rear_window_open",
         attr_key="left_rear_window_open",
-        name="Left rear window",
+        translation_key="left_rear_window_open",
         device_class=BinarySensorDeviceClass.WINDOW,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiBinarySensorEntityDescription(
         key="right_rear_window_open",
         attr_key="right_rear_window_open",
-        name="Right rear window",
+        translation_key="right_rear_window_open",
         device_class=BinarySensorDeviceClass.WINDOW,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     AudiBinarySensorEntityDescription(
         key="braking_status",
         attr_key="braking_status",
-        name="Braking status",
+        translation_key="braking_status",
         device_class=BinarySensorDeviceClass.SAFETY,
         icon="mdi:car-brake-abs",
     ),
     AudiBinarySensorEntityDescription(
+        key="active_charging_profile_uses_preferred_times",
+        attr_key="active_charging_profile_uses_preferred_times",
+        translation_key="active_charging_profile_uses_preferred_times",
+        icon="mdi:clock-check-outline",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    AudiBinarySensorEntityDescription(
+        key="warning_lights",
+        attr_key="warning_lights",
+        translation_key="warning_lights",
+        icon="mdi:alert-circle-outline",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+    ),
+    AudiBinarySensorEntityDescription(
+        key="parking_brake",
+        attr_key="parking_brake",
+        translation_key="parking_brake",
+        icon="mdi:car-brake-parking",
+    ),
+    AudiBinarySensorEntityDescription(
         key="oil_level_binary",
         attr_key="oil_level_binary",
-        name="Oil Level Binary",
+        translation_key="oil_level_binary",
         icon="mdi:oil",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -179,7 +199,7 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[AudiBinarySensorEntityDescription, ...] = (
     AudiBinarySensorEntityDescription(
         key="is_moving",
         attr_key="is_moving",
-        name="Is moving",
+        translation_key="is_moving",
         icon="mdi:motion-outline",
         device_class=BinarySensorDeviceClass.MOVING,
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -233,6 +253,12 @@ class AudiBinarySensor(AudiEntity, BinarySensorEntity):
         elif isinstance(val, str):
             return val != "Normal"
         return val
+
+    @property
+    def extra_state_attributes(self) -> dict[str, str] | None:
+        if self.entity_description.key == "parking_light":
+            return getattr(self._vehicle, "parking_light_sides", None)
+        return None
 
 
 __all__ = ["AudiBinarySensor", "async_setup_entry"]

@@ -4,13 +4,19 @@
       "already_configured": "Ce compte est déjà configuré",
       "reauth_successful": "Réauthentification réussie",
       "reconfigure_successful": "Reconfiguration réussie",
-      "device_auth_failed": "Impossible de démarrer la connexion par code avec Audi. Veuillez réessayer plus tard."
+      "device_auth_failed": "Impossible de démarrer la connexion par code avec Audi. Veuillez réessayer plus tard.",
+      "auth0_auth_failed": "Impossible de démarrer la connexion par navigateur avec Audi. Veuillez réessayer plus tard.",
+      "wrong_account": "Il s'agit d'un autre compte myAudi que celui configuré ici. Connectez-vous avec le compte d'origine ou ajoutez une nouvelle entrée pour celui-ci."
     },
     "create_entry": {},
     "error": {
       "authorization_pending": "Connexion pas encore détectée. Approuvez la demande dans votre navigateur, puis cliquez sur OK.",
       "device_auth_failed": "La connexion par code a échoué. Veuillez recommencer.",
-      "invalid_credentials": "Informations d'identification invalides"
+      "invalid_credentials": "Informations d'identification invalides",
+      "invalid_auth0_callback": "L'URL de rappel myAudi est invalide ou appartient à une autre tentative de connexion.",
+      "auth0_denied": "La connexion Audi a été annulée ou refusée.",
+      "auth0_auth_failed": "Audi a rejeté le code d'autorisation. Recommencez la connexion.",
+      "unexpected": "Erreur inattendue"
     },
     "step": {
       "user": {
@@ -27,13 +33,19 @@
           "api_level": "Sur les véhicules Audi, la structure des requêtes API varie selon le modèle. Les véhicules récents utilisent une structure plus moderne que les anciens. Modifiable ensuite via l'option Reconfigurer."
         }
       },
-      "device": {
+      "auth0": {
         "title": "Connexion à Audi",
-        "description": "Ouvrez le lien suivant et connectez-vous avec votre compte Audi pour autoriser Home Assistant :\n\n[{verification_uri}]({verification_uri})\n\nSi un code vous est demandé, saisissez : **{user_code}**\n\nUne fois la demande approuvée, cliquez sur **OK**."
+        "description": "Ouvrez [{authorization_url}]({authorization_url}) dans une fenêtre de navigation privée et connectez-vous. Audi vous redirige ensuite vers une page localhost qui peut afficher une erreur de connexion ; c'est normal. Copiez l'URL complète depuis la barre d'adresse du navigateur et collez-la ci-dessous.",
+        "data": {
+          "callback_url": "URL de rappel myAudi"
+        }
       },
-      "reauth_confirm": {
+      "reauth_auth0": {
         "title": "Réauthentification Audi",
-        "description": "Votre autorisation Audi a expiré. Ouvrez le lien suivant et reconnectez-vous :\n\n[{verification_uri}]({verification_uri})\n\nSi un code vous est demandé, saisissez : **{user_code}**\n\nUne fois la demande approuvée, cliquez sur **OK**."
+        "description": "Ouvrez [{authorization_url}]({authorization_url}) dans une fenêtre de navigation privée et connectez-vous. Audi vous redirige ensuite vers une page localhost qui peut afficher une erreur de connexion ; c'est normal. Copiez l'URL complète depuis la barre d'adresse du navigateur et collez-la ci-dessous.",
+        "data": {
+          "callback_url": "URL de rappel myAudi"
+        }
       },
       "reconfigure": {
         "title": "Mettre à jour la configuration Audi Connect",
@@ -70,15 +82,52 @@
     "step": {
       "init": {
         "data": {
-          "scan_initial": "Mise à jour du cloud au démarrage",
-          "scan_interval": "Intervalle de mises à jour"
+          "refresh_vehicle_data_after_action": "Actualiser les données du véhicule après une action",
+          "climate_quick_start": "Démarrage rapide de la climatisation avec les réglages du véhicule",
+          "update_sleep": "Délai d'actualisation du cloud",
+          "scan_interval": "Intervalle de mises à jour",
+          "filter_vins": "VIN exclus",
+          "edit_local_dealer": "Modifier les informations du concessionnaire et de l'entretien",
+          "experimental_commands": "Activer les commandes expérimentales du véhicule"
         },
         "title": "Options Audi Connect",
         "data_description": {
-          "scan_initial": "Effectuer une mise à jour du cloud immédiatement après le démarrage.",
-          "scan_interval": "Minutes entre les mises à jour du cloud."
+          "climate_quick_start": "Lorsque la carte de climatisation est activée, envoie une requête de démarrage CARIAD sans corps, avec les réglages déjà enregistrés dans le véhicule. N'envoie pas la température affichée dans Home Assistant. Contournement optionnel pour les véhicules récents ; laissez désactivé sauf besoin.",
+          "refresh_vehicle_data_after_action": "Envoie une commande d'actualisation du véhicule après chaque action (p. ex. climatisation, verrouillage). Ce n'est généralement pas nécessaire, car le véhicule se synchronise de lui-même avec le cloud après une commande. Chaque actualisation compte dans la limite de requêtes de l'API. Pour une meilleure réactivité, augmentez plutôt le délai d'actualisation du cloud.",
+          "update_sleep": "Secondes d'attente après une action avant d'actualiser les données du cloud. Un délai plus long laisse plus de temps au véhicule pour transmettre son nouvel état au cloud.",
+          "scan_interval": "Minutes entre les mises à jour du cloud.",
+          "filter_vins": "Liste de VIN séparés par des virgules à exclure de la configuration et des mises à jour.",
+          "edit_local_dealer": "Ouvre le formulaire pour enregistrer localement les informations du concessionnaire, du rendez-vous d'entretien et de la garantie, sans aucune requête vers l'API Audi.",
+          "experimental_commands": "Affiche des actions CARIAD supplémentaires de chauffage des vitres, déclenchées par l'utilisateur, ainsi que le commutateur de déverrouillage de la prise de charge. Désactivé par défaut. Vérifiez le fonctionnement réel ; un HTTP 200 ne prouve pas que le véhicule a agi."
+        }
+      },
+      "dealer_vehicle": {
+        "title": "Choisir le véhicule",
+        "data": {
+          "vehicle": "Véhicule Audi"
+        }
+      },
+      "dealer": {
+        "title": "Concessionnaire et entretien (local)",
+        "description": "Les informations restent dans Home Assistant. Cette fonction ne récupère aucune information de concessionnaire auprès d'Audi.",
+        "data": {
+          "dealer_name": "Nom du concessionnaire",
+          "dealer_city": "Ville",
+          "dealer_address": "Adresse",
+          "dealer_phone": "Téléphone",
+          "dealer_website": "Site web",
+          "next_service_date": "Prochain rendez-vous d'entretien",
+          "warranty_expiry": "Fin de garantie",
+          "clear": "Supprimer les informations locales de ce véhicule"
         }
       }
+    },
+    "error": {
+      "invalid_dealer": "Vérifiez la date, le site web et la longueur des champs.",
+      "invalid_vehicle": "Sélectionnez un véhicule valide."
+    },
+    "abort": {
+      "no_vehicle_available": "Aucun véhicule Audi n'est actuellement chargé."
     }
   },
   "selector": {
@@ -159,12 +208,702 @@
         "seat_rr": {
           "name": "Confort du siège auto: Arrière-Droit",
           "description": "(Facultatif) Activer ou désactiver Confort du siège auto pour le siège arrière droit."
+        },
+        "climatisation_at_unlock": {
+          "name": "Climatisation au déverrouillage",
+          "description": "(Facultatif) Permet à la climatisation de continuer lorsque le véhicule est déverrouillé."
+        },
+        "climatisation_mode": {
+          "name": "Mode de climatisation",
+          "description": "(Facultatif) Confort maximal (Comfort) ou économie d'énergie (Economy). Par défaut : Comfort."
         }
       }
     },
     "refresh_cloud_data": {
       "name": "Actualiser les données cloud",
       "description": "Récupère les données cloud actuelles sans déclencher une actualisation du véhicule. Les données peuvent être obsolètes si le véhicule n'a pas été vérifié récemment."
+    },
+    "start_auxiliary_heating": {
+      "name": "Démarrer le chauffage auxiliaire",
+      "description": "Démarre le chauffage auxiliaire du véhicule, avec une durée en option.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi sur lequel démarrer le chauffage auxiliaire."
+        },
+        "duration": {
+          "name": "Durée",
+          "description": "Nombre de minutes de fonctionnement du chauffage auxiliaire avant son arrêt. Par défaut : 20 minutes si non précisé."
+        }
+      }
+    },
+    "set_location_charge_target": {
+      "name": "Définir l'objectif de charge d'un lieu",
+      "description": "Définit l'état de charge cible d'un profil de charge par lieu. C'est cette valeur qui détermine réellement où la charge s'arrête à cet endroit, contrairement à l'objectif global. Réglage persistant : il s'applique à chaque charge à cet endroit jusqu'à modification.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi."
+        },
+        "profile_id": {
+          "name": "Profil",
+          "description": "L'identifiant du profil de charge à modifier. Laissez vide pour modifier le profil dans lequel la voiture est actuellement stationnée."
+        },
+        "target_soc": {
+          "name": "État de charge cible",
+          "description": "Niveau de charge cible pour ce lieu, de 20 à 100 % par paliers de 5."
+        }
+      }
+    },
+    "set_charge_mode": {
+      "name": "Définir le mode de charge",
+      "description": "Définit le mode de charge du véhicule. C'est une préférence : elle ne démarre ni n'arrête une charge en cours.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi dont définir le mode de charge."
+        },
+        "charge_mode": {
+          "name": "Mode de charge",
+          "description": "manual charge dès que le véhicule est branché ; timer charge uniquement aux heures programmées du véhicule."
+        }
+      }
+    },
+    "set_target_soc": {
+      "name": "Définir l'état de charge cible",
+      "description": "Définit l'état de charge cible (% de batterie) du véhicule.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi dont définir le niveau de charge cible."
+        },
+        "target_soc": {
+          "name": "État de charge cible",
+          "description": "Pourcentage d'état de charge cible (20-100 %)."
+        }
+      }
+    },
+    "start_engine": {
+      "name": "Démarrer le moteur",
+      "description": "Démarre le moteur du véhicule à distance. Nécessite que le S-PIN soit défini dans la configuration.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi dont démarrer le moteur."
+        }
+      }
+    },
+    "stop_engine": {
+      "name": "Arrêter le moteur",
+      "description": "Arrête le moteur du véhicule à distance.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi dont arrêter le moteur."
+        }
+      }
+    },
+    "probe_api": {
+      "name": "Sonder l'API (diagnostic)",
+      "description": "Interroge l'API Audi en lecture seule et renvoie la réponse. Uniquement pour l'exploration ; compte dans la limite de l'API.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi."
+        },
+        "jobs": {
+          "name": "Jobs",
+          "description": "Jobs Selectivestatus à demander (par défaut : tous les jobs connus)."
+        },
+        "path": {
+          "name": "Chemin",
+          "description": "Ou bien un chemin sous l'URL du véhicule, p. ex. capabilities."
+        },
+        "graphql": {
+          "name": "Requête GraphQL",
+          "description": "Une requête fixe en lecture seule vers le service véhicule de l'application."
+        }
+      }
+    },
+    "test_climatisation_write": {
+      "name": "Tester l'écriture d'un réglage de climatisation",
+      "description": "Expérimental : écrit un réglage de climatisation avec un corps de requête choisi pour déterminer ce que le véhicule accepte. Modifie le réglage enregistré dans la voiture.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi."
+        },
+        "setting": {
+          "name": "Réglage",
+          "description": "Le réglage à modifier."
+        },
+        "value": {
+          "name": "Valeur",
+          "description": "Nouvelle valeur."
+        },
+        "variant": {
+          "name": "Variante du corps",
+          "description": "full : tous les réglages ; without_window_heating : sans le chauffage des vitres ; single_field : uniquement le champ modifié ; full_json : comme full avec un type de contenu JSON ; app_dto : les champs et noms utilisés par l'application myAudi, avec un type de contenu JSON ; app_full : comme app_dto, mais avec les douze champs de la requête de l'application, null lorsque la voiture ne renvoie rien."
+        },
+        "method": {
+          "name": "Méthode HTTP",
+          "description": "PUT (par défaut) ou POST."
+        }
+      }
+    },
+    "create_climatisation_timer": {
+      "name": "Créer une minuterie de climatisation",
+      "description": "Crée une minuterie de climatisation dans la voiture. L'heure est l'heure locale de la voiture.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi."
+        },
+        "time": {
+          "name": "Heure",
+          "description": "Heure de démarrage, par exemple 07:30."
+        },
+        "days": {
+          "name": "Jours",
+          "description": "Jours de la semaine. Une minuterie unique accepte exactement un jour."
+        },
+        "repeat": {
+          "name": "Répéter",
+          "description": "Chaque semaine les jours choisis. Désactivé = une seule fois."
+        },
+        "enabled": {
+          "name": "Activée",
+          "description": "La minuterie est activée dès sa création."
+        }
+      }
+    },
+    "delete_climatisation_timer": {
+      "name": "Supprimer une minuterie de climatisation",
+      "description": "Supprime une minuterie de climatisation de la voiture grâce à son numéro.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi."
+        },
+        "timer_id": {
+          "name": "Numéro de minuterie",
+          "description": "Le numéro de la minuterie (voir les attributs des capteurs de minuterie de climatisation)."
+        }
+      }
+    },
+    "set_climatisation_timer_enabled": {
+      "name": "Activer ou désactiver une minuterie de climatisation",
+      "description": "Active ou désactive une minuterie de climatisation existante de la voiture.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi."
+        },
+        "timer_id": {
+          "name": "Numéro de minuterie",
+          "description": "Le numéro de la minuterie."
+        },
+        "enabled": {
+          "name": "Activée",
+          "description": "Activé = allumée, désactivé = éteinte."
+        }
+      }
+    },
+    "probe_api_paths": {
+      "name": "Sonder les chemins d'API Audi connus en lecture seule",
+      "description": "Vérification à la demande, limitée en fréquence, de huit points de terminaison CARIAD connus en lecture seule pour un véhicule. Aucune action de commande à distance. Les résultats apparaissent dans le prochain téléchargement de diagnostics. À n'utiliser que pour rechercher des données de véhicule manquantes. Le mode étendu ajoute cinq vérifications expérimentales en lecture seule, dont les minuteries de climatisation, les mesures, l'inspection et les statistiques de trajets. Une nouvelle exécution avec un autre mode dans les 15 minutes est refusée.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi."
+        },
+        "extended": {
+          "name": "Étendu",
+          "description": "Exécute aussi les vérifications expérimentales en lecture seule."
+        }
+      }
+    },
+    "set_local_dealer": {
+      "name": "Définir les informations locales du concessionnaire et de l'entretien",
+      "description": "Informations facultatives conservées localement dans Home Assistant. Aucune requête vers l'API Audi. Les champs non fournis gardent leur valeur précédente. Un texte vide supprime un champ. « Effacer » supprime tout l'enregistrement local de ce véhicule.",
+      "fields": {
+        "device_id": {
+          "name": "Véhicule",
+          "description": "Le véhicule Audi."
+        },
+        "dealer_name": {
+          "name": "Nom du concessionnaire",
+          "description": "Nom du concessionnaire."
+        },
+        "dealer_city": {
+          "name": "Ville",
+          "description": "Ville du concessionnaire."
+        },
+        "dealer_address": {
+          "name": "Adresse",
+          "description": "Adresse postale du concessionnaire."
+        },
+        "dealer_phone": {
+          "name": "Téléphone",
+          "description": "Numéro de téléphone du concessionnaire."
+        },
+        "dealer_website": {
+          "name": "Site web",
+          "description": "Site web du concessionnaire."
+        },
+        "next_service_date": {
+          "name": "Prochain entretien",
+          "description": "Date du prochain entretien."
+        },
+        "warranty_expiry": {
+          "name": "Fin de garantie",
+          "description": "Date de fin de la garantie."
+        },
+        "clear": {
+          "name": "Effacer",
+          "description": "Supprime tout l'enregistrement local de ce véhicule."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "active_charging_profile_max_current": {
+        "name": "Courant de charge du profil actif"
+      },
+      "last_update_time": {
+        "name": "Dernière mise à jour"
+      },
+      "shortterm_current": {
+        "name": "Données de trajet court terme"
+      },
+      "shortterm_reset": {
+        "name": "Réinitialisation utilisateur trajet court terme"
+      },
+      "longterm_current": {
+        "name": "Données de trajet long terme"
+      },
+      "longterm_reset": {
+        "name": "Réinitialisation utilisateur trajet long terme"
+      },
+      "model": {
+        "name": "Modèle"
+      },
+      "mileage": {
+        "name": "Kilométrage"
+      },
+      "service_adblue_distance": {
+        "name": "Autonomie AdBlue"
+      },
+      "range": {
+        "name": "Autonomie"
+      },
+      "hybrid_range": {
+        "name": "Autonomie hybride"
+      },
+      "service_inspection_time": {
+        "name": "Délai avant révision"
+      },
+      "service_inspection_distance": {
+        "name": "Distance avant révision"
+      },
+      "oil_change_time": {
+        "name": "Délai avant vidange"
+      },
+      "oil_change_distance": {
+        "name": "Distance avant vidange"
+      },
+      "oil_level": {
+        "name": "Niveau d'huile"
+      },
+      "charging_state": {
+        "name": "État de charge"
+      },
+      "charging_mode": {
+        "name": "Mode de charge"
+      },
+      "charging_scenario": {
+        "name": "Scénario de charge"
+      },
+      "access_overall_status": {
+        "name": "État de sécurité"
+      },
+      "last_trip_distance": {
+        "name": "Distance du dernier trajet"
+      },
+      "last_trip_duration": {
+        "name": "Durée du dernier trajet"
+      },
+      "last_trip_consumption": {
+        "name": "Consommation du dernier trajet"
+      },
+      "last_trip_energy": {
+        "name": "Énergie du dernier trajet"
+      },
+      "last_trip_speed": {
+        "name": "Vitesse moyenne du dernier trajet"
+      },
+      "trip_totals_distance": {
+        "name": "Distance des trajets long terme"
+      },
+      "trip_totals_duration": {
+        "name": "Durée des trajets long terme"
+      },
+      "trip_totals_consumption": {
+        "name": "Consommation des trajets long terme"
+      },
+      "trip_totals_energy": {
+        "name": "Énergie des trajets long terme"
+      },
+      "trip_totals_speed": {
+        "name": "Vitesse moyenne des trajets long terme"
+      },
+      "battery_care_mode": {
+        "name": "Mode de préservation de la batterie"
+      },
+      "climatisation_mode": {
+        "name": "Mode de climatisation"
+      },
+      "charging_type": {
+        "name": "Type de charge"
+      },
+      "energy_flow": {
+        "name": "Flux d'énergie"
+      },
+      "max_charge_current": {
+        "name": "Courant de charge max."
+      },
+      "charging_current_limit_a": {
+        "name": "Limite de courant de charge AC"
+      },
+      "charging_current_limit_mode": {
+        "name": "Mode de courant de charge"
+      },
+      "charging_plug_auto_unlock": {
+        "name": "Déverrouiller la prise après la charge"
+      },
+      "vehicle_reported_online": {
+        "name": "Connectivité signalée par le véhicule"
+      },
+      "vehicle_reported_active": {
+        "name": "Activité signalée par le véhicule"
+      },
+      "primary_engine_type": {
+        "name": "Type de moteur principal"
+      },
+      "secondary_engine_type": {
+        "name": "Type de moteur secondaire"
+      },
+      "primary_engine_range": {
+        "name": "Autonomie du moteur principal"
+      },
+      "secondary_engine_range": {
+        "name": "Autonomie du moteur secondaire"
+      },
+      "primary_engine_range_percent": {
+        "name": "Pourcentage du moteur principal"
+      },
+      "secondary_engine_range_percent": {
+        "name": "Pourcentage du moteur secondaire"
+      },
+      "charging_power": {
+        "name": "Puissance de charge"
+      },
+      "actual_charge_rate": {
+        "name": "Vitesse de charge"
+      },
+      "tank_level": {
+        "name": "Niveau du réservoir"
+      },
+      "state_of_charge": {
+        "name": "État de charge de la batterie"
+      },
+      "remaining_charging_time": {
+        "name": "Temps de charge restant"
+      },
+      "charging_complete_time": {
+        "name": "Heure de fin de charge"
+      },
+      "external_power": {
+        "name": "Alimentation externe"
+      },
+      "plug_led_color": {
+        "name": "Couleur de la LED de la prise"
+      },
+      "doors_trunk_status": {
+        "name": "État portes/coffre"
+      },
+      "climatisation_state": {
+        "name": "État de la climatisation"
+      },
+      "outdoor_temperature": {
+        "name": "Température extérieure"
+      },
+      "park_time": {
+        "name": "Heure de stationnement"
+      },
+      "position_last_updated": {
+        "name": "Dernière mise à jour de la position"
+      },
+      "remaining_climatisation_time": {
+        "name": "Temps de climatisation restant"
+      },
+      "preheater_duration": {
+        "name": "Durée de fonctionnement du préchauffage"
+      },
+      "preheater_remaining": {
+        "name": "Temps de préchauffage restant"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Charge cible du profil de charge actif"
+      },
+      "active_charging_profile_name": {
+        "name": "Profil de charge actif"
+      },
+      "active_charging_profile_min_soc": {
+        "name": "Charge min. du profil de charge actif"
+      },
+      "preferred_charging_time_start": {
+        "name": "Début de la plage de charge préférée"
+      },
+      "preferred_charging_time_end": {
+        "name": "Fin de la plage de charge préférée"
+      },
+      "climatisation_timer_enabled_count": {
+        "name": "Minuteries de climatisation activées"
+      },
+      "next_climatisation_timer_local": {
+        "name": "Prochaine minuterie de climatisation (heure locale du véhicule)"
+      },
+      "charging_timer_enabled_count": {
+        "name": "Minuteries de charge activées"
+      },
+      "vehicle_data_freshness": {
+        "name": "Fraîcheur des données du véhicule",
+        "state": {
+          "fresh": "À jour",
+          "delayed": "Retardé",
+          "stale": "Obsolète",
+          "unknown": "Inconnu"
+        }
+      },
+      "vehicle_data_age": {
+        "name": "Âge des données du véhicule"
+      },
+      "cloud_last_successful_poll": {
+        "name": "Dernière interrogation réussie du cloud"
+      },
+      "dealer_local": {
+        "name": "Concessionnaire (local)"
+      },
+      "service_overview": {
+        "name": "Aperçu de l'entretien"
+      },
+      "api_requests_remaining": {
+        "name": "Requêtes API restantes"
+      },
+      "service_expiry_date": {
+        "name": "Fin des services en ligne"
+      },
+      "warning_light_count": {
+        "name": "Voyants d'alerte"
+      },
+      "window_open_pct_front_left": {
+        "name": "Ouverture de la vitre avant gauche"
+      },
+      "window_open_pct_front_right": {
+        "name": "Ouverture de la vitre avant droite"
+      },
+      "window_open_pct_rear_left": {
+        "name": "Ouverture de la vitre arrière gauche"
+      },
+      "window_open_pct_rear_right": {
+        "name": "Ouverture de la vitre arrière droite"
+      }
+    },
+    "binary_sensor": {
+      "active_charging_profile_uses_preferred_times": {
+        "name": "Le profil actif utilise les heures de charge préférées"
+      },
+      "plug_state": {
+        "name": "État de la prise"
+      },
+      "plug_lock_state": {
+        "name": "Verrouillage de la prise"
+      },
+      "glass_surface_heating": {
+        "name": "Chauffage des surfaces vitrées"
+      },
+      "sun_roof": {
+        "name": "Toit ouvrant"
+      },
+      "roof_cover": {
+        "name": "Capote"
+      },
+      "parking_light": {
+        "name": "Feux de stationnement"
+      },
+      "any_window_open": {
+        "name": "Vitres"
+      },
+      "any_door_unlocked": {
+        "name": "Verrouillage des portes"
+      },
+      "any_door_open": {
+        "name": "Portes"
+      },
+      "trunk_unlocked": {
+        "name": "Verrouillage du coffre"
+      },
+      "trunk_open": {
+        "name": "Coffre"
+      },
+      "hood_open": {
+        "name": "Capot"
+      },
+      "left_front_door_open": {
+        "name": "Porte avant gauche"
+      },
+      "right_front_door_open": {
+        "name": "Porte avant droite"
+      },
+      "left_rear_door_open": {
+        "name": "Porte arrière gauche"
+      },
+      "right_rear_door_open": {
+        "name": "Porte arrière droite"
+      },
+      "left_front_window_open": {
+        "name": "Vitre avant gauche"
+      },
+      "right_front_window_open": {
+        "name": "Vitre avant droite"
+      },
+      "left_rear_window_open": {
+        "name": "Vitre arrière gauche"
+      },
+      "right_rear_window_open": {
+        "name": "Vitre arrière droite"
+      },
+      "braking_status": {
+        "name": "État du freinage"
+      },
+      "parking_brake": {
+        "name": "Frein de stationnement"
+      },
+      "oil_level_binary": {
+        "name": "Niveau d'huile (binaire)"
+      },
+      "is_moving": {
+        "name": "En mouvement"
+      },
+      "warning_lights": {
+        "name": "Voyant d'alerte actif"
+      }
+    },
+    "button": {
+      "refresh_vehicle_data": {
+        "name": "Actualiser les données du véhicule"
+      },
+      "flash_lights": {
+        "name": "Appels de phares"
+      },
+      "start_window_heating_modern": {
+        "name": "Démarrer le chauffage des vitres (expérimental)"
+      },
+      "stop_window_heating_modern": {
+        "name": "Arrêter le chauffage des vitres (expérimental)"
+      },
+      "wake_vehicle_modern": {
+        "name": "Réveiller le véhicule"
+      },
+      "start_engine": {
+        "name": "Démarrer le moteur"
+      },
+      "stop_engine": {
+        "name": "Arrêter le moteur"
+      },
+      "honk_horn": {
+        "name": "Klaxon et appels de phares"
+      }
+    },
+    "number": {
+      "target_state_of_charge": {
+        "name": "Objectif de charge global"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Objectif de charge du lieu actuel"
+      },
+      "charge_profile_target": {
+        "name": "Objectif de charge {profile}"
+      }
+    },
+    "switch": {
+      "preheater_active": {
+        "name": "Préchauffage"
+      },
+      "climatisation_window_heating": {
+        "name": "Chauffage des vitres"
+      },
+      "plug_auto_unlock": {
+        "name": "Déverrouiller la prise après la charge"
+      },
+      "climatisation_at_unlock": {
+        "name": "Climatisation au déverrouillage"
+      },
+      "climatisation_zone_front_left": {
+        "name": "Zone de climatisation avant gauche"
+      },
+      "climatisation_zone_front_right": {
+        "name": "Zone de climatisation avant droite"
+      },
+      "climatisation_zone_rear_left": {
+        "name": "Zone de climatisation arrière gauche"
+      },
+      "climatisation_zone_rear_right": {
+        "name": "Zone de climatisation arrière droite"
+      },
+      "climate_quick_control": {
+        "name": "Climatisation ON/OFF"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Mode de charge",
+        "state": {
+          "manual": "Manuel",
+          "timer": "Minuterie"
+        }
+      },
+      "climatisation_mode": {
+        "name": "Mode de climatisation",
+        "state": {
+          "comfort": "Confort",
+          "economy": "Économie"
+        }
+      },
+      "profile_charging_current": {
+        "name": "Courant de charge du profil",
+        "state": {
+          "max": "Maximum",
+          "reduced": "Réduit"
+        }
+      }
+    },
+    "climate": {
+      "climatisation": {
+        "name": "Climatisation"
+      }
+    },
+    "lock": {
+      "door_lock": {
+        "name": "Verrouillage des portes"
+      }
+    },
+    "device_tracker": {
+      "position": {
+        "name": "Position"
+      }
     }
   }
 }

@@ -127,7 +127,7 @@ def test_no_enabled_timers_on_this_car(payload):
     """Every timer is currently off, so the count is 0 and no next departure is set."""
     states = states_of(payload)
     assert states["chargingTimerEnabledCount"] == 0
-    assert "nextChargingTimerDeparture" not in states
+    assert states.get("nextChargingTimerDeparture") is None
 
 
 def test_enabled_timer_surfaces_next_departure(payload):
@@ -150,7 +150,7 @@ def test_missing_profile_block_is_not_an_error(payload):
     del payload["chargingTimers"]
 
     states = states_of(payload)
-    assert "activeChargingProfileTargetSoc" not in states
+    assert states.get("activeChargingProfileTargetSoc") is None
     assert "chargingTimers" not in states
     # the rest of the payload still parses
     assert states["stateOfCharge"] == 69
@@ -161,7 +161,7 @@ def test_error_object_instead_of_value_is_not_an_error(payload):
     payload["chargingProfiles"] = {"error": {"message": "unavailable"}}
 
     states = states_of(payload)
-    assert "activeChargingProfileTargetSoc" not in states
+    assert states.get("activeChargingProfileTargetSoc") is None
     assert states["stateOfCharge"] == 69
 
 
@@ -174,5 +174,27 @@ def test_position_pointing_at_an_unknown_profile(payload):
 
     states = states_of(payload)
     assert states["activeChargingProfileId"] == 99
-    assert "activeChargingProfileTargetSoc" not in states
+    assert states.get("activeChargingProfileTargetSoc") is None
     assert states["chargingProfileCount"] == 2
+
+
+# --- a value the report no longer backs is reset, not kept --------------------------
+
+
+def test_a_switched_off_timer_clears_the_next_departure(payload):
+    """The vehicle keeps the last value of every state name, so a parser that
+    merely leaves the departure out would show the old one for ever."""
+    vehicle_state = {}
+
+    def poll(data):
+        for s in VehicleDataResponse(data).states:
+            vehicle_state[s["name"]] = s["value"]
+
+    timers = payload["chargingTimers"]["chargingTimersStatus"]["value"]["timers"]
+    timers[0]["enabled"] = True
+    poll(payload)
+    assert vehicle_state["nextChargingTimerDeparture"] == "11:05"
+
+    timers[0]["enabled"] = False
+    poll(payload)
+    assert vehicle_state["nextChargingTimerDeparture"] is None

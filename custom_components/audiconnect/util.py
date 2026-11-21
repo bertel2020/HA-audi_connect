@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, UTC
 from functools import reduce
 from typing import Any
@@ -48,6 +49,16 @@ def parse_datetime(time_value: Any) -> datetime | None:
     if isinstance(time_value, datetime):
         return time_value  # Return the datetime object directly if already datetime
     elif isinstance(time_value, str):
+        # ISO 8601 first: it keeps an offset (converted to UTC, not overwritten)
+        # and takes any number of fractional digits, as the car sends them.
+        try:
+            parsed = datetime.fromisoformat(time_value)
+        except ValueError:
+            parsed = None
+        if parsed is not None:
+            if parsed.tzinfo is None:
+                return parsed.replace(tzinfo=UTC)
+            return parsed.astimezone(UTC)
         formats = [
             "%Y-%m-%d %H:%M:%S%z",  # Format: 2024-04-12 05:56:17+00:00
             "%Y-%m-%dT%H:%M:%S.%fZ",  # Format: 2024-04-12T05:56:13.025Z
@@ -60,7 +71,16 @@ def parse_datetime(time_value: Any) -> datetime | None:
     return None
 
 
+_VIN = re.compile(r"\b[A-HJ-NPR-Z0-9]{13}([A-HJ-NPR-Z0-9]{4})\b", re.IGNORECASE)
+
+
+def mask_vins(text: str) -> str:
+    """Hide all but the last four characters of any VIN in a log message."""
+    return _VIN.sub(lambda m: "*" * 13 + m.group(1), text)
+
+
 __all__ = [
+    "mask_vins",
     "get_attr",
     "log_exception",
     "parse_datetime",

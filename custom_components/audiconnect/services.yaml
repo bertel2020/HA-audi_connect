@@ -1,6 +1,52 @@
 ---
 # Describes the format for available services for audiconnect
 
+probe_api_paths:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: audiconnect
+    extended:
+      selector:
+        boolean:
+
+set_local_dealer:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: audiconnect
+    dealer_name:
+      selector:
+        text:
+    dealer_city:
+      selector:
+        text:
+    dealer_address:
+      selector:
+        text:
+    dealer_phone:
+      selector:
+        text:
+    dealer_website:
+      selector:
+        text:
+          type: url
+    next_service_date:
+      selector:
+        date:
+    warranty_expiry:
+      selector:
+        date:
+    clear:
+      selector:
+        boolean:
+
+refresh_cloud_data:
+
 refresh_vehicle_data:
   fields:
     device_id:
@@ -8,6 +54,33 @@ refresh_vehicle_data:
       selector:
         device:
           integration: audiconnect
+
+probe_api:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: audiconnect
+    jobs:
+      required: false
+      example: "[access, charging]"
+      selector:
+        object:
+    path:
+      required: false
+      example: "capabilities"
+      selector:
+        text:
+    graphql:
+      required: false
+      selector:
+        select:
+          options:
+            - list
+            - details
+            - render_pictures
+            - configuration
 
 execute_vehicle_action:
   fields:
@@ -46,12 +119,13 @@ start_climate_control:
       selector:
         number:
           min: 59
-          max: 85
+          max: 86
     temp_c:
       selector:
         number:
           min: 15
           max: 30
+          step: 0.5
     glass_heating:
       selector:
         boolean:
@@ -165,3 +239,112 @@ stop_engine:
       selector:
         device:
           integration: audiconnect
+
+test_climatisation_write:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: audiconnect
+    setting:
+      required: true
+      selector:
+        select:
+          options:
+            - targetTemperature
+            - climatizationAtUnlock
+            - windowHeatingEnabled
+            - zoneFrontLeftEnabled
+            - zoneFrontRightEnabled
+            - zoneRearLeftEnabled
+            - zoneRearRightEnabled
+    value:
+      required: true
+      selector:
+        object:
+    variant:
+      required: true
+      selector:
+        select:
+          options:
+            - full
+            - without_window_heating
+            - single_field
+            - full_json
+            - app_dto
+            - app_full
+    method:
+      selector:
+        select:
+          options:
+            - PUT
+            - POST
+
+create_climatisation_timer:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: audiconnect
+    time:
+      required: true
+      example: "07:30"
+      selector:
+        time:
+    days:
+      required: true
+      selector:
+        select:
+          multiple: true
+          options:
+            - monday
+            - tuesday
+            - wednesday
+            - thursday
+            - friday
+            - saturday
+            - sunday
+    repeat:
+      default: true
+      selector:
+        boolean:
+    enabled:
+      default: true
+      selector:
+        boolean:
+
+delete_climatisation_timer:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: audiconnect
+    timer_id:
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 99
+          mode: box
+
+set_climatisation_timer_enabled:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: audiconnect
+    timer_id:
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 99
+          mode: box
+    enabled:
+      required: true
+      selector:
+        boolean:

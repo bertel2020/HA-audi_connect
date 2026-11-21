@@ -24,7 +24,7 @@ from yarl import URL
 
 from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
 
-VIN = "WAUZZZ4M1RD012345"
+VIN = "WAUZZZ4M1RD000001"
 
 
 class FakeVehicle:
@@ -57,9 +57,6 @@ class FailingService:
         )
 
     async def get_preheater(self, vin):
-        self._raise()
-
-    async def get_charger(self, vin):
         self._raise()
 
     async def get_stored_vehicle_data(self, vin):
@@ -177,7 +174,6 @@ def test_preheater_active_prefers_legacy_state_when_both_are_present():
     "method",
     [
         "update_vehicle_preheater",
-        "update_vehicle_charger",
         "update_vehicle_statusreport",
     ],
 )

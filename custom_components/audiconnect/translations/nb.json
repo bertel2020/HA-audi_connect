@@ -4,13 +4,19 @@
       "already_configured": "Kontoen er allerede konfigurert",
       "reauth_successful": "Ny autentisering var vellykket",
       "reconfigure_successful": "Rekonfigurering var vellykket",
-      "device_auth_failed": "Kunne ikke starte enhetsinnlogging med Audi. Prøv igjen senere."
+      "device_auth_failed": "Kunne ikke starte enhetsinnlogging med Audi. Prøv igjen senere.",
+      "auth0_auth_failed": "Kunne ikke starte nettleserinnlogging med Audi. Prøv igjen senere.",
+      "wrong_account": "Dette er en annen myAudi-konto enn den som er satt opp her. Logg inn med den opprinnelige kontoen, eller legg til en ny oppføring for denne."
     },
     "create_entry": {},
     "error": {
       "authorization_pending": "Innlogging er ennå ikke oppdaget. Godkjenn forespørselen i nettleseren din, og trykk deretter OK.",
       "device_auth_failed": "Enhetsinnlogging mislyktes. Start på nytt.",
-      "invalid_credentials": "Ugyldige innloggingsopplysninger"
+      "invalid_credentials": "Ugyldige innloggingsopplysninger",
+      "invalid_auth0_callback": "Tilbakekallings-URL-en fra myAudi er ugyldig eller tilhører et annet innloggingsforsøk.",
+      "auth0_denied": "Audi-innloggingen ble avbrutt eller avvist.",
+      "auth0_auth_failed": "Audi avviste autorisasjonskoden. Start innloggingen på nytt.",
+      "unexpected": "Uventet feil"
     },
     "step": {
       "user": {
@@ -27,13 +33,19 @@
           "api_level": "For Audi-kjøretøy varierer strukturen på API-forespørsler etter modell. Nyere kjøretøy bruker en oppdatert datastruktur sammenlignet med eldre modeller. Dette kan endres senere via alternativet Rekonfigurer."
         }
       },
-      "device": {
+      "auth0": {
         "title": "Logg inn på Audi",
-        "description": "Åpne følgende lenke og logg inn med Audi-kontoen din for å autorisere Home Assistant:\n\n[{verification_uri}]({verification_uri})\n\nHvis du blir bedt om en kode, skriv inn: **{user_code}**\n\nNår du har godkjent forespørselen, trykk **OK**."
+        "description": "Åpne [{authorization_url}]({authorization_url}) i et privat nettleservindu og logg inn. Audi sender deg deretter videre til en lokal side (localhost) som kan vise en tilkoblingsfeil. Dette er forventet. Kopier hele nettadressen fra adressefeltet i nettleseren og lim den inn nedenfor.",
+        "data": {
+          "callback_url": "myAudi-tilbakekallings-URL"
+        }
       },
-      "reauth_confirm": {
+      "reauth_auth0": {
         "title": "Autentiser på nytt med Audi",
-        "description": "Audi-autorisasjonen din har utløpt. Åpne følgende lenke og logg inn på nytt:\n\n[{verification_uri}]({verification_uri})\n\nHvis du blir bedt om en kode, skriv inn: **{user_code}**\n\nNår du har godkjent forespørselen, trykk **OK**."
+        "description": "Åpne [{authorization_url}]({authorization_url}) i et privat nettleservindu og logg inn. Audi sender deg deretter videre til en lokal side (localhost) som kan vise en tilkoblingsfeil. Dette er forventet. Kopier hele nettadressen fra adressefeltet i nettleseren og lim den inn nedenfor.",
+        "data": {
+          "callback_url": "myAudi-tilbakekallings-URL"
+        }
       },
       "reconfigure": {
         "title": "Oppdater Audi Connect-konfigurasjon",
@@ -70,12 +82,827 @@
     "step": {
       "init": {
         "data": {
-          "scan_interval": "Skanneintervall"
+          "refresh_vehicle_data_after_action": "Oppdater kjøretøydata etter handling",
+          "climate_quick_start": "Hurtigstart klimaanlegg med innstillinger lagret i bilen",
+          "update_sleep": "Forsinkelse for skyoppdatering",
+          "scan_interval": "Skanneintervall",
+          "filter_vins": "Ekskluderte VIN-er",
+          "edit_local_dealer": "Rediger forhandler- og serviceopplysninger lokalt",
+          "experimental_commands": "Aktiver eksperimentelle kjøretøystyringer"
         },
         "title": "Audi Connect-alternativer",
         "data_description": {
-          "scan_interval": "(Minutter) Omstart kreves for at nytt skanneintervall skal tre i kraft."
+          "climate_quick_start": "Når klimakortet slås på, sendes en CARIAD-startforespørsel uten ekstra parametere, basert på innstillinger som allerede er lagret i kjøretøyet. Temperaturen som vises i Home Assistant sendes ikke. Valgfri løsning for nyere biler; la den være av med mindre den trengs.",
+          "refresh_vehicle_data_after_action": "Send en oppdateringskommando til kjøretøyet etter hver tjenestehandling (f.eks. klima eller låsing). Dette er vanligvis ikke nødvendig, siden kjøretøyet melder seg til skyen av seg selv etter en kommando. Hver kjøretøyoppdatering teller mot API-grensen. For å få raskere respons kan du heller øke forsinkelsen for skyoppdatering.",
+          "update_sleep": "Sekunder å vente etter en tjenestehandling før skydata oppdateres. En lengre forsinkelse gir kjøretøyet mer tid til å rapportere ny status til skyen.",
+          "scan_interval": "(Minutter) Omstart kreves for at nytt skanneintervall skal tre i kraft.",
+          "filter_vins": "Kommaseparert liste over VIN-er som skal utelates fra oppsett og oppdateringer.",
+          "edit_local_dealer": "Åpne skjemaet for å lagre forhandler-, servicetime- og garantiopplysninger lokalt, uten forespørsler til Audi-API-et.",
+          "experimental_commands": "Vis flere brukerutløste CARIAD-handlinger for vindusoppvarming og bryteren for å frigjøre ladepluggen. Av som standard. Kontroller at det faktisk fungerer; HTTP 200 er ikke bevis på at kjøretøyet utførte handlingen."
         }
+      },
+      "dealer_vehicle": {
+        "title": "Velg kjøretøy",
+        "data": {
+          "vehicle": "Audi-kjøretøy"
+        }
+      },
+      "dealer": {
+        "title": "Forhandler og service (lokalt)",
+        "description": "Opplysningene forblir i Home Assistant. Denne funksjonen henter ikke forhandlerinformasjon fra Audi.",
+        "data": {
+          "dealer_name": "Forhandlernavn",
+          "dealer_city": "Sted",
+          "dealer_address": "Adresse",
+          "dealer_phone": "Telefon",
+          "dealer_website": "Nettsted",
+          "next_service_date": "Neste servicetime",
+          "warranty_expiry": "Garantiens utløp",
+          "clear": "Fjern lokale opplysninger for dette kjøretøyet"
+        }
+      }
+    },
+    "error": {
+      "invalid_dealer": "Kontroller dato, nettsted og feltlengder.",
+      "invalid_vehicle": "Velg et gyldig kjøretøy."
+    },
+    "abort": {
+      "no_vehicle_available": "Ingen Audi-kjøretøy er lastet for øyeblikket."
+    }
+  },
+  "selector": {
+    "vehicle_actions": {
+      "options": {
+        "lock": "Lås",
+        "unlock": "Lås opp",
+        "start_climatisation": "Start klimaanlegg (eldre)",
+        "stop_climatisation": "Stopp klimaanlegg",
+        "start_charger": "Start lader",
+        "start_timed_charger": "Start tidsstyrt lader",
+        "stop_charger": "Stopp lader",
+        "start_preheater": "Start forvarmer (eldre)",
+        "stop_preheater": "Stopp forvarmer",
+        "start_window_heating": "Start vindusoppvarming",
+        "stop_window_heating": "Stopp vindusoppvarming"
+      }
+    }
+  },
+  "services": {
+    "refresh_vehicle_data": {
+      "name": "Oppdater kjøretøydata",
+      "description": "Ber direkte om en oppdatering av kjøretøyets status, i motsetning til den vanlige oppdateringsmekanismen som bare henter data fra skyen.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet som skal oppdateres."
+        }
+      }
+    },
+    "execute_vehicle_action": {
+      "name": "Utfør kjøretøyhandling",
+      "description": "Utfører ulike handlinger på kjøretøyet.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet handlingen skal utføres på."
+        },
+        "action": {
+          "name": "Handling",
+          "description": "Den spesifikke handlingen som skal utføres på kjøretøyet. Merk at tilgjengelige handlinger kan variere fra kjøretøy til kjøretøy.",
+          "example": "lock"
+        }
+      }
+    },
+    "start_climate_control": {
+      "name": "Start klimaanlegg",
+      "description": "Starter klimaanlegget med valg for temperatur, glassoppvarming og automatisk setekomfort.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet der klimaanlegget skal startes."
+        },
+        "temp_f": {
+          "name": "Måltemperatur (Fahrenheit)",
+          "description": "(Valgfritt) Angi temperatur i °F. Standard er 70 °F hvis ikke angitt. Overstyrer «temp_c»."
+        },
+        "temp_c": {
+          "name": "Måltemperatur (Celsius)",
+          "description": "(Valgfritt) Angi temperatur i °C. Standard er 21 °C hvis ikke angitt. Overstyres hvis «temp_f» er angitt."
+        },
+        "glass_heating": {
+          "name": "Glassoppvarming",
+          "description": "(Valgfritt) Slå glassoppvarming på eller av."
+        },
+        "seat_fl": {
+          "name": "Automatisk setekomfort: foran venstre",
+          "description": "(Valgfritt) Slå automatisk setekomfort på eller av for setet foran til venstre."
+        },
+        "seat_fr": {
+          "name": "Automatisk setekomfort: foran høyre",
+          "description": "(Valgfritt) Slå automatisk setekomfort på eller av for setet foran til høyre."
+        },
+        "seat_rl": {
+          "name": "Automatisk setekomfort: bak venstre",
+          "description": "(Valgfritt) Slå automatisk setekomfort på eller av for setet bak til venstre."
+        },
+        "seat_rr": {
+          "name": "Automatisk setekomfort: bak høyre",
+          "description": "(Valgfritt) Slå automatisk setekomfort på eller av for setet bak til høyre."
+        },
+        "climatisation_at_unlock": {
+          "name": "Klimaanlegg ved opplåsing",
+          "description": "(Valgfritt) La klimaanlegget fortsette å gå når kjøretøyet låses opp."
+        },
+        "climatisation_mode": {
+          "name": "Klimamodus",
+          "description": "(Valgfritt) Maksimal komfort (Comfort) eller energisparing (Economy). Standard er Comfort."
+        }
+      }
+    },
+    "refresh_cloud_data": {
+      "name": "Oppdater skydata",
+      "description": "Henter gjeldende skydata uten å utløse en kjøretøyoppdatering. Dataene kan være utdaterte hvis kjøretøyet ikke har meldt seg nylig."
+    },
+    "start_auxiliary_heating": {
+      "name": "Start parkeringsvarmer",
+      "description": "Starter kjøretøyets parkeringsvarmer, med valg for varighet.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet der parkeringsvarmeren skal startes."
+        },
+        "duration": {
+          "name": "Varighet",
+          "description": "Antall minutter parkeringsvarmeren skal gå før den slås av. Standard er 20 minutter hvis ikke angitt."
+        }
+      }
+    },
+    "set_location_charge_target": {
+      "name": "Angi lademål for sted",
+      "description": "Angi ladenivåmålet for en stedsbasert ladeprofil. Dette er verdien som faktisk avgjør hvor ladingen stopper på stedet, i motsetning til det globale målet. Det er en vedvarende innstilling: den gjelder for all lading på stedet til den endres.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet."
+        },
+        "profile_id": {
+          "name": "Profil",
+          "description": "ID-en til ladeprofilen som skal endres. La stå tom for å endre profilen bilen er parkert i akkurat nå."
+        },
+        "target_soc": {
+          "name": "Ladenivåmål",
+          "description": "Ladenivåmål for dette stedet, 20–100 % i trinn på 5."
+        }
+      }
+    },
+    "set_charge_mode": {
+      "name": "Angi lademodus",
+      "description": "Angi hvilken modus kjøretøyet lader i. Dette er en preferanse og starter eller stopper ikke en pågående lading.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet lademodusen skal angis for."
+        },
+        "charge_mode": {
+          "name": "Lademodus",
+          "description": "manual lader hver gang kjøretøyet er koblet til; timer lader bare til kjøretøyets planlagte tider."
+        }
+      }
+    },
+    "set_target_soc": {
+      "name": "Angi ladenivåmål",
+      "description": "Angi ladenivåmålet (batteri i %) for kjøretøyet.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet ladenivåmålet skal angis for."
+        },
+        "target_soc": {
+          "name": "Ladenivåmål",
+          "description": "Ladenivåmål i prosent (20–100 %)."
+        }
+      }
+    },
+    "start_engine": {
+      "name": "Start motor",
+      "description": "Start kjøretøyets motor eksternt. Krever at S-PIN er angitt i konfigurasjonen.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet der motoren skal startes."
+        }
+      }
+    },
+    "stop_engine": {
+      "name": "Stopp motor",
+      "description": "Stopp kjøretøyets motor eksternt.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet der motoren skal stoppes."
+        }
+      }
+    },
+    "probe_api": {
+      "name": "Undersøk API (diagnostikk)",
+      "description": "Spør Audi-API-et skrivebeskyttet og returnerer svaret. Kun til utforsking; teller mot API-grensen.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet."
+        },
+        "jobs": {
+          "name": "Jobber",
+          "description": "Selectivestatus-jobber det skal spørres om (standard: alle kjente)."
+        },
+        "path": {
+          "name": "Sti",
+          "description": "Alternativt en sti under kjøretøyets URL, f.eks. capabilities."
+        },
+        "graphql": {
+          "name": "GraphQL-spørring",
+          "description": "En fast, skrivebeskyttet spørring mot appens kjøretøytjeneste."
+        }
+      }
+    },
+    "test_climatisation_write": {
+      "name": "Test skriving av klimainnstilling",
+      "description": "Eksperimentelt: skriver én klimainnstilling med en valgt forespørselskropp for å finne ut hva kjøretøyet godtar. Endrer innstillingen som er lagret i bilen.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet."
+        },
+        "setting": {
+          "name": "Innstilling",
+          "description": "Innstillingen som skal endres."
+        },
+        "value": {
+          "name": "Verdi",
+          "description": "Ny verdi."
+        },
+        "variant": {
+          "name": "Forespørselsvariant",
+          "description": "full: alle innstillinger; without_window_heating: utelater vindusoppvarming; single_field: bare det endrede feltet; full_json: som full, men med JSON-innholdstype; app_dto: feltene og navnene myAudi-appen bruker, med JSON-innholdstype; app_full: som app_dto, men med alle tolv feltene i appens forespørsel, null der bilen ikke rapporterer noe."
+        },
+        "method": {
+          "name": "HTTP-metode",
+          "description": "PUT (standard) eller POST."
+        }
+      }
+    },
+    "create_climatisation_timer": {
+      "name": "Opprett klimatimer",
+      "description": "Oppretter en klimatimer i bilen. Klokkeslettet gjelder bilens lokale tid.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet."
+        },
+        "time": {
+          "name": "Klokkeslett",
+          "description": "Starttidspunkt, for eksempel 07:30."
+        },
+        "days": {
+          "name": "Dager",
+          "description": "Ukedager. En enkeltstående timer tar nøyaktig én dag."
+        },
+        "repeat": {
+          "name": "Gjenta",
+          "description": "Hver uke på de valgte dagene. Av = én gang."
+        },
+        "enabled": {
+          "name": "Aktivert",
+          "description": "Timeren slås på når den er opprettet."
+        }
+      }
+    },
+    "delete_climatisation_timer": {
+      "name": "Slett klimatimer",
+      "description": "Sletter en klimatimer i bilen ut fra nummeret.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet."
+        },
+        "timer_id": {
+          "name": "Timernummer",
+          "description": "Timernummeret (se attributtene til klimatimer-sensorene)."
+        }
+      }
+    },
+    "set_climatisation_timer_enabled": {
+      "name": "Slå klimatimer på eller av",
+      "description": "Slår en eksisterende klimatimer i bilen på eller av.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet."
+        },
+        "timer_id": {
+          "name": "Timernummer",
+          "description": "Timernummeret."
+        },
+        "enabled": {
+          "name": "Aktivert",
+          "description": "På = slått på, av = slått av."
+        }
+      }
+    },
+    "probe_api_paths": {
+      "name": "Undersøk kjente skrivebeskyttede Audi-API-stier",
+      "description": "Manuelt utløst, frekvensbegrenset kontroll av åtte kjente skrivebeskyttede CARIAD-endepunkter for ett kjøretøy. Ingen fjernstyringshandlinger. Resultatene vises i neste diagnostikknedlasting. Kjør den bare når du undersøker manglende kjøretøydata. Utvidet modus legger til fem eksperimentelle skrivebeskyttede kontroller, blant annet klimatimere, målinger, inspeksjon og turstatistikk. Hvis den kjøres på nytt med en annen modus innen 15 minutter, avvises forespørselen.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet."
+        },
+        "extended": {
+          "name": "Utvidet",
+          "description": "Kjør også de eksperimentelle skrivebeskyttede kontrollene."
+        }
+      }
+    },
+    "set_local_dealer": {
+      "name": "Angi lokale forhandler- og serviceopplysninger",
+      "description": "Valgfrie opplysninger som lagres lokalt i Home Assistant. Ingen forespørsler til Audi-API-et. Felt som ikke er angitt beholder sine tidligere verdier. Tom tekst fjerner et felt. «Tøm» fjerner hele den lokale oppføringen for dette kjøretøyet.",
+      "fields": {
+        "device_id": {
+          "name": "Kjøretøy",
+          "description": "Audi-kjøretøyet."
+        },
+        "dealer_name": {
+          "name": "Forhandlernavn",
+          "description": "Forhandlerens navn."
+        },
+        "dealer_city": {
+          "name": "Sted",
+          "description": "Forhandlerens sted."
+        },
+        "dealer_address": {
+          "name": "Adresse",
+          "description": "Forhandlerens gateadresse."
+        },
+        "dealer_phone": {
+          "name": "Telefon",
+          "description": "Forhandlerens telefonnummer."
+        },
+        "dealer_website": {
+          "name": "Nettsted",
+          "description": "Forhandlerens nettsted."
+        },
+        "next_service_date": {
+          "name": "Neste service",
+          "description": "Dato for neste service."
+        },
+        "warranty_expiry": {
+          "name": "Garantiens utløp",
+          "description": "Datoen garantien utløper."
+        },
+        "clear": {
+          "name": "Tøm",
+          "description": "Fjern hele den lokale oppføringen for dette kjøretøyet."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "active_charging_profile_max_current": {
+        "name": "Ladestrøm for aktiv profil"
+      },
+      "last_update_time": {
+        "name": "Siste oppdatering"
+      },
+      "shortterm_current": {
+        "name": "Korttidsturdata"
+      },
+      "shortterm_reset": {
+        "name": "Korttidsturdata (tilbakestilling)"
+      },
+      "longterm_current": {
+        "name": "Langtidsturdata"
+      },
+      "longterm_reset": {
+        "name": "Langtidsturdata (tilbakestilling)"
+      },
+      "model": {
+        "name": "Modell"
+      },
+      "mileage": {
+        "name": "Kilometerstand"
+      },
+      "service_adblue_distance": {
+        "name": "AdBlue-rekkevidde"
+      },
+      "range": {
+        "name": "Rekkevidde"
+      },
+      "hybrid_range": {
+        "name": "Hybridrekkevidde"
+      },
+      "service_inspection_time": {
+        "name": "Tid til inspeksjon"
+      },
+      "service_inspection_distance": {
+        "name": "Avstand til inspeksjon"
+      },
+      "oil_change_time": {
+        "name": "Tid til oljeskift"
+      },
+      "oil_change_distance": {
+        "name": "Avstand til oljeskift"
+      },
+      "oil_level": {
+        "name": "Oljenivå"
+      },
+      "charging_state": {
+        "name": "Ladestatus"
+      },
+      "charging_mode": {
+        "name": "Lademodus"
+      },
+      "charging_scenario": {
+        "name": "Ladescenario"
+      },
+      "access_overall_status": {
+        "name": "Sikkerhetsstatus"
+      },
+      "last_trip_distance": {
+        "name": "Siste tur: avstand"
+      },
+      "last_trip_duration": {
+        "name": "Siste tur: varighet"
+      },
+      "last_trip_consumption": {
+        "name": "Siste tur: forbruk"
+      },
+      "last_trip_energy": {
+        "name": "Siste tur: energi"
+      },
+      "last_trip_speed": {
+        "name": "Siste tur: gjennomsnittsfart"
+      },
+      "trip_totals_distance": {
+        "name": "Langtidsavstand"
+      },
+      "trip_totals_duration": {
+        "name": "Langtidsvarighet"
+      },
+      "trip_totals_consumption": {
+        "name": "Langtidsforbruk"
+      },
+      "trip_totals_energy": {
+        "name": "Langtidsenergi"
+      },
+      "trip_totals_speed": {
+        "name": "Langtids gjennomsnittsfart"
+      },
+      "battery_care_mode": {
+        "name": "Batteripleiemodus"
+      },
+      "climatisation_mode": {
+        "name": "Klimamodus"
+      },
+      "charging_type": {
+        "name": "Ladetype"
+      },
+      "energy_flow": {
+        "name": "Energiflyt"
+      },
+      "max_charge_current": {
+        "name": "Maks ladestrøm"
+      },
+      "charging_current_limit_a": {
+        "name": "AC-strømgrense for lading"
+      },
+      "charging_current_limit_mode": {
+        "name": "Modus for ladestrøm"
+      },
+      "charging_plug_auto_unlock": {
+        "name": "Lås opp ladeplugg etter lading"
+      },
+      "vehicle_reported_online": {
+        "name": "Tilkobling rapportert av kjøretøyet"
+      },
+      "vehicle_reported_active": {
+        "name": "Aktivitet rapportert av kjøretøyet"
+      },
+      "primary_engine_type": {
+        "name": "Primær motortype"
+      },
+      "secondary_engine_type": {
+        "name": "Sekundær motortype"
+      },
+      "primary_engine_range": {
+        "name": "Primær motor: rekkevidde"
+      },
+      "secondary_engine_range": {
+        "name": "Sekundær motor: rekkevidde"
+      },
+      "primary_engine_range_percent": {
+        "name": "Primær motor: nivå"
+      },
+      "secondary_engine_range_percent": {
+        "name": "Sekundær motor: nivå"
+      },
+      "charging_power": {
+        "name": "Ladeeffekt"
+      },
+      "actual_charge_rate": {
+        "name": "Ladehastighet"
+      },
+      "tank_level": {
+        "name": "Tanknivå"
+      },
+      "state_of_charge": {
+        "name": "Ladenivå"
+      },
+      "remaining_charging_time": {
+        "name": "Gjenstående ladetid"
+      },
+      "charging_complete_time": {
+        "name": "Ferdig ladet"
+      },
+      "external_power": {
+        "name": "Ekstern strømforsyning"
+      },
+      "plug_led_color": {
+        "name": "LED-farge på plugg"
+      },
+      "doors_trunk_status": {
+        "name": "Dører/bagasjerom"
+      },
+      "climatisation_state": {
+        "name": "Klimaanlegg"
+      },
+      "outdoor_temperature": {
+        "name": "Utetemperatur"
+      },
+      "park_time": {
+        "name": "Parkeringstid"
+      },
+      "position_last_updated": {
+        "name": "Posisjon sist oppdatert"
+      },
+      "remaining_climatisation_time": {
+        "name": "Gjenstående klimatid"
+      },
+      "preheater_duration": {
+        "name": "Forvarmer: driftstid"
+      },
+      "preheater_remaining": {
+        "name": "Forvarmer: gjenstående tid"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Ladenivåmål for aktiv ladeprofil"
+      },
+      "active_charging_profile_name": {
+        "name": "Aktiv ladeprofil"
+      },
+      "active_charging_profile_min_soc": {
+        "name": "Minste ladenivå for aktiv ladeprofil"
+      },
+      "preferred_charging_time_start": {
+        "name": "Foretrukket ladevindu: start"
+      },
+      "preferred_charging_time_end": {
+        "name": "Foretrukket ladevindu: slutt"
+      },
+      "climatisation_timer_enabled_count": {
+        "name": "Aktive klimatimere"
+      },
+      "next_climatisation_timer_local": {
+        "name": "Neste klimatimer (bilens lokale tid)"
+      },
+      "charging_timer_enabled_count": {
+        "name": "Aktive ladetimere"
+      },
+      "vehicle_data_freshness": {
+        "name": "Aktualitet for kjøretøydata",
+        "state": {
+          "fresh": "Oppdatert",
+          "delayed": "Forsinket",
+          "stale": "Utdatert",
+          "unknown": "Ukjent"
+        }
+      },
+      "vehicle_data_age": {
+        "name": "Alder på kjøretøydata"
+      },
+      "cloud_last_successful_poll": {
+        "name": "Siste vellykkede skyhenting"
+      },
+      "dealer_local": {
+        "name": "Forhandler (lokal)"
+      },
+      "service_overview": {
+        "name": "Serviceoversikt"
+      },
+      "api_requests_remaining": {
+        "name": "Gjenstående API-forespørsler"
+      },
+      "service_expiry_date": {
+        "name": "Nettjenester utløper"
+      },
+      "warning_light_count": {
+        "name": "Varsellamper"
+      },
+      "window_open_pct_front_left": {
+        "name": "Vindu foran venstre: åpning"
+      },
+      "window_open_pct_front_right": {
+        "name": "Vindu foran høyre: åpning"
+      },
+      "window_open_pct_rear_left": {
+        "name": "Vindu bak venstre: åpning"
+      },
+      "window_open_pct_rear_right": {
+        "name": "Vindu bak høyre: åpning"
+      }
+    },
+    "binary_sensor": {
+      "active_charging_profile_uses_preferred_times": {
+        "name": "Aktiv profil bruker foretrukne ladetider"
+      },
+      "plug_state": {
+        "name": "Ladeplugg"
+      },
+      "plug_lock_state": {
+        "name": "Plugglås"
+      },
+      "glass_surface_heating": {
+        "name": "Glassoppvarming"
+      },
+      "sun_roof": {
+        "name": "Soltak"
+      },
+      "roof_cover": {
+        "name": "Takdeksel"
+      },
+      "parking_light": {
+        "name": "Parkeringslys"
+      },
+      "any_window_open": {
+        "name": "Vinduer"
+      },
+      "any_door_unlocked": {
+        "name": "Dørlås"
+      },
+      "any_door_open": {
+        "name": "Dører"
+      },
+      "trunk_unlocked": {
+        "name": "Bagasjeromslås"
+      },
+      "trunk_open": {
+        "name": "Bagasjerom"
+      },
+      "hood_open": {
+        "name": "Panser"
+      },
+      "left_front_door_open": {
+        "name": "Dør foran venstre"
+      },
+      "right_front_door_open": {
+        "name": "Dør foran høyre"
+      },
+      "left_rear_door_open": {
+        "name": "Dør bak venstre"
+      },
+      "right_rear_door_open": {
+        "name": "Dør bak høyre"
+      },
+      "left_front_window_open": {
+        "name": "Vindu foran venstre"
+      },
+      "right_front_window_open": {
+        "name": "Vindu foran høyre"
+      },
+      "left_rear_window_open": {
+        "name": "Vindu bak venstre"
+      },
+      "right_rear_window_open": {
+        "name": "Vindu bak høyre"
+      },
+      "braking_status": {
+        "name": "Bremsestatus"
+      },
+      "parking_brake": {
+        "name": "Parkeringsbrems"
+      },
+      "oil_level_binary": {
+        "name": "Oljenivå (varsel)"
+      },
+      "is_moving": {
+        "name": "I bevegelse"
+      },
+      "warning_lights": {
+        "name": "Varsellampe aktiv"
+      }
+    },
+    "button": {
+      "refresh_vehicle_data": {
+        "name": "Oppdater kjøretøydata"
+      },
+      "flash_lights": {
+        "name": "Blink"
+      },
+      "start_window_heating_modern": {
+        "name": "Start vindusoppvarming (eksperimentell)"
+      },
+      "stop_window_heating_modern": {
+        "name": "Stopp vindusoppvarming (eksperimentell)"
+      },
+      "wake_vehicle_modern": {
+        "name": "Vekk kjøretøyet"
+      },
+      "start_engine": {
+        "name": "Start motor"
+      },
+      "stop_engine": {
+        "name": "Stopp motor"
+      },
+      "honk_horn": {
+        "name": "Tut og blink"
+      }
+    },
+    "number": {
+      "target_state_of_charge": {
+        "name": "Globalt lademål"
+      },
+      "active_charging_profile_target_soc": {
+        "name": "Lademål for gjeldende sted"
+      },
+      "charge_profile_target": {
+        "name": "Ladeprofil {profile}: mål"
+      }
+    },
+    "switch": {
+      "preheater_active": {
+        "name": "Forvarmer"
+      },
+      "climatisation_window_heating": {
+        "name": "Vindusoppvarming"
+      },
+      "plug_auto_unlock": {
+        "name": "Frigjør plugg etter lading"
+      },
+      "climatisation_at_unlock": {
+        "name": "Klimaanlegg ved opplåsing"
+      },
+      "climatisation_zone_front_left": {
+        "name": "Klimasone foran venstre"
+      },
+      "climatisation_zone_front_right": {
+        "name": "Klimasone foran høyre"
+      },
+      "climatisation_zone_rear_left": {
+        "name": "Klimasone bak venstre"
+      },
+      "climatisation_zone_rear_right": {
+        "name": "Klimasone bak høyre"
+      },
+      "climate_quick_control": {
+        "name": "Klimaanlegg på/av"
+      }
+    },
+    "select": {
+      "charge_mode": {
+        "name": "Lademodus",
+        "state": {
+          "manual": "Manuell",
+          "timer": "Tidsstyrt"
+        }
+      },
+      "climatisation_mode": {
+        "name": "Klimamodus",
+        "state": {
+          "comfort": "Comfort",
+          "economy": "Economy"
+        }
+      },
+      "profile_charging_current": {
+        "name": "Profilens ladestrøm",
+        "state": {
+          "max": "Maksimal",
+          "reduced": "Redusert"
+        }
+      }
+    },
+    "climate": {
+      "climatisation": {
+        "name": "Klimaanlegg"
+      }
+    },
+    "lock": {
+      "door_lock": {
+        "name": "Dørlås"
+      }
+    },
+    "device_tracker": {
+      "position": {
+        "name": "Posisjon"
       }
     }
   }

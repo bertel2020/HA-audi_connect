@@ -17,6 +17,7 @@ from .audi_connect_account import (
     AudiConnectObserver,
 )
 from .audi_models import VehicleData
+from .vehicle_controls import engine_start_stop_supported
 from .const import (
     CONF_ACTION,
     CONF_API_LEVEL,
@@ -72,6 +73,18 @@ SERVICE_REFRESH_VEHICLE_DATA_SCHEMA = vol.Schema(
     {vol.Required(CONF_DEVICE_ID): _single_device_id}
 )
 
+SERVICE_PROBE_API = "probe_api"
+SERVICE_PROBE_API_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Optional("jobs"): vol.All(cv.ensure_list, [cv.string]),
+        vol.Optional("path"): cv.string,
+        vol.Optional("graphql"): vol.In(
+            ["list", "details", "render_pictures", "configuration"]
+        ),
+    }
+)
+
 SERVICE_EXECUTE_VEHICLE_ACTION = "execute_vehicle_action"
 SERVICE_EXECUTE_VEHICLE_ACTION_SCHEMA = vol.Schema(
     {
@@ -84,8 +97,12 @@ SERVICE_START_CLIMATE_CONTROL = "start_climate_control"
 SERVICE_START_CLIMATE_CONTROL_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_DEVICE_ID): _single_device_id,
-        vol.Optional(CONF_CLIMATE_TEMP_F): cv.positive_int,
-        vol.Optional(CONF_CLIMATE_TEMP_C): cv.positive_int,
+        vol.Optional(CONF_CLIMATE_TEMP_F): vol.All(
+            vol.Coerce(float), vol.Range(min=59, max=86)
+        ),
+        vol.Optional(CONF_CLIMATE_TEMP_C): vol.All(
+            vol.Coerce(float), vol.Range(min=15, max=30)
+        ),
         vol.Optional(CONF_CLIMATE_GLASS): cv.boolean,
         vol.Optional(CONF_CLIMATE_SEAT_FL): cv.boolean,
         vol.Optional(CONF_CLIMATE_SEAT_FR): cv.boolean,
@@ -132,6 +149,75 @@ SERVICE_SET_TARGET_SOC_SCHEMA = vol.Schema(
         vol.Required(CONF_TARGET_SOC): vol.All(
             cv.positive_int, vol.Range(min=20, max=100)
         ),
+    }
+)
+
+SERVICE_TEST_CLIMATISATION_WRITE = "test_climatisation_write"
+SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Required("setting"): vol.In(
+            [
+                "targetTemperature",
+                "climatizationAtUnlock",
+                "windowHeatingEnabled",
+                "zoneFrontLeftEnabled",
+                "zoneFrontRightEnabled",
+                "zoneRearLeftEnabled",
+                "zoneRearRightEnabled",
+            ]
+        ),
+        # A flag for the on/off settings, a number for the target temperature.
+        vol.Required("value"): vol.Any(bool, vol.Coerce(float)),
+        vol.Required("variant"): vol.In(
+            [
+                "full",
+                "without_window_heating",
+                "single_field",
+                "full_json",
+                "app_dto",
+                "app_full",
+            ]
+        ),
+        vol.Optional("method", default="PUT"): vol.In(["PUT", "POST"]),
+    }
+)
+
+_WEEKDAYS = [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+]
+
+SERVICE_CREATE_CLIMATISATION_TIMER = "create_climatisation_timer"
+SERVICE_CREATE_CLIMATISATION_TIMER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Required("time"): cv.string,
+        vol.Required("days"): vol.All(cv.ensure_list, [vol.In(_WEEKDAYS)]),
+        vol.Optional("repeat", default=True): cv.boolean,
+        vol.Optional("enabled", default=True): cv.boolean,
+    }
+)
+
+SERVICE_SET_CLIMATISATION_TIMER_ENABLED = "set_climatisation_timer_enabled"
+SERVICE_SET_CLIMATISATION_TIMER_ENABLED_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Required("timer_id"): cv.positive_int,
+        vol.Required("enabled"): cv.boolean,
+    }
+)
+
+SERVICE_DELETE_CLIMATISATION_TIMER = "delete_climatisation_timer"
+SERVICE_DELETE_CLIMATISATION_TIMER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): _single_device_id,
+        vol.Required("timer_id"): cv.positive_int,
     }
 )
 
@@ -229,13 +315,20 @@ class AudiAccount(AudiConnectObserver):
         action = service.data.get(CONF_ACTION).lower()
 
         if action == "lock":
-            await self.connection.set_vehicle_lock(vin, True)
+            result = await self.connection.set_vehicle_lock(vin, True)
+            self._raise_on_failed_command(result, action)
         elif action == "unlock":
-            await self.connection.set_vehicle_lock(vin, False)
+            result = await self.connection.set_vehicle_lock(vin, False)
+            self._raise_on_failed_command(result, action)
         elif action == "start_climatisation":
-            await self.connection.set_vehicle_climatisation(vin, True)
+            # Existing HA scripts/automations still call this action; route
+            # them to the supported start with car-stored settings instead
+            # of the permanently disabled legacy start command.
+            result = await self.connection.start_climate_control(vin)
+            self._raise_on_failed_command(result, action)
         elif action == "stop_climatisation":
-            await self.connection.set_vehicle_climatisation(vin, False)
+            result = await self.connection.set_vehicle_climatisation(vin, False)
+            self._raise_on_failed_command(result, action)
         elif action == "start_charger":
             await self._charger_action(vin, action, True, False)
         elif action == "start_timed_charger":
@@ -247,15 +340,28 @@ class AudiAccount(AudiConnectObserver):
                 'The "Start Preheater (Legacy)" action is deprecated and will be removed in a future release. '
                 'Please use the "Start Auxiliary Heating" service instead.'
             )
-            await self.connection.set_vehicle_pre_heater(vin, True)
+            result = await self.connection.set_vehicle_pre_heater(vin, True)
+            self._raise_on_failed_command(result, action)
         elif action == "stop_preheater":
-            await self.connection.set_vehicle_pre_heater(vin, False)
+            result = await self.connection.set_vehicle_pre_heater(vin, False)
+            self._raise_on_failed_command(result, action)
         elif action == "start_window_heating":
-            await self.connection.set_vehicle_window_heating(vin, True)
+            result = await self.connection.set_vehicle_window_heating(vin, True)
+            self._raise_on_failed_command(result, action)
         elif action == "stop_window_heating":
-            await self.connection.set_vehicle_window_heating(vin, False)
+            result = await self.connection.set_vehicle_window_heating(vin, False)
+            self._raise_on_failed_command(result, action)
         else:
-            _LOGGER.error("Unknown vehicle action requested: %s", action)
+            raise HomeAssistantError(f"Unknown Audi vehicle action: {action}")
+
+    @staticmethod
+    def _raise_on_failed_command(result: Any, action: str) -> None:
+        """Do not return HA service success when the connection returned False."""
+        if result is False:
+            raise HomeAssistantError(
+                f"Audi Connect {action.replace('_', ' ')} failed. "
+                "Inspect the integration log for the underlying API error."
+            )
 
     async def _charger_action(
         self, vin: str, action: str, start: bool, timer: bool
@@ -278,7 +384,7 @@ class AudiAccount(AudiConnectObserver):
         # Pass the fields through as supplied, without substituting defaults, so
         # the service layer can tell "the caller wants everything left alone"
         # apart from "the caller explicitly asked for all of it off".
-        await self.connection.start_climate_control(
+        result = await self.connection.start_climate_control(
             vin.lower(),
             service.data.get(CONF_CLIMATE_TEMP_F),
             service.data.get(CONF_CLIMATE_TEMP_C),
@@ -290,14 +396,16 @@ class AudiAccount(AudiConnectObserver):
             service.data.get(CONF_CLIMATE_AT_UNLOCK),
             service.data.get(CONF_CLIMATE_MODE),
         )
+        self._raise_on_failed_command(result, "start_climate_control")
 
     async def start_auxiliary_heating(self, vin: str, service: ServiceCall) -> None:
         """Start auxiliary heating for a vehicle by VIN."""
-        await self.connection.set_vehicle_pre_heater(
+        result = await self.connection.set_vehicle_pre_heater(
             vin=vin.lower(),
             activate=True,
             duration=service.data.get(CONF_DURATION),
         )
+        self._raise_on_failed_command(result, "start_auxiliary_heating")
 
     async def set_location_charge_target(self, vin: str, service: ServiceCall) -> None:
         """Set a location profile's target SoC, the value that governs charging
@@ -314,25 +422,94 @@ class AudiAccount(AudiConnectObserver):
 
     async def set_charge_mode(self, vin: str, service: ServiceCall) -> None:
         """Set which mode the car charges in, without starting or stopping one."""
-        await self.connection.set_charge_mode(
+        result = await self.connection.set_charge_mode(
             vin.lower(),
             service.data.get(CONF_CHARGE_MODE),
         )
+        self._raise_on_failed_command(result, "set_charge_mode")
 
     async def set_target_soc(self, vin: str, service: ServiceCall) -> None:
         """Set target state of charge for a vehicle by VIN."""
-        await self.connection.set_target_state_of_charge(
+        result = await self.connection.set_target_state_of_charge(
             vin.lower(),
             service.data.get(CONF_TARGET_SOC),
         )
+        self._raise_on_failed_command(result, "set_target_soc")
+
+    async def create_climatisation_timer(self, vin: str, service: ServiceCall) -> None:
+        """Create a climatisation timer at a local time on the chosen days."""
+        try:
+            result = await self.connection.create_climatisation_timer(
+                vin.lower(),
+                service.data["time"],
+                service.data["days"],
+                service.data["repeat"],
+                service.data["enabled"],
+            )
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
+        self._raise_on_failed_command(result, "create_climatisation_timer")
+
+    async def set_climatisation_timer_enabled(
+        self, vin: str, service: ServiceCall
+    ) -> None:
+        try:
+            result = await self.connection.set_climatisation_timer_enabled(
+                vin.lower(), service.data["timer_id"], service.data["enabled"]
+            )
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
+        self._raise_on_failed_command(result, "set_climatisation_timer_enabled")
+
+    async def delete_climatisation_timer(self, vin: str, service: ServiceCall) -> None:
+        result = await self.connection.delete_climatisation_timer(
+            vin.lower(), service.data["timer_id"]
+        )
+        self._raise_on_failed_command(result, "delete_climatisation_timer")
+
+    async def test_climatisation_write(self, vin: str, service: ServiceCall) -> None:
+        """Write one climatisation setting with a chosen body, to find what the car takes."""
+        setting, value = service.data["setting"], service.data["value"]
+        if (setting == "targetTemperature") == isinstance(value, bool):
+            raise HomeAssistantError(
+                "targetTemperature takes a number, every other setting on or off"
+            )
+        result = await self.connection.set_climatisation_setting(
+            vin.lower(),
+            setting,
+            value,
+            service.data["variant"],
+            service.data["method"],
+        )
+        self._raise_on_failed_command(result, "test_climatisation_write")
+
+    def _require_remote_engine_support(self, vin: str) -> None:
+        """Check direct-service calls as well as buttons; never infer capability."""
+        for config_vehicle in self.config_vehicles:
+            vehicle = config_vehicle.vehicle
+            if (
+                vehicle is not None
+                and vehicle.vin.lower() == vin.lower()
+                and engine_start_stop_supported(vehicle)
+            ):
+                return
+        raise HomeAssistantError(
+            "Remote engine start/stop is not verified for this vehicle. "
+            "Only a vehicle-reported remote-start capability can enable it; "
+            "do not substitute this for electric cabin preconditioning."
+        )
 
     async def start_engine(self, vin: str) -> None:
-        """Start engine for a vehicle by VIN."""
-        await self.connection.start_engine(vin.lower())
+        """Start only when the vehicle explicitly reports remote-start support."""
+        self._require_remote_engine_support(vin)
+        if not await self.connection.start_engine(vin.lower()):
+            raise HomeAssistantError("Audi Connect could not start the engine.")
 
     async def stop_engine(self, vin: str) -> None:
-        """Stop engine for a vehicle by VIN."""
-        await self.connection.stop_engine(vin.lower())
+        """Stop only when the vehicle explicitly reports remote-start support."""
+        self._require_remote_engine_support(vin)
+        if not await self.connection.stop_engine(vin.lower()):
+            raise HomeAssistantError("Audi Connect could not stop the engine.")
 
     async def handle_notification(self, vin: str, action: str) -> None:
         if self.config_entry.options.get(CONF_REFRESH_AFTER_ACTION, False):
@@ -375,6 +552,8 @@ __all__ = [
     "SERVICE_EXECUTE_VEHICLE_ACTION",
     "SERVICE_EXECUTE_VEHICLE_ACTION_SCHEMA",
     "SERVICE_REFRESH_CLOUD_DATA",
+    "SERVICE_PROBE_API",
+    "SERVICE_PROBE_API_SCHEMA",
     "SERVICE_REFRESH_VEHICLE_DATA",
     "SERVICE_REFRESH_VEHICLE_DATA_SCHEMA",
     "SERVICE_SET_CHARGE_MODE",
@@ -389,6 +568,14 @@ __all__ = [
     "SERVICE_START_CLIMATE_CONTROL_SCHEMA",
     "SERVICE_START_ENGINE",
     "SERVICE_START_ENGINE_SCHEMA",
+    "SERVICE_TEST_CLIMATISATION_WRITE",
+    "SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA",
+    "SERVICE_CREATE_CLIMATISATION_TIMER",
+    "SERVICE_CREATE_CLIMATISATION_TIMER_SCHEMA",
+    "SERVICE_SET_CLIMATISATION_TIMER_ENABLED",
+    "SERVICE_SET_CLIMATISATION_TIMER_ENABLED_SCHEMA",
+    "SERVICE_DELETE_CLIMATISATION_TIMER",
+    "SERVICE_DELETE_CLIMATISATION_TIMER_SCHEMA",
     "SERVICE_STOP_ENGINE",
     "SERVICE_STOP_ENGINE_SCHEMA",
     "AudiAccount",

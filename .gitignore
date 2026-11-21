@@ -64,7 +64,6 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
 
 # PyBuilder
 target/
@@ -103,3 +102,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 .idea
+
+# internal notes, not published
+/docs/
+
+# Card tests (tests/js)
+node_modules/
