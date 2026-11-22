@@ -822,3 +822,19 @@ function withRows(entities, list) {
   for (const [id, tk] of list) out[id] = { entity_id: id, platform: "audiconnect", device_id: "dev1", translation_key: tk };
   return out;
 }
+
+// ---- when the last trip ended ----------------------------------------------------------
+
+test("the last trip says how long ago it ended, when the car gives the time", () => {
+  const ended = new Date(Date.now() - 10 * 3600e3).toISOString();
+  withEntities([...TRIPS, ["sensor.le", "last_trip_end", ended]], {});
+  const sm = (id) => root().querySelector(`details[data-id="${id}"] .sm`).textContent;
+  assert.match(sm("trip-last"), /10 h ago$/);
+  assert.doesNotMatch(sm("trip-long"), /ago/);
+});
+
+test("without the end time the last trip summary is as before", () => {
+  withEntities(TRIPS, {});
+  const sm = root().querySelector('details[data-id="trip-last"] .sm').textContent;
+  assert.doesNotMatch(sm, /ago/);
+});

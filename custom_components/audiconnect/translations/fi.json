@@ -461,6 +461,9 @@
       "access_overall_status": {
         "name": "Turvallisuustila"
       },
+      "last_trip_end": {
+        "name": "Viimeisen matkan päättymisaika"
+      },
       "last_trip_distance": {
         "name": "Viimeisen matkan pituus"
       },

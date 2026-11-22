@@ -461,6 +461,9 @@
       "access_overall_status": {
         "name": "État de sécurité"
       },
+      "last_trip_end": {
+        "name": "Fin du dernier trajet"
+      },
       "last_trip_distance": {
         "name": "Distance du dernier trajet"
       },

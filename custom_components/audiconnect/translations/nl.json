@@ -461,6 +461,9 @@
       "access_overall_status": {
         "name": "Beveiligingsstatus"
       },
+      "last_trip_end": {
+        "name": "Einde laatste rit"
+      },
       "last_trip_distance": {
         "name": "Afstand laatste rit"
       },

@@ -461,6 +461,9 @@
       "access_overall_status": {
         "name": "Sikkerhetsstatus"
       },
+      "last_trip_end": {
+        "name": "Siste tur sluttet"
+      },
       "last_trip_distance": {
         "name": "Siste tur: avstand"
       },

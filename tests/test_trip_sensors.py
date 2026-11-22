@@ -157,3 +157,34 @@ def test_long_term_totals_are_total_increasing_and_last_trip_is_not():
     assert by_key["last_trip_distance"].state_class == SensorStateClass.MEASUREMENT
     assert by_key["last_trip_energy"].state_class is None
     assert by_key["trip_totals_speed"].state_class == SensorStateClass.MEASUREMENT
+
+
+def test_the_last_trip_end_is_the_time_the_car_gives():
+    from datetime import UTC, datetime
+
+    end = datetime(2026, 11, 15, 17, 36, 15, tzinfo=UTC)
+    by_key = {d.key: d for d in SENSOR_DESCRIPTIONS}
+    sensor = by_key["last_trip_end"]
+    assert sensor.device_class == "timestamp"
+    assert sensor.entity_registry_enabled_default is True
+    assert (
+        sensor.value_fn(
+            vehicle_with({"lastTripShortTerm": {**SHORT, "tripEndTimestamp": end}})
+        )
+        == end
+    )
+
+
+def test_a_trip_end_that_is_not_a_real_time_gives_no_value():
+    from datetime import datetime
+
+    sensor = {d.key: d for d in SENSOR_DESCRIPTIONS}["last_trip_end"]
+    for end in (
+        "2026-11-15T17:36:15+00:00",
+        datetime(2026, 11, 15, 17, 36, 15),
+        123,
+        None,
+    ):
+        state = {"lastTripShortTerm": {**SHORT, "tripEndTimestamp": end}}
+        assert sensor.value_fn(vehicle_with(state)) is None
+    assert sensor.value_fn(vehicle_with({})) is None

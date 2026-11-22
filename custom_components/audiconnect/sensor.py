@@ -141,6 +141,17 @@ def _trip_figure(attr_key: str, field: str):
     return value
 
 
+def _trip_time(attr_key: str, field: str):
+    """The time a trip ended, only if the car gave a real time with a time zone."""
+
+    def value(vehicle: Any) -> Any:
+        block = getattr(vehicle, attr_key, None)
+        raw = block.get(field) if isinstance(block, dict) else None
+        return raw if isinstance(raw, datetime) and raw.tzinfo is not None else None
+
+    return value
+
+
 def _trip_sensors(
     attr_key: str, prefix: str, *, enabled: bool, cumulative: bool = False
 ) -> tuple[AudiSensorEntityDescription, ...]:
@@ -323,6 +334,14 @@ SENSOR_DESCRIPTIONS: tuple[AudiSensorEntityDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     *_trip_sensors("last_trip", "last_trip", enabled=True),
+    AudiSensorEntityDescription(
+        key="last_trip_end",
+        attr_key="last_trip",
+        translation_key="last_trip_end",
+        icon="mdi:calendar-clock",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        value_fn=_trip_time("last_trip", "tripEndTimestamp"),
+    ),
     *_trip_sensors("trip_totals", "trip_totals", enabled=True, cumulative=True),
     AudiSensorEntityDescription(
         key="shortterm_current",
