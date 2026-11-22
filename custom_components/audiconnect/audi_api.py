@@ -125,16 +125,27 @@ class AudiAPI:
         """
         if self.raw_logging == "off" or "/vehicles/" not in url:
             return
-        route = url.split("?")[0]
-        if self.raw_logging == "full":
-            _LOGGER.debug("Raw API response from %s: %s", route, json.dumps(payload))
-            return
-        text = json.dumps(_mask_position(_redact_secrets(payload)))
-        _LOGGER.debug(
-            "Raw API response from %s: %s",
-            _VIN_PATTERN.sub("<vin>", route),
-            _VIN_PATTERN.sub("<vin>", text),
-        )
+        # The replies are parsed already, so timestamps are datetimes: `default=str`.
+        # A log line must never break the request it describes.
+        try:
+            route = url.split("?")[0]
+            if self.raw_logging == "full":
+                _LOGGER.debug(
+                    "Raw API response from %s: %s",
+                    route,
+                    json.dumps(payload, default=str),
+                )
+                return
+            text = json.dumps(_mask_position(_redact_secrets(payload)), default=str)
+            _LOGGER.debug(
+                "Raw API response from %s: %s",
+                _VIN_PATTERN.sub("<vin>", route),
+                _VIN_PATTERN.sub("<vin>", text),
+            )
+        except Exception:  # noqa: BLE001 - diagnostics must never fail the request
+            _LOGGER.debug(
+                "Raw API response from %s could not be logged", url.split("?")[0]
+            )
 
     async def _log_rejected_write(
         self, method: str, url: str, response: Any, sent: Any = None

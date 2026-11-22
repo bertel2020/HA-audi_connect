@@ -104,3 +104,27 @@ def test_the_options_form_offers_both_logging_options_off_by_default():
     schema = {str(k): k for k in result["data_schema"].schema}
     assert schema[CONF_LOG_RAW_RESPONSES].default() is False
     assert schema[CONF_LOG_RAW_UNREDACTED].default() is False
+
+
+def test_a_reply_with_parsed_timestamps_is_logged(caplog):
+    # The real replies are parsed with a loader that turns timestamps into datetimes.
+    from datetime import UTC, datetime
+
+    payload = {"carCapturedTimestamp": datetime(2026, 11, 22, 8, 19, 3, tzinfo=UTC)}
+    for mode in ("redacted", "full"):
+        caplog.clear()
+        api = AudiAPI(_Session({}))
+        api.raw_logging = mode
+        with caplog.at_level(logging.DEBUG):
+            api._log_raw_response(VEHICLE_URL, payload)
+        assert "Raw API response" in caplog.text and "2026-11-22" in caplog.text
+
+
+def test_a_reply_that_cannot_be_logged_never_breaks_the_request(caplog):
+    loop: dict = {}
+    loop["me"] = loop  # json refuses a circular reply
+    api = AudiAPI(_Session({}))
+    api.raw_logging = "full"
+    with caplog.at_level(logging.DEBUG):
+        api._log_raw_response(VEHICLE_URL, loop)
+    assert "could not be logged" in caplog.text
