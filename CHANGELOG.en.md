@@ -4,7 +4,7 @@
 
 Versions up to `v2.5.3b1` are on the [releases page](https://github.com/bertel2020/HA-audi_connect/releases). This file starts with what came after.
 
-## Unreleased
+## 2.6.0 – 2026-11-22
 
 **New**
 - **Card:** The integration ships its own dashboard card (`audi-connect-card`): photo or icon, status, charging band, trips, vehicle details and a fold-away climatisation panel. Tap the title to open the integration, hold it to refresh the vehicle data.
