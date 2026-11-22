@@ -687,6 +687,9 @@
       "hood_open": {
         "name": "Motorhaube"
       },
+      "hood_unlocked": {
+        "name": "Motorhaubenverriegelung"
+      },
       "left_front_door_open": {
         "name": "Tür vorne links"
       },

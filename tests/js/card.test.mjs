@@ -822,3 +822,27 @@ function withRows(entities, list) {
   for (const [id, tk] of list) out[id] = { entity_id: id, platform: "audiconnect", device_id: "dev1", translation_key: tk };
   return out;
 }
+
+// ---- the hood lock ---------------------------------------------------------------------
+
+const hoodBadges = () => [...root().querySelectorAll("svg.car .bd")].length;
+
+test("an unlocked hood is drawn as unlocked and gets a badge on the doors tab", () => {
+  withEntities([["binary_sensor.hl", "hood_unlocked", "on"]], {});
+  openDoors();
+  assert.ok(root().querySelector("svg.car .pn.ul"), "the hood panel is marked unlocked");
+  const before = hoodBadges();
+  withEntities([["binary_sensor.hl", "hood_unlocked", "off"]], {});
+  openDoors();
+  assert.equal(root().querySelector("svg.car .pn.ul"), null);
+  assert.equal(hoodBadges(), before, "locked or not, the hood has its badge");
+});
+
+test("without a hood lock sensor the hood has no lock badge", () => {
+  withEntities([], {});
+  openDoors();
+  const without = hoodBadges();
+  withEntities([["binary_sensor.hl", "hood_unlocked", "off"]], {});
+  openDoors();
+  assert.equal(hoodBadges(), without + 1);
+});

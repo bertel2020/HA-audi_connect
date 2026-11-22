@@ -687,6 +687,9 @@
       "hood_open": {
         "name": "Panser"
       },
+      "hood_unlocked": {
+        "name": "Panserlås"
+      },
       "left_front_door_open": {
         "name": "Dør foran venstre"
       },

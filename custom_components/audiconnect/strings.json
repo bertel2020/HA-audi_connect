@@ -687,6 +687,9 @@
       "hood_open": {
         "name": "Hood"
       },
+      "hood_unlocked": {
+        "name": "Hood lock"
+      },
       "left_front_door_open": {
         "name": "Left front door"
       },
