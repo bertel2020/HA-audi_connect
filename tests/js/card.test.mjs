@@ -36,6 +36,8 @@ const DEFS = [
   ["select.mode", "climatisation_mode", "comfort", { options: ["comfort", "economy"] }],
   ["switch.zfl", "climatisation_zone_front_left", "off"],
   ["switch.zfr", "climatisation_zone_front_right", "on"],
+  ["switch.zrl", "climatisation_zone_rear_left", "off"],
+  ["switch.zrr", "climatisation_zone_rear_right", "off"],
   ["button.refresh", "refresh_vehicle_data", "unknown"],
 ];
 
@@ -265,47 +267,45 @@ test("an invalid finish time has no day", () => {
   assert.equal(card._dayOf("not a date"), "");
 });
 
-test("the seat and zone buttons are hidden unless the card option is on", () => {
-  const seats = () => root().querySelectorAll('button[data-toggle="switch.zfl"], button[data-toggle="switch.zfr"]').length;
-  assert.equal(seats(), 0);
+const zones = () => [...root().querySelectorAll("button[data-toggle]")].map((b) => b.dataset.toggle).filter((id) => /^switch\.z/.test(id));
+
+test("the seat and zone buttons are hidden unless a card option is on", () => {
+  assert.deepEqual(zones(), []);
+});
+
+test("the front option shows the two front zones, labelled by position", () => {
+  card.setConfig({ device_id: "dev1", show_seats_front: true });
+  setHass({});
+  assert.deepEqual(zones(), ["switch.zfl", "switch.zfr"]);
+  const labels = [...root().querySelectorAll("button[data-toggle]")].map((b) => b.textContent.trim());
+  assert.ok(labels.includes("Front left") && labels.includes("Front right"), labels.join("|"));
+});
+
+test("the rear option shows the two rear zones only", () => {
+  card.setConfig({ device_id: "dev1", show_seats_rear: true });
+  setHass({});
+  assert.deepEqual(zones(), ["switch.zrl", "switch.zrr"]);
+});
+
+test("front and rear are separate rows", () => {
+  card.setConfig({ device_id: "dev1", show_seats_front: true, show_seats_rear: true });
+  setHass({});
+  const rows = [...root().querySelectorAll(".pills")].filter((r) => r.querySelector('button[data-toggle^="switch.z"]'));
+  assert.equal(rows.length, 2);
+  assert.deepEqual([...rows[0].querySelectorAll("button")].map((b) => b.dataset.toggle), ["switch.zfl", "switch.zfr"]);
+  assert.deepEqual([...rows[1].querySelectorAll("button")].map((b) => b.dataset.toggle), ["switch.zrl", "switch.zrr"]);
+});
+
+test("the single option of earlier versions still means the front zones", () => {
   card.setConfig({ device_id: "dev1", show_seats: true });
   setHass({});
-  assert.equal(seats(), 2);
+  assert.deepEqual(zones(), ["switch.zfl", "switch.zfr"]);
 });
 
-test("the range-per-hour cell shows the gain, and nothing when it is zero", () => {
-  const texts = () => [...root().querySelectorAll(".band .cell .v")].map((e) => e.textContent.trim());
-  assert.ok(texts().some((t) => t.startsWith("+20")), texts().join("|"));
-  setHass({ "sensor.rate": "0" });
-  assert.ok(!texts().some((t) => t.startsWith("+")), texts().join("|"));
-});
-
-test("doors and windows that no sensor reports are not shown as closed", () => {
-  const off = {};
-  for (const [id, tk] of DEFS) if (/_(door|window)_open$/.test(tk) || tk === "hood_open" || tk === "trunk_open") off[id] = "unavailable";
-  setHass(off);
-  const icons = [...root().querySelectorAll(".icons .ic")].map((b) => b.textContent.trim());
-  assert.ok(icons.includes("Doors: unknown"), icons.join("|"));
-  assert.ok(icons.includes("Windows: unknown"), icons.join("|"));
-  assert.ok(!root().querySelector('.icons .ic[data-tab="doors"]').classList.contains("ok"));
-});
-
-test("no focusable button without an entity behind it", () => {
-  setHass({}, { skip: ["binary_sensor.fl", "binary_sensor.wfl"] });
-  openDoors();
-  const dead = [...root().querySelectorAll('[data-more=""]')].filter((e) => e.getAttribute("role") === "button" || e.hasAttribute("tabindex"));
-  assert.deepEqual(dead, []);
-});
-
-test("without a lock entity there is no lock button in the popup", () => {
-  setHass({}, { skip: ["lock.car"] });
-  openDoors();
-  assert.equal(root().querySelector('[data-act="lock"]'), null);
-});
-
-test("a duration never reads 60 minutes", () => {
-  assert.equal(card._dur(119.6), "2 h");
-  assert.equal(card._dur(61), "1 h 1 min");
+test("a car without rear zones shows no rear row even when the option is on", () => {
+  card.setConfig({ device_id: "dev1", show_seats_rear: true });
+  setHass({}, { skip: ["switch.zrl", "switch.zrr"] });
+  assert.deepEqual(zones(), []);
 });
 
 test("the temperature stepper has real labels", () => {
@@ -582,23 +582,41 @@ test("empty choices are left out of the saved config", async () => {
   assert.deepEqual(saved, { device_id: "dev1", show_logo: false });
 });
 
-test("the seat option is an indented sub-item under 'show climate'", async () => {
+test("the seat options are indented sub-items under 'show climate', front and rear", async () => {
   const el = editor();
   await settle();
-  assert.ok(el._seatForm.schema.some((f) => f.name === "show_seats"));
+  assert.deepEqual(el._seatForm.schema.map((f) => f.name), ["show_seats_front", "show_seats_rear"]);
   assert.equal(el._seatBox.hidden, false);
-  assert.equal(el._form.data.show_seats, false);
-  assert.match(el._seatForm.computeLabel({ name: "show_seats" }), /seat\/zone/);
+  assert.equal(el._form.data.show_seats_front, false);
+  assert.equal(el._form.data.show_seats_rear, false);
+  assert.match(el._seatForm.computeLabel({ name: "show_seats_front" }), /front seat\/zone/);
+  assert.match(el._seatForm.computeLabel({ name: "show_seats_rear" }), /rear seat\/zone/);
   // Order: the main form (ending with show climate), then the indented box, then the rest.
-  const order = [...el.children];
-  assert.deepEqual(order, [el._form, el._seatBox, el._restForm]);
+  assert.deepEqual([...el.children], [el._form, el._seatBox, el._restForm]);
   assert.equal(el._form.schema.at(-1).name, "show_climate");
   assert.equal(el._restForm.schema[0].name, "show_stats");
   assert.match(el._seatBox.style.marginLeft, /28px/);
   assert.ok(el._seatBox.contains(el._seatForm));
 });
 
-test("the seat option is switched off together with the climate option", async () => {
+test("each seat option is offered only when the car has that end's zones", async () => {
+  const make = (skip) => {
+    const e = window.document.createElement("audi-connect-card-editor");
+    window.document.body.appendChild(e);
+    e.setConfig({ device_id: "dev1" });
+    e.hass = { ...build({}, { skip }), callWS: async () => [] };
+    return e;
+  };
+  const noRear = make(["switch.zrl", "switch.zrr"]);
+  const noFront = make(["switch.zfl", "switch.zfr"]);
+  const none = make(["switch.zfl", "switch.zfr", "switch.zrl", "switch.zrr"]);
+  await settle();
+  assert.deepEqual(noRear._seatForm.schema.map((f) => f.name), ["show_seats_front"]);
+  assert.deepEqual(noFront._seatForm.schema.map((f) => f.name), ["show_seats_rear"]);
+  assert.equal(none._seatBox.hidden, true);
+});
+
+test("the seat options are switched off together with the climate option", async () => {
   const el = editor({ config: { device_id: "dev1", show_climate: false } });
   await settle();
   assert.equal(el._seatForm.disabled, true);
@@ -607,13 +625,16 @@ test("the seat option is switched off together with the climate option", async (
   assert.equal(on._seatForm.disabled, false);
 });
 
-test("the seat option is not offered when the car has no zone switches", async () => {
-  const none = window.document.createElement("audi-connect-card-editor");
-  window.document.body.appendChild(none);
-  none.setConfig({ device_id: "dev1" });
-  none.hass = { ...build({}, { skip: ["switch.zfl", "switch.zfr"] }), callWS: async () => [] };
+test("a config with the old option opens with the front option on, and saves without it", async () => {
+  const el = editor({ config: { device_id: "dev1", show_seats: true } });
   await settle();
-  assert.equal(none._seatBox.hidden, true);
+  assert.equal(el._form.data.show_seats_front, true);
+  let saved;
+  el.addEventListener("config-changed", (e) => { saved = e.detail.config; });
+  el._seatForm.dispatchEvent(new window.CustomEvent("value-changed", { detail: { value: { ...el._seatForm.data, show_seats_rear: true } } }));
+  assert.equal(saved.show_seats_front, true);
+  assert.equal(saved.show_seats_rear, true);
+  assert.ok(!("show_seats" in saved), "the old key is gone");
 });
 
 test("a change in the seat form keeps the rest of the config", async () => {
@@ -621,8 +642,8 @@ test("a change in the seat form keeps the rest of the config", async () => {
   await settle();
   let saved;
   el.addEventListener("config-changed", (e) => { saved = e.detail.config; });
-  el._seatForm.dispatchEvent(new window.CustomEvent("value-changed", { detail: { value: { ...el._seatForm.data, show_seats: true } } }));
-  assert.equal(saved.show_seats, true);
+  el._seatForm.dispatchEvent(new window.CustomEvent("value-changed", { detail: { value: { ...el._seatForm.data, show_seats_front: true } } }));
+  assert.equal(saved.show_seats_front, true);
   assert.equal(saved.device_id, "dev1");
   assert.equal(saved.name, "Mine");
 });

@@ -23,7 +23,7 @@ const TEXT = {
     vehicle: "Vehicle", parking_brake: "Parking brake", brake_on: "Engaged", brake_off: "Released", warning_lights: "Warning lights", warning_active: "Active", warning_none: "None", security: "Security status", fuel_range: "Fuel range", tank: "Tank", outdoor: "Outside temperature", oil_change: "Oil change", oil_level: "Oil level", adblue: "AdBlue range", charge_type: "Charging type", max_current: "Max. charging current",
     climate: "Climate", climate_on: "Running", climate_off: "Off", mode: "Mode",
     heating: "Heating", cooling: "Cooling", ventilating: "Ventilating", running: "Running", remaining: "Time left",
-    driver: "Driver", passenger: "Passenger", start: "Start", stop: "Stop",
+    start: "Start", stop: "Stop",
     doors: "Doors", windows: "Windows", all_closed: "All closed and locked",
     all_closed_unlocked: "All closed, not locked", all_closed_unknown: "Lock state unknown", n_openings: "{n} openings open",
     one_opening: "1 opening open", open: "open", closed: "closed",
@@ -39,7 +39,7 @@ const TEXT = {
     doors_unknown: "Doors: unknown", windows_unknown: "Windows: unknown",
     // editor
     e_device: "Vehicle", e_name: "Name", e_image: "Upload a photo (optional)", e_image_local: "…or pick one from the www folder", e_none: "none",
-    e_icon: "Icon instead of the Audi logo (optional)", e_logo: "Show Audi logo", e_trips: "Show trips", e_climate: "Show climate", e_stats: "Show vehicle details", e_seats: "Show seat/zone buttons (only if the car has them)",
+    e_icon: "Icon instead of the Audi logo (optional)", e_logo: "Show Audi logo", e_trips: "Show trips", e_climate: "Show climate", e_stats: "Show vehicle details", e_seats_front: "Show front seat/zone buttons", e_seats_rear: "Show rear seat/zone buttons",
   },
   de: {
     locked: "Verriegelt", unlocked: "Entriegelt", lock_unknown: "Schlosszustand unbekannt", not_secured: "Nicht gesichert",
@@ -53,7 +53,7 @@ const TEXT = {
     vehicle: "Fahrzeug", parking_brake: "Parkbremse", brake_on: "Angezogen", brake_off: "Gelöst", warning_lights: "Warnleuchten", warning_active: "Aktiv", warning_none: "Keine", security: "Sicherheitsstatus", fuel_range: "Reichweite Kraftstoff", tank: "Tank", outdoor: "Außentemperatur", oil_change: "Ölwechsel", oil_level: "Ölstand", adblue: "AdBlue-Reichweite", charge_type: "Ladeart", max_current: "Max. Ladestrom",
     climate: "Klimatisierung", climate_on: "Läuft", climate_off: "Aus", mode: "Modus",
     heating: "Heizt", cooling: "Kühlt", ventilating: "Lüftet", running: "Läuft", remaining: "Restlaufzeit",
-    driver: "Fahrer", passenger: "Beifahrer", start: "Starten", stop: "Stoppen",
+    start: "Starten", stop: "Stoppen",
     doors: "Türen", windows: "Fenster", all_closed: "Alles zu und verriegelt",
     all_closed_unlocked: "Alles zu, nicht verriegelt", all_closed_unknown: "Schlosszustand unbekannt", n_openings: "{n} Öffnungen offen",
     one_opening: "1 Öffnung offen", open: "offen", closed: "zu",
@@ -68,7 +68,7 @@ const TEXT = {
     a_start_climate: "Klima starten", a_stop_climate: "Klima stoppen", a_temp: "Temperatur setzen", a_target: "Ladeziel setzen", a_mode: "Modus setzen", a_toggle: "Umschalten",
     doors_unknown: "Türen: unbekannt", windows_unknown: "Fenster: unbekannt",
     e_device: "Fahrzeug", e_name: "Name", e_image: "Foto hochladen (optional)", e_image_local: "…oder eines aus dem www-Ordner wählen", e_none: "keines",
-    e_icon: "Icon statt Audi-Logo (optional)", e_logo: "Audi-Logo anzeigen", e_trips: "Fahrten anzeigen", e_climate: "Klimatisierung anzeigen", e_stats: "Fahrzeugdetails anzeigen", e_seats: "Sitz-/Zonen-Tasten anzeigen (nur wenn das Auto sie hat)",
+    e_icon: "Icon statt Audi-Logo (optional)", e_logo: "Audi-Logo anzeigen", e_trips: "Fahrten anzeigen", e_climate: "Klimatisierung anzeigen", e_stats: "Fahrzeugdetails anzeigen", e_seats_front: "Vordere Sitz-/Zonen-Tasten anzeigen", e_seats_rear: "Hintere Sitz-/Zonen-Tasten anzeigen",
   },
 };
 
@@ -370,7 +370,7 @@ class AudiConnectCard extends HTMLElement {
   }
 
   setConfig(config) {
-    this._config = { show_logo: true, show_trips: true, show_climate: true, show_stats: true, show_seats: false, ...config };
+    this._config = { show_logo: true, show_trips: true, show_climate: true, show_stats: true, ...config };
     this._sig = "";
     this._update();
   }
@@ -922,7 +922,13 @@ class AudiConnectCard extends HTMLElement {
       : "";
     const seatBtn = (tk, label) => this._has(tk)
       ? `<button class="pill ${this._on(tk) ? "on" : ""}${this._waiting(this._id(tk)) ? " wait" : ""}" data-toggle="${esc(this._id(tk))}"><ha-icon icon="${this._waiting(this._id(tk)) ? "mdi:loading" : "mdi:car-seat-heater"}"></ha-icon>${esc(label)}</button>` : "";
-    const seats = this._config.show_seats ? seatBtn("climatisation_zone_front_left", this._t("driver")) + seatBtn("climatisation_zone_front_right", this._t("passenger")) : "";
+    // Off by default. The single option of earlier versions, show_seats, meant the front zones.
+    const cfg = this._config;
+    const frontOn = cfg.show_seats_front ?? cfg.show_seats ?? false;
+    const rearOn = cfg.show_seats_rear ?? false;
+    const frontSeats = frontOn ? seatBtn("climatisation_zone_front_left", this._t("fl")) + seatBtn("climatisation_zone_front_right", this._t("fr")) : "";
+    const rearSeats = rearOn ? seatBtn("climatisation_zone_rear_left", this._t("rl")) + seatBtn("climatisation_zone_rear_right", this._t("rr")) : "";
+    const seats = [frontSeats, rearSeats].filter(Boolean).map((row) => `<div class="pills" style="grid-template-columns:repeat(2,1fr)">${row}</div>`).join("");
     const id = esc(cl.entity_id);
     const sub = on ? `${this._t(action)}${left ? " · " + this._t("remaining") + " " + left : ""}` : this._t("climate_off") + outdoor;
     const modeRow = mode && modeOptions.length
@@ -933,7 +939,7 @@ class AudiConnectCard extends HTMLElement {
       <div class="cbody">
         ${modeRow}
         ${temp !== undefined && temp !== null ? `<div class="step"><button class="stp" data-step="-1" aria-label="${esc(this._t("temp_down"))}"><ha-icon icon="mdi:minus"></ha-icon></button><b data-live="temp">${esc(this._temp(this._ui.tempDraft ?? temp))}</b><button class="stp" data-step="1" aria-label="${esc(this._t("temp_up"))}"><ha-icon icon="mdi:plus"></ha-icon></button></div>` : ""}
-        ${seats ? `<div class="pills" style="grid-template-columns:repeat(2,1fr)">${seats}</div>` : ""}
+        ${seats}
         <div class="pills">
           ${on
             ? `<button class="pill big${this._waiting("climate-off") ? " wait" : ""}" data-act="climate-off"><ha-icon icon="${this._waiting("climate-off") ? "mdi:loading" : "mdi:stop"}"></ha-icon>${esc(this._t("stop"))}</button>`
@@ -1333,11 +1339,13 @@ class AudiConnectCardEditor extends HTMLElement {
     this._render();
   }
 
-  // Whether the chosen vehicle (or any Audi Connect vehicle, before one is chosen) has seat/zone switches.
-  _hasSeatZones() {
+  // Whether the chosen vehicle (or any Audi Connect vehicle, before one is chosen) has the zone switches
+  // of one end of the car. The car announces each zone itself, and a zone it says it lacks gets no switch.
+  _hasZones(part) {
     const device = this._config?.device_id;
+    const re = new RegExp(`^climatisation_zone_${part}_(left|right)$`);
     return Object.values(this._hass?.entities || {}).some(
-      (e) => e.platform === DOMAIN && (!device || e.device_id === device) && /^climatisation_zone_front_(left|right)$/.test(e.translation_key || ""),
+      (e) => e.platform === DOMAIN && (!device || e.device_id === device) && re.test(e.translation_key || ""),
     );
   }
 
@@ -1349,6 +1357,8 @@ class AudiConnectCardEditor extends HTMLElement {
         form.addEventListener("value-changed", (ev) => {
           // An empty choice means "not set", so it is left out of the config.
           const config = Object.fromEntries(Object.entries(ev.detail.value).filter(([, v]) => v !== "" && v !== undefined));
+          // Replaced by show_seats_front; the card still reads it, but a saved config does not keep it.
+          delete config.show_seats;
           this.dispatchEvent(new CustomEvent("config-changed", { detail: { config }, bubbles: true, composed: true }));
         });
         return form;
@@ -1365,7 +1375,10 @@ class AudiConnectCardEditor extends HTMLElement {
       this.append(this._form, this._seatBox, this._restForm);
       for (const form of this._forms) form.hass = this._hass;
     }
-    const data = { show_logo: true, show_trips: true, show_climate: true, show_stats: true, show_seats: false, image_local: "", ...this._config };
+    const data = {
+      show_logo: true, show_trips: true, show_climate: true, show_stats: true,
+      show_seats_front: this._config.show_seats ?? false, show_seats_rear: false, image_local: "", ...this._config,
+    };
     for (const form of this._forms) form.data = data;
     const options = [{ value: "", label: this._t("e_none") }, ...(this._images || []).map((i) => ({ value: i.path, label: i.name }))];
     // A picture that is no longer in the folder must stay selectable, or the editor would drop it.
@@ -1383,13 +1396,16 @@ class AudiConnectCardEditor extends HTMLElement {
     ];
     // A sub-item of the climate option: only offered when the car has such zones, and switched off with it.
     // Hidden by default on the card because what the zones heat is not confirmed.
-    this._seatForm.schema = [{ name: "show_seats", selector: { boolean: {} } }];
-    this._seatBox.hidden = !this._hasSeatZones();
+    this._seatForm.schema = [
+      ...(this._hasZones("front") ? [{ name: "show_seats_front", selector: { boolean: {} } }] : []),
+      ...(this._hasZones("rear") ? [{ name: "show_seats_rear", selector: { boolean: {} } }] : []),
+    ];
+    this._seatBox.hidden = !this._seatForm.schema.length;
     this._seatForm.disabled = data.show_climate === false;
     this._restForm.schema = [{ name: "show_stats", selector: { boolean: {} } }];
     const labels = {
       device_id: "e_device", name: "e_name", image: "e_image", image_local: "e_image_local",
-      icon: "e_icon", show_logo: "e_logo", show_trips: "e_trips", show_climate: "e_climate", show_stats: "e_stats", show_seats: "e_seats",
+      icon: "e_icon", show_logo: "e_logo", show_trips: "e_trips", show_climate: "e_climate", show_stats: "e_stats", show_seats_front: "e_seats_front", show_seats_rear: "e_seats_rear",
     };
     for (const form of this._forms) form.computeLabel = (sc) => this._t(labels[sc.name]);
   }
