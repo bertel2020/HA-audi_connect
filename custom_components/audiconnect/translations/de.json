@@ -909,5 +909,15 @@
     "profile_current_failed": {
       "message": "Der Ladestrom des Profils konnte nicht auf {option} gesetzt werden; Details im Log"
     }
+  },
+  "issues": {
+    "services_expired": {
+      "title": "Online-Dienste von {vehicle} sind abgelaufen",
+      "description": "Das Auto führt diese Online-Dienste seit dem {date} als beendet: {services}. Daten und Bedienung, die davon abhängen, können ausfallen. Verlängere sie in der myAudi-App oder bei deinem Audi-Händler."
+    },
+    "services_ending_soon": {
+      "title": "Online-Dienste von {vehicle} laufen bald ab",
+      "description": "Das Auto führt diese Online-Dienste mit Ende am {date} oder bald danach: {services}. Davon abhängige Daten und Bedienung fallen dann aus. Verlängere sie in der myAudi-App oder bei deinem Audi-Händler."
+    }
   }
 }

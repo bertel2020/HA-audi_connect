@@ -71,6 +71,7 @@ from .capability_jobs import BASE_SELECTIVE_JOBS
 from .audi_entity import _english_entity_names
 from .card import async_register_card
 from .errors import request_error, sign_in_error
+from .repairs import async_clear_service_issues
 from .coordinator import AudiDataUpdateCoordinator
 from .diagnostics_payload import redact
 
@@ -492,6 +493,11 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     return unload_ok
 
 
+async def async_remove_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    """Take the entry's repair hints with it."""
+    async_clear_service_issues(hass, config_entry.entry_id)
+
+
 async def async_remove_config_entry_device(
     hass: HomeAssistant, config_entry: ConfigEntry, device_entry: DeviceEntry
 ) -> bool:
@@ -513,6 +519,7 @@ async def async_remove_config_entry_device(
 __all__ = [
     "AudiRuntimeData",
     "async_migrate_entry",
+    "async_remove_entry",
     "async_setup_entry",
     "async_unload_entry",
 ]

@@ -909,5 +909,15 @@
     "profile_current_failed": {
       "message": "Profiilin latausvirran asettaminen arvoon {option} epäonnistui; katso lisätiedot lokista"
     }
+  },
+  "issues": {
+    "services_expired": {
+      "title": "Ajoneuvon {vehicle} verkkopalvelut ovat päättyneet",
+      "description": "Auto ilmoittaa nämä verkkopalvelut päättyneiksi {date} alkaen: {services}. Niistä riippuvat tiedot ja ohjaukset voivat lakata toimimasta. Uusi ne myAudi-sovelluksessa tai Audi-jälleenmyyjällä."
+    },
+    "services_ending_soon": {
+      "title": "Ajoneuvon {vehicle} verkkopalvelut päättyvät pian",
+      "description": "Auto ilmoittaa nämä verkkopalvelut päättyviksi {date} tai pian sen jälkeen: {services}. Niistä riippuvat tiedot ja ohjaukset lakkaavat silloin toimimasta. Uusi ne myAudi-sovelluksessa tai Audi-jälleenmyyjällä."
+    }
   }
 }

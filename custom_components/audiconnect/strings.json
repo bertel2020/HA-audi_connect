@@ -909,5 +909,15 @@
     "profile_current_failed": {
       "message": "Failed to set the profile charging current to {option}; see the log for details"
     }
+  },
+  "issues": {
+    "services_expired": {
+      "title": "Online services of {vehicle} have ended",
+      "description": "The car lists these online services as ended since {date}: {services}. Data and controls that depend on them can stop working. Renew them in the myAudi app or at your Audi dealer."
+    },
+    "services_ending_soon": {
+      "title": "Online services of {vehicle} end soon",
+      "description": "The car lists these online services as ending on {date} or soon after: {services}. Data and controls that depend on them stop working then. Renew them in the myAudi app or at your Audi dealer."
+    }
   }
 }

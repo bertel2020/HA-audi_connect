@@ -11,6 +11,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .audi_account import AudiAccount
 from .const import CONF_SCAN_INTERVAL, DEFAULT_UPDATE_INTERVAL, DOMAIN
+from .repairs import async_update_service_issues
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,6 +45,7 @@ class AudiDataUpdateCoordinator(DataUpdateCoordinator[list[Any]]):
         try:
             result = await self.account.async_refresh_data()
             self.last_cloud_poll_success = datetime.now(UTC)
+            self._update_repair_hints()
             return result
         except (ConfigEntryAuthFailed, ConfigEntryNotReady):
             # Let Home Assistant handle reauth / retry-setup instead of masking
@@ -51,6 +53,18 @@ class AudiDataUpdateCoordinator(DataUpdateCoordinator[list[Any]]):
             raise
         except Exception as err:
             raise UpdateFailed(str(err)) from err
+
+    def _update_repair_hints(self) -> None:
+        """Hints about ended online services; a failure here never fails the poll."""
+        try:
+            vehicles = [
+                data.vehicle
+                for data in self.account.config_vehicles
+                if getattr(data, "vehicle", None) is not None
+            ]
+            async_update_service_issues(self.hass, self.config_entry.entry_id, vehicles)
+        except Exception:  # noqa: BLE001 - a hint must never break the poll
+            _LOGGER.debug("Could not update the repair hints", exc_info=True)
 
     @classmethod
     def from_entry(

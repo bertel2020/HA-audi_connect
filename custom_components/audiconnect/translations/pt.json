@@ -909,5 +909,15 @@
     "profile_current_failed": {
       "message": "Falha ao definir a corrente de carregamento do perfil como {option}; veja o registo"
     }
+  },
+  "issues": {
+    "services_expired": {
+      "title": "Os serviços online de {vehicle} terminaram",
+      "description": "O carro indica que estes serviços online terminaram em {date}: {services}. Dados e controlos que dependem deles podem deixar de funcionar. Renove-os na app myAudi ou no concessionário Audi."
+    },
+    "services_ending_soon": {
+      "title": "Os serviços online de {vehicle} terminam em breve",
+      "description": "O carro indica que estes serviços online terminam em {date} ou pouco depois: {services}. Dados e controlos que dependem deles deixam de funcionar então. Renove-os na app myAudi ou no concessionário Audi."
+    }
   }
 }

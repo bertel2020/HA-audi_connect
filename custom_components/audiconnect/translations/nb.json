@@ -909,5 +909,15 @@
     "profile_current_failed": {
       "message": "Kunne ikke sette ladestrømmen for profilen til {option}; se loggen for detaljer"
     }
+  },
+  "issues": {
+    "services_expired": {
+      "title": "Nettjenestene for {vehicle} har utløpt",
+      "description": "Bilen melder at disse nettjenestene tok slutt {date}: {services}. Data og styring som avhenger av dem, kan slutte å virke. Forny dem i myAudi-appen eller hos Audi-forhandleren."
+    },
+    "services_ending_soon": {
+      "title": "Nettjenestene for {vehicle} utløper snart",
+      "description": "Bilen melder at disse nettjenestene utløper {date} eller like etter: {services}. Data og styring som avhenger av dem, slutter da å virke. Forny dem i myAudi-appen eller hos Audi-forhandleren."
+    }
   }
 }

@@ -909,5 +909,15 @@
     "profile_current_failed": {
       "message": "Laadstroom van het profiel instellen op {option} is mislukt; zie het log"
     }
+  },
+  "issues": {
+    "services_expired": {
+      "title": "De onlinediensten van {vehicle} zijn verlopen",
+      "description": "De auto meldt dat deze onlinediensten zijn geëindigd op {date}: {services}. Gegevens en bediening die ervan afhangen, kunnen ophouden te werken. Verleng ze in de myAudi-app of bij je Audi-dealer."
+    },
+    "services_ending_soon": {
+      "title": "De onlinediensten van {vehicle} verlopen binnenkort",
+      "description": "De auto meldt dat deze onlinediensten verlopen op {date} of kort daarna: {services}. Gegevens en bediening die ervan afhangen, werken dan niet meer. Verleng ze in de myAudi-app of bij je Audi-dealer."
+    }
   }
 }

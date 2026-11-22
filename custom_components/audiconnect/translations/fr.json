@@ -909,5 +909,15 @@
     "profile_current_failed": {
       "message": "Échec du réglage du courant de charge du profil sur {option} ; voir le journal"
     }
+  },
+  "issues": {
+    "services_expired": {
+      "title": "Les services en ligne de {vehicle} ont pris fin",
+      "description": "La voiture indique que ces services en ligne ont pris fin le {date} : {services}. Les données et commandes qui en dépendent peuvent cesser de fonctionner. Renouvelez-les dans l'application myAudi ou chez votre concessionnaire Audi."
+    },
+    "services_ending_soon": {
+      "title": "Les services en ligne de {vehicle} se terminent bientôt",
+      "description": "La voiture indique que ces services en ligne se terminent le {date} ou peu après : {services}. Les données et commandes qui en dépendent cesseront alors de fonctionner. Renouvelez-les dans l'application myAudi ou chez votre concessionnaire Audi."
+    }
   }
 }
