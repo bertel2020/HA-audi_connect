@@ -77,16 +77,17 @@ In Auth0-Regionen zeigt Home Assistant einen Audi-Anmeldelink. Öffne ihn in ein
 
 Region, S-PIN und API-Level lassen sich später über **Neu konfigurieren** am Integrationseintrag ändern. Lehnt Audi die gespeicherte Anmeldung ab, startet Home Assistant die erneute Anmeldung. Beim erneuten Anmelden muss es dasselbe Audi-Konto sein; mit einem anderen Konto bricht Home Assistant ab, statt den Eintrag umzuhängen.
 
-### Konfigurationsvariablen
+### Angaben bei der Einrichtung
 
-| Name            | Typ      | Standard | Beschreibung                                                                                                                                                                                                                              |
-| --------------- | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Username`      | `string` | –        | Benutzername deines Audi-Connect-Kontos. Nur in Regionen mit Passwort-Anmeldung.                                                                                                                                                          |
-| `Password`      | `string` | –        | Passwort deines Audi-Connect-Kontos. Nur in Regionen mit Passwort-Anmeldung.                                                                                                                                                              |
-| `S-PIN`         | `string` | –        | S-PIN deines Audi-Connect-Kontos für bestimmte Service-Aktionen.<br>(**Optional**)                                                                                                                                                        |
-| `Region`        | `string` | `DE`     | Region, in der dein Audi-Connect-Konto registriert ist:<br>• `DE` – Europa<br>• `US` – USA<br>• `CA` – Kanada<br>• `CN` – China                                                                                                           |
-| `Scan Interval` | `int`    | `15`     | Abstand (in Minuten), in dem der Status von Audi Connect abgerufen wird.<br>Minimum sind 15 Minuten.<br>\* _Später über das Menü KONFIGURIEREN änderbar._                                                                                 |
-| `API Level`     | `int`    | `0`      | Bestimmt die API-Struktur für Service-Aufrufe:<br>• `0` – _Typischerweise_ Verbrenner (altes Format)<br>• `1` – _Typischerweise_ e-tron (Elektrofahrzeuge, neues Format)<br>\* _Später über das Menü KONFIGURIEREN änderbar._            |
+Das Formular erklärt jedes Feld selbst. Kurz:
+
+- **Region:** wo dein Audi-Connect-Konto registriert ist (DE Europa, US USA, CA Kanada, CN China).
+- **S-PIN:** optional, nur für Aktionen wie Ver- und Entriegeln oder Motorstart.
+- **Abfrageintervall:** Minuten zwischen zwei Cloud-Abfragen, mindestens 15.
+- **API-Level:** das Anfrageformat deines Autos, _Verbrenner / ältere Modelle_ oder _e-tron / neuere Modelle_.
+- **Benutzername und Passwort:** nur in Regionen mit Passwort-Anmeldung. In den anderen meldest du dich im Browser an (siehe oben).
+
+Region, S-PIN und API-Level lassen sich später über **Neu konfigurieren** ändern, das Abfrageintervall unter **Konfigurieren**.
 
 ## Optionen
 

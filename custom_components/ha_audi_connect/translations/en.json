@@ -30,7 +30,9 @@
         },
         "data_description": {
           "spin": "Optional S-PIN, required for vehicle actions such as lock/unlock and engine start.",
-          "api_level": "For Audi vehicles, the API request data structure varies by model. Newer vehicles use an updated data structure compared to older models. This can be changed later via the Reconfigure option."
+          "api_level": "Which request format your car uses: combustion and older models use the legacy format, e-tron and newer models the new one. Can be changed later via Reconfigure.",
+          "region": "Where your Audi Connect account is registered: DE (Europe), US (USA), CA (Canada) or CN (China).",
+          "scan_interval": "Minutes between two cloud queries. At least 15."
         }
       },
       "auth0": {
@@ -57,7 +59,7 @@
         "data_description": {
           "spin": "Optional S-PIN for vehicle actions such as lock/unlock.",
           "region": "The region associated with your Audi Connect account.",
-          "api_level": "For Audi vehicles, the API request data structure varies by model. Newer vehicles use an updated data structure compared to older models."
+          "api_level": "Which request format your car uses: combustion and older models use the legacy format, e-tron and newer models the new one. Can be changed later via Reconfigure."
         }
       },
       "credentials": {
@@ -119,6 +121,12 @@
         "stop_preheater": "Stop Preheater",
         "start_window_heating": "Start Window heating",
         "stop_window_heating": "Stop Windows heating"
+      }
+    },
+    "api_level": {
+      "options": {
+        "0": "Combustion / older models (legacy format)",
+        "1": "e-tron / newer models (new format)"
       }
     }
   },

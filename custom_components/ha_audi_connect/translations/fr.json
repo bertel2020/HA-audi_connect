@@ -30,7 +30,9 @@
         },
         "data_description": {
           "spin": "S-PIN optionnel, requis pour les actions sur le véhicule telles que le verrouillage/déverrouillage et le démarrage du moteur.",
-          "api_level": "Sur les véhicules Audi, la structure des requêtes API varie selon le modèle. Les véhicules récents utilisent une structure plus moderne que les anciens. Modifiable ensuite via l'option Reconfigurer."
+          "api_level": "Quel format de requête votre voiture utilise : les modèles thermiques et plus anciens l'ancien format, les e-tron et modèles plus récents le nouveau. Modifiable plus tard via Reconfigurer.",
+          "region": "Où votre compte Audi Connect est enregistré : DE (Europe), US (États-Unis), CA (Canada) ou CN (Chine).",
+          "scan_interval": "Minutes entre deux interrogations du cloud. Au moins 15."
         }
       },
       "auth0": {
@@ -57,7 +59,7 @@
         "data_description": {
           "spin": "S-PIN optionnel pour les actions sur le véhicule telles que le verrouillage/déverrouillage.",
           "region": "La région associée à votre compte Audi Connect.",
-          "api_level": "Sur les véhicules Audi, la structure des requêtes API varie selon le modèle. Les véhicules récents utilisent une structure plus moderne que les anciens."
+          "api_level": "Quel format de requête votre voiture utilise : les modèles thermiques et plus anciens l'ancien format, les e-tron et modèles plus récents le nouveau. Modifiable plus tard via Reconfigurer."
         }
       },
       "credentials": {
@@ -119,6 +121,12 @@
         "stop_preheater": "Arrêter préchauffage",
         "start_window_heating": "Démarrer chauffage des fenêtres",
         "stop_window_heating": "Arrêter chauffage des fenêtres"
+      }
+    },
+    "api_level": {
+      "options": {
+        "0": "Thermique / modèles plus anciens (ancien format)",
+        "1": "e-tron / modèles plus récents (nouveau format)"
       }
     }
   },

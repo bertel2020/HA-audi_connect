@@ -30,7 +30,9 @@
         },
         "data_description": {
           "spin": "Optionale S-PIN, erforderlich für Fahrzeugaktionen wie Ver-/Entriegeln und Motorstart.",
-          "api_level": "Bei Audi-Fahrzeugen variiert die Struktur der API-Anfragen je nach Modell. Neuere Fahrzeuge verwenden eine aktualisierte Datenstruktur als ältere Modelle. Dies kann später über die Option Neu konfigurieren geändert werden."
+          "api_level": "Welches Anfrageformat dein Auto nutzt: Verbrenner und ältere Modelle das alte Format, e-tron und neuere Modelle das neue. Später über Neu konfigurieren änderbar.",
+          "region": "Wo dein Audi-Connect-Konto registriert ist: DE (Europa), US (USA), CA (Kanada) oder CN (China).",
+          "scan_interval": "Minuten zwischen zwei Cloud-Abfragen. Mindestens 15."
         }
       },
       "reconfigure": {
@@ -43,7 +45,7 @@
         "data_description": {
           "spin": "Optionale S-PIN für Fahrzeugaktionen wie Ver-/Entriegeln.",
           "region": "Die Ihrem Audi Connect-Konto zugeordnete Region.",
-          "api_level": "Bei Audi-Fahrzeugen variiert die Struktur der API-Anfragen je nach Modell. Neuere Fahrzeuge verwenden eine aktualisierte Datenstruktur als ältere Modelle."
+          "api_level": "Welches Anfrageformat dein Auto nutzt: Verbrenner und ältere Modelle das alte Format, e-tron und neuere Modelle das neue. Später über Neu konfigurieren änderbar."
         }
       },
       "credentials": {
@@ -119,6 +121,12 @@
         "stop_preheater": "Stoppen Sie den Vorwärmer",
         "start_window_heating": "Fensterheizung starten",
         "stop_window_heating": "Fensterheizung stoppen"
+      }
+    },
+    "api_level": {
+      "options": {
+        "0": "Verbrenner / ältere Modelle (altes Format)",
+        "1": "e-tron / neuere Modelle (neues Format)"
       }
     }
   },

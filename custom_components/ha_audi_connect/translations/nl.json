@@ -30,7 +30,9 @@
         },
         "data_description": {
           "spin": "Optionele S-PIN, vereist voor voertuigacties zoals vergrendelen/ontgrendelen en motorstart.",
-          "api_level": "Bij Audi-voertuigen verschilt de structuur van API-verzoeken per model. Nieuwere voertuigen gebruiken een bijgewerkte datastructuur ten opzichte van oudere modellen. Dit kan later worden gewijzigd via de optie Herconfigureren."
+          "api_level": "Welk aanvraagformaat je auto gebruikt: verbrandingsmotoren en oudere modellen het oude formaat, e-tron en nieuwere modellen het nieuwe. Later te wijzigen via Opnieuw configureren.",
+          "region": "Waar je Audi Connect-account is geregistreerd: DE (Europa), US (VS), CA (Canada) of CN (China).",
+          "scan_interval": "Minuten tussen twee cloudopvragingen. Minimaal 15."
         }
       },
       "auth0": {
@@ -57,7 +59,7 @@
         "data_description": {
           "spin": "Optionele S-PIN voor voertuigacties zoals vergrendelen/ontgrendelen.",
           "region": "De regio die aan uw Audi Connect-account is gekoppeld.",
-          "api_level": "Bij Audi-voertuigen verschilt de structuur van API-verzoeken per model. Nieuwere voertuigen gebruiken een bijgewerkte datastructuur ten opzichte van oudere modellen."
+          "api_level": "Welk aanvraagformaat je auto gebruikt: verbrandingsmotoren en oudere modellen het oude formaat, e-tron en nieuwere modellen het nieuwe. Later te wijzigen via Opnieuw configureren."
         }
       },
       "credentials": {
@@ -119,6 +121,12 @@
         "stop_preheater": "Voorverwarming stoppen",
         "start_window_heating": "Ruitverwarming starten",
         "stop_window_heating": "Ruitverwarming stoppen"
+      }
+    },
+    "api_level": {
+      "options": {
+        "0": "Verbrandingsmotor / oudere modellen (oud formaat)",
+        "1": "e-tron / nieuwere modellen (nieuw formaat)"
       }
     }
   },

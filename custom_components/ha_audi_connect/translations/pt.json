@@ -30,7 +30,9 @@
         },
         "data_description": {
           "spin": "S-PIN opcional, necessário para ações do veículo como bloquear/desbloquear e arranque do motor.",
-          "api_level": "Nos veículos Audi, a estrutura dos pedidos de API varia consoante o modelo. Os veículos mais recentes usam uma estrutura de dados atualizada em comparação com os modelos mais antigos. Isto pode ser alterado posteriormente através da opção Reconfigurar."
+          "api_level": "Que formato de pedido o seu carro usa: combustão e modelos mais antigos usam o formato antigo, e-tron e modelos mais recentes o novo. Pode ser alterado mais tarde em Reconfigurar.",
+          "region": "Onde a sua conta Audi Connect está registada: DE (Europa), US (EUA), CA (Canadá) ou CN (China).",
+          "scan_interval": "Minutos entre duas consultas à nuvem. No mínimo 15."
         }
       },
       "auth0": {
@@ -57,7 +59,7 @@
         "data_description": {
           "spin": "S-PIN opcional para ações do veículo como bloquear/desbloquear.",
           "region": "A região associada à sua conta Audi Connect.",
-          "api_level": "Nos veículos Audi, a estrutura dos pedidos de API varia consoante o modelo. Os veículos mais recentes usam uma estrutura de dados atualizada em comparação com os modelos mais antigos."
+          "api_level": "Que formato de pedido o seu carro usa: combustão e modelos mais antigos usam o formato antigo, e-tron e modelos mais recentes o novo. Pode ser alterado mais tarde em Reconfigurar."
         }
       },
       "credentials": {
@@ -119,6 +121,12 @@
         "stop_preheater": "Parar pré-aquecimento",
         "start_window_heating": "Iniciar aquecimento dos vidros",
         "stop_window_heating": "Parar aquecimento dos vidros"
+      }
+    },
+    "api_level": {
+      "options": {
+        "0": "Combustão / modelos mais antigos (formato antigo)",
+        "1": "e-tron / modelos mais recentes (formato novo)"
       }
     }
   },

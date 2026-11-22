@@ -161,6 +161,7 @@ class AudiConfigFlow(ConfigFlow, domain=DOMAIN):
                         SelectSelectorConfig(
                             options=[str(level) for level in API_LEVELS],
                             mode=SelectSelectorMode.DROPDOWN,
+                            translation_key="api_level",
                         )
                     ),
                 }
@@ -445,6 +446,7 @@ class AudiConfigFlow(ConfigFlow, domain=DOMAIN):
                         SelectSelectorConfig(
                             options=[str(level) for level in API_LEVELS],
                             mode=SelectSelectorMode.DROPDOWN,
+                            translation_key="api_level",
                         )
                     ),
                 }

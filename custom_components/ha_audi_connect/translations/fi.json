@@ -30,7 +30,9 @@
         },
         "data_description": {
           "spin": "Valinnainen S-PIN, tarvitaan ajoneuvon toimintoihin, kuten lukitseminen/avaaminen ja moottorin käynnistys.",
-          "api_level": "Audi-ajoneuvoissa API-pyyntöjen rakenne vaihtelee mallin mukaan. Uudemmat ajoneuvot käyttävät päivitettyä tietorakennetta vanhempiin malleihin verrattuna. Tämän voi muuttaa myöhemmin Määritä uudelleen -valinnalla."
+          "api_level": "Mitä pyyntömuotoa autosi käyttää: polttomoottori- ja vanhemmat mallit käyttävät vanhaa muotoa, e-tron ja uudemmat mallit uutta. Voit muuttaa myöhemmin kohdassa Määritä uudelleen.",
+          "region": "Missä Audi Connect -tilisi on rekisteröity: DE (Eurooppa), US (USA), CA (Kanada) tai CN (Kiina).",
+          "scan_interval": "Minuuttia kahden pilvikyselyn välillä. Vähintään 15."
         }
       },
       "auth0": {
@@ -57,7 +59,7 @@
         "data_description": {
           "spin": "Valinnainen S-PIN ajoneuvon toimintoihin, kuten lukitseminen/avaaminen.",
           "region": "Audi Connect -tiliisi liitetty alue.",
-          "api_level": "Audi-ajoneuvoissa API-pyyntöjen rakenne vaihtelee mallin mukaan. Uudemmat ajoneuvot käyttävät päivitettyä tietorakennetta vanhempiin malleihin verrattuna."
+          "api_level": "Mitä pyyntömuotoa autosi käyttää: polttomoottori- ja vanhemmat mallit käyttävät vanhaa muotoa, e-tron ja uudemmat mallit uutta. Voit muuttaa myöhemmin kohdassa Määritä uudelleen."
         }
       },
       "credentials": {
@@ -119,6 +121,12 @@
         "stop_preheater": "Pysäytä lisälämmitin",
         "start_window_heating": "Käynnistä ikkunalämmitys",
         "stop_window_heating": "Pysäytä ikkunalämmitys"
+      }
+    },
+    "api_level": {
+      "options": {
+        "0": "Polttomoottori / vanhemmat mallit (vanha muoto)",
+        "1": "e-tron / uudemmat mallit (uusi muoto)"
       }
     }
   },

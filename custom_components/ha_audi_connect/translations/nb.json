@@ -30,7 +30,9 @@
         },
         "data_description": {
           "spin": "Valgfri S-PIN, kreves for kjøretøyhandlinger som låsing/opplåsing og motorstart.",
-          "api_level": "For Audi-kjøretøy varierer strukturen på API-forespørsler etter modell. Nyere kjøretøy bruker en oppdatert datastruktur sammenlignet med eldre modeller. Dette kan endres senere via alternativet Rekonfigurer."
+          "api_level": "Hvilket forespørselsformat bilen din bruker: forbrenning og eldre modeller bruker det gamle formatet, e-tron og nyere modeller det nye. Kan endres senere via Konfigurer på nytt.",
+          "region": "Hvor Audi Connect-kontoen din er registrert: DE (Europa), US (USA), CA (Canada) eller CN (Kina).",
+          "scan_interval": "Minutter mellom to skyspørringer. Minst 15."
         }
       },
       "auth0": {
@@ -57,7 +59,7 @@
         "data_description": {
           "spin": "Valgfri S-PIN for kjøretøyhandlinger som låsing/opplåsing.",
           "region": "Regionen som er knyttet til Audi Connect-kontoen din.",
-          "api_level": "For Audi-kjøretøy varierer strukturen på API-forespørsler etter modell. Nyere kjøretøy bruker en oppdatert datastruktur sammenlignet med eldre modeller."
+          "api_level": "Hvilket forespørselsformat bilen din bruker: forbrenning og eldre modeller bruker det gamle formatet, e-tron og nyere modeller det nye. Kan endres senere via Konfigurer på nytt."
         }
       },
       "credentials": {
@@ -119,6 +121,12 @@
         "stop_preheater": "Stopp forvarmer",
         "start_window_heating": "Start vindusoppvarming",
         "stop_window_heating": "Stopp vindusoppvarming"
+      }
+    },
+    "api_level": {
+      "options": {
+        "0": "Forbrenning / eldre modeller (gammelt format)",
+        "1": "e-tron / nyere modeller (nytt format)"
       }
     }
   },

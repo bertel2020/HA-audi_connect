@@ -71,16 +71,17 @@ For Auth0 regions, Home Assistant displays an Audi login link. Open it in a priv
 
 Region, S-PIN and API level can be changed later through **Reconfigure** on the integration entry. If Audi rejects the stored login, Home Assistant starts the reauthentication flow. Reauthentication must use the same Audi account; with a different account Home Assistant aborts instead of re-pointing the entry.
 
-### Configuration Variables
+### Settings during setup
 
-| Name            | Type     | Default | Description                                                                                                                                                                                                                          |
-| --------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Username`      | `string` | –       | The username associated with your Audi Connect account. Used only in regions that retain password login.                                                                                                                             |
-| `Password`      | `string` | –       | The password for your Audi Connect account. Used only in regions that retain password login.                                                                                                                                         |
-| `S-PIN`         | `string` | –       | The S-PIN for your Audi Connect account to perform certain service actions.<br>(**Optional**)                                                                                                                                        |
-| `Region`        | `string` | `DE`    | The region where your Audi Connect account is registered:<br>• `DE` – Europe<br>• `US` – United States<br>• `CA` – Canada<br>• `CN` – China                                                                                          |
-| `Scan Interval` | `int`    | `15`    | Frequency (in minutes) to fetch status data from Audi Connect.<br>Minimum allowed is 15 minutes.<br>\* _Can be updated later via the CONFIGURE menu._                                                                                |
-| `API Level`     | `int`    | `0`     | Determines the API structure used for service action calls:<br>• `0` – _Typically_ Gas vehicles (legacy format)<br>• `1` – _Typically_ e-tron (electric vehicles, newer format)<br>\* _Can be updated later via the CONFIGURE menu._ |
+The form explains each field itself. In short:
+
+- **Region:** where your Audi Connect account is registered (DE Europe, US USA, CA Canada, CN China).
+- **S-PIN:** optional, only for actions such as lock/unlock or engine start.
+- **Scan interval:** minutes between two cloud queries, at least 15.
+- **API level:** your car's request format, _combustion / older models_ or _e-tron / newer models_.
+- **Username and password:** only in regions with password sign-in. In the others you sign in in the browser (see above).
+
+Region, S-PIN and API level can be changed later via **Reconfigure**, the scan interval under **Configure**.
 
 ## Options
 
