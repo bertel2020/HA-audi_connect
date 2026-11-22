@@ -741,6 +741,12 @@
       "flash_lights": {
         "name": "Knipperen"
       },
+      "start_charging_modern": {
+        "name": "Laden starten (experimenteel)"
+      },
+      "stop_charging_modern": {
+        "name": "Laden stoppen (experimenteel)"
+      },
       "start_window_heating_modern": {
         "name": "Ruitverwarming starten (experimenteel)"
       },

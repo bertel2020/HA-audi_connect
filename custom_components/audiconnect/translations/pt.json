@@ -741,6 +741,12 @@
       "flash_lights": {
         "name": "Piscar"
       },
+      "start_charging_modern": {
+        "name": "Iniciar carregamento (experimental)"
+      },
+      "stop_charging_modern": {
+        "name": "Parar carregamento (experimental)"
+      },
       "start_window_heating_modern": {
         "name": "Iniciar aquecimento dos vidros (experimental)"
       },

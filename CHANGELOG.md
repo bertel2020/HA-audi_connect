@@ -22,6 +22,7 @@ Versionen bis `v2.5.3b1` stehen auf der [Release-Seite](https://github.com/berte
 - **Diagnose:** Sie listet alle Capability-IDs und die Supports-Flags des Autos, benennt die Routen für Klimatisierung, Laden, Aufwecken, Hupen und Timer und sagt, welche Fahrtwerte vorliegen. `probe_api` und lesende Proben bekannter Routen (BFF, GraphQL, `bs/`, Fahrten).
 
 **Geändert**
+- **Laden starten und stoppen:** Die Tasten bleiben, sind aber experimentell und standardmäßig deaktiviert: Audi nimmt den Befehl an, ein A6 e-tron führt ihn nicht aus.
 - **Standlicht und Bremsstatus:** Beide zeigen schlicht An/Aus statt „Sicher/Unsicher“.
 - **Aufwecken:** Die Taste ist standardmäßig aus. Ein Aufwecken, das das Auto nicht ausführt, ist eine Warnung und kein Fehler.
 - **Optionen:** Das Abfrageintervall wird erklärt. Entitäten sind nach Nutzung einsortiert, Verbindungsdetails in der Diagnose, der Kilometerstand in der Hauptansicht. Der Fahrzeugtyp gehört zum Gerätemodell und ist kein Sensor mehr.
@@ -37,7 +38,6 @@ Versionen bis `v2.5.3b1` stehen auf der [Release-Seite](https://github.com/berte
 - **Karte:** Glas und Tagfahrlicht behalten ihre Farbe, unabhängig von der Primärfarbe des Themes. Der Fokus bleibt im geöffneten Dialog.
 
 **Entfernt**
-- Die Tasten zum Starten und Stoppen des Ladens, die das Auto nie ausgeführt hat.
 - Der Sensor für das Navigationsziel des Ladens, der doppelte Sensor für den Ziel-Ladestand und die lokalen Händler- und Servicedaten.
 - Die Option „Cloud-Aktualisierung beim Start“: Wurde die erste Abfrage übersprungen, gab es keine Entitäten.
 - Die ungenutzte alte Lader-Abfrage und der nicht erreichbare Schritt für den Geräte-Code.

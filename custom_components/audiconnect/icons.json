@@ -54,6 +54,12 @@
       "stop_window_heating_modern": {
         "default": "mdi:car-defrost-rear"
       },
+      "start_charging_modern": {
+        "default": "mdi:ev-station"
+      },
+      "stop_charging_modern": {
+        "default": "mdi:ev-station"
+      },
       "wake_vehicle_modern": {
         "default": "mdi:car-connected"
       }

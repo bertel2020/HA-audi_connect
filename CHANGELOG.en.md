@@ -22,6 +22,7 @@ Versions up to `v2.5.3b1` are on the [releases page](https://github.com/bertel20
 - **Diagnostics:** They list every capability ID and the car's supports flags, name the climatisation, charging, wake-up, honk and timer routes, and say which trip figures are held. `probe_api` and read-only probes of known routes (BFF, GraphQL, `bs/`, trips).
 
 **Changed**
+- **Start and stop charging:** The buttons stay, but are experimental and disabled by default: Audi accepts the command, an A6 e-tron does not carry it out.
 - **Parking light and braking status:** Both show plain On/Off instead of "Safe/Unsafe".
 - **Wake-up:** The button is off by default. A wake-up the car does not carry out is a warning, not an error.
 - **Options:** The scan interval is explained. Entities are filed by use, with connection details in diagnostics and the odometer in the main view. The car type is part of the device model and no longer a sensor.
@@ -37,7 +38,6 @@ Versions up to `v2.5.3b1` are on the [releases page](https://github.com/bertel20
 - **Card:** Glass and daytime running lights keep their colour whatever the theme's primary colour is. The focus stays inside the open dialog.
 
 **Removed**
-- The start and stop charging buttons, which the car never carried out.
 - The navigation charge target sensor, the duplicate target state of charge sensor and the local dealer and service data.
 - The "Cloud Update at Startup" option: skipping the first poll left no entities.
 - The unused legacy charger poll and the unreachable device-code step.

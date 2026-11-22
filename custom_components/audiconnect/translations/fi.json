@@ -741,6 +741,12 @@
       "flash_lights": {
         "name": "Vilkuta"
       },
+      "start_charging_modern": {
+        "name": "Käynnistä lataus (kokeellinen)"
+      },
+      "stop_charging_modern": {
+        "name": "Pysäytä lataus (kokeellinen)"
+      },
       "start_window_heating_modern": {
         "name": "Käynnistä ikkunalämmitys (kokeellinen)"
       },

@@ -741,6 +741,12 @@
       "flash_lights": {
         "name": "Blink"
       },
+      "start_charging_modern": {
+        "name": "Start lading (eksperimentell)"
+      },
+      "stop_charging_modern": {
+        "name": "Stopp lading (eksperimentell)"
+      },
       "start_window_heating_modern": {
         "name": "Start vindusoppvarming (eksperimentell)"
       },

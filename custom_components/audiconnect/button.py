@@ -89,6 +89,26 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
         press_fn=lambda account, vin: account.connection.honk_horn(vin),
     ),
     AudiButtonEntityDescription(
+        key="start_charging_modern",
+        translation_key="start_charging_modern",
+        experimental=True,
+        entity_registry_enabled_default=False,
+        supported_fn=lambda v: _modern_capable(v, "charging"),
+        press_fn=lambda account, vin: account.connection.set_battery_charger(
+            vin, True, False
+        ),
+    ),
+    AudiButtonEntityDescription(
+        key="stop_charging_modern",
+        translation_key="stop_charging_modern",
+        experimental=True,
+        entity_registry_enabled_default=False,
+        supported_fn=lambda v: _modern_capable(v, "charging"),
+        press_fn=lambda account, vin: account.connection.set_battery_charger(
+            vin, False, False
+        ),
+    ),
+    AudiButtonEntityDescription(
         key="start_window_heating_modern",
         translation_key="start_window_heating_modern",
         experimental=True,
