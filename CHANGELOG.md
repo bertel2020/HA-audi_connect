@@ -2,14 +2,9 @@
 
 *[🇬🇧 English version](CHANGELOG.en.md)*
 
-Versionen bis `v2.5.3b1` stehen auf der [Release-Seite](https://github.com/bertel2020/HA-audi_connect/releases). Diese Datei beginnt mit dem, was danach kam.
+`ha_audi_connect` beginnt bei 1.0.0. Die Versionen 2.x der früheren Integration `audiconnect` stehen auf der [Release-Seite des Upstreams](https://github.com/audiconnect/audi_connect_ha/releases).
 
-## 4.0.0 – 2026-11-22
-
-**Geändert**
-- **Domain:** Die Integration heißt jetzt `ha_audi_connect` (vorher `audiconnect`), und das Verzeichnis `custom_components/ha_audi_connect`, damit sie sich nicht mit der Upstream-Integration überschneidet. Das ist eine neue Integration für Home Assistant: Eintrag entfernen, neu einrichten, Dienste `audiconnect.*` in Automationen auf `ha_audi_connect.*` umstellen. Verlauf und Entity-IDs bleiben erhalten, wenn der alte Eintrag vorher entfernt wird (siehe README).
-
-## 3.0.0 – 2026-11-22
+## 1.0.0 – 2026-11-22
 
 **Neu**
 - **Karte:** Die Integration bringt eine eigene Dashboard-Karte (`audi-connect-card`) mit: Foto oder Symbol, Status, Ladeband, Fahrten, Fahrzeugdetails und eine einklappbare Klimatisierung. Ein Tipp auf den Titel öffnet die Integration, langes Drücken aktualisiert die Fahrzeugdaten.
@@ -27,6 +22,7 @@ Versionen bis `v2.5.3b1` stehen auf der [Release-Seite](https://github.com/berte
 - **Diagnose:** Sie listet alle Capability-IDs und die Supports-Flags des Autos, benennt die Routen für Klimatisierung, Laden, Aufwecken, Hupen und Timer und sagt, welche Fahrtwerte vorliegen. `probe_api` und lesende Proben bekannter Routen (BFF, GraphQL, `bs/`, Fahrten).
 
 **Geändert**
+- **Domain:** Die Integration heißt jetzt `ha_audi_connect` (vorher `audiconnect`), und das Verzeichnis `custom_components/ha_audi_connect`, damit sie sich nicht mit der Upstream-Integration überschneidet. Das ist eine neue Integration für Home Assistant: Eintrag entfernen, neu einrichten, Dienste `audiconnect.*` in Automationen auf `ha_audi_connect.*` umstellen. Verlauf und Entity-IDs bleiben erhalten, wenn der alte Eintrag vorher entfernt wird (siehe README).
 - **Laden starten und stoppen:** Die Tasten bleiben, sind aber experimentell und standardmäßig deaktiviert: Audi nimmt den Befehl an, ein A6 e-tron führt ihn nicht aus.
 - **Standlicht und Bremsstatus:** Beide zeigen schlicht An/Aus statt „Sicher/Unsicher“.
 - **Aufwecken:** Die Taste ist standardmäßig aus. Ein Aufwecken, das das Auto nicht ausführt, ist eine Warnung und kein Fehler.

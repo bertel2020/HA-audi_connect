@@ -2,14 +2,9 @@
 
 *[🇩🇪 Deutsche Version](CHANGELOG.md)*
 
-Versions up to `v2.5.3b1` are on the [releases page](https://github.com/bertel2020/HA-audi_connect/releases). This file starts with what came after.
+`ha_audi_connect` starts at 1.0.0. The versions 2.x of the former integration `audiconnect` are on the [upstream releases page](https://github.com/audiconnect/audi_connect_ha/releases).
 
-## 4.0.0 – 2026-11-22
-
-**Changed**
-- **Domain:** The integration is now called `ha_audi_connect` (it was `audiconnect`), in the directory `custom_components/ha_audi_connect`, so it no longer overlaps with the upstream integration. Home Assistant sees a new integration: remove the entry, set it up again, and change `audiconnect.*` services in automations to `ha_audi_connect.*`. History and entity IDs are kept when the old entry is removed first (see the README).
-
-## 3.0.0 – 2026-11-22
+## 1.0.0 – 2026-11-22
 
 **New**
 - **Card:** The integration ships its own dashboard card (`audi-connect-card`): photo or icon, status, charging band, trips, vehicle details and a fold-away climatisation panel. Tap the title to open the integration, hold it to refresh the vehicle data.
@@ -27,6 +22,7 @@ Versions up to `v2.5.3b1` are on the [releases page](https://github.com/bertel20
 - **Diagnostics:** They list every capability ID and the car's supports flags, name the climatisation, charging, wake-up, honk and timer routes, and say which trip figures are held. `probe_api` and read-only probes of known routes (BFF, GraphQL, `bs/`, trips).
 
 **Changed**
+- **Domain:** The integration is now called `ha_audi_connect` (it was `audiconnect`), in the directory `custom_components/ha_audi_connect`, so it no longer overlaps with the upstream integration. Home Assistant sees a new integration: remove the entry, set it up again, and change `audiconnect.*` services in automations to `ha_audi_connect.*`. History and entity IDs are kept when the old entry is removed first (see the README).
 - **Start and stop charging:** The buttons stay, but are experimental and disabled by default: Audi accepts the command, an A6 e-tron does not carry it out.
 - **Parking light and braking status:** Both show plain On/Off instead of "Safe/Unsafe".
 - **Wake-up:** The button is off by default. A wake-up the car does not carry out is a warning, not an error.
