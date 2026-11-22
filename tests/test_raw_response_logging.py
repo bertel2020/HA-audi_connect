@@ -128,3 +128,17 @@ def test_a_reply_that_cannot_be_logged_never_breaks_the_request(caplog):
     with caplog.at_level(logging.DEBUG):
         api._log_raw_response(VEHICLE_URL, loop)
     assert "could not be logged" in caplog.text
+
+
+def test_the_user_id_is_masked_unless_the_full_mode_is_chosen(caplog):
+    payload = {"data": [{"userId": "c4a5777b-ae3b-412e-b866-d92cf2ca1bf8"}]}
+    api = AudiAPI(_Session({}))
+    api.raw_logging = "redacted"
+    with caplog.at_level(logging.DEBUG):
+        api._log_raw_response(VEHICLE_URL, payload)
+    assert "c4a5777b" not in caplog.text and "<redacted>" in caplog.text
+    caplog.clear()
+    api.raw_logging = "full"
+    with caplog.at_level(logging.DEBUG):
+        api._log_raw_response(VEHICLE_URL, payload)
+    assert "c4a5777b" in caplog.text

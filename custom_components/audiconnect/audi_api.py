@@ -41,6 +41,7 @@ _SECRET_BODY_KEYS = frozenset(
         "token",
         "password",
         "userposition",
+        "userid",
         "accesstoken",
         "refreshtoken",
     }
