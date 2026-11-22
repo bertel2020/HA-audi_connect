@@ -1,24 +1,14 @@
 name: Release
 on:
-  # Every push to master releases when its commits call for a new version
-  # (feat, fix, breaking change); other commits release nothing. The version
-  # commit the job pushes with the workflow token does not start a new run.
-  push:
-    branches: [master]
+  # Manual only: the version is worked out from the commits since the last tag
+  # the action recognises, which is not yet reliable for this repository.
   workflow_dispatch:
-
-# A second push while a release runs waits instead of racing the version commit.
-concurrency:
-  group: release
-  cancel-in-progress: false
 jobs:
   test:
     uses: ./.github/workflows/test.yml
 
   build:
     needs: test
-    # Skip the version commit of an earlier release.
-    if: "${{ !startsWith(github.event.head_commit.message, 'chore: bump') }}"
     runs-on: ubuntu-latest
     # Pushing the version commit and tag, and creating the release, need write
     # access; the repository default is read-only.
