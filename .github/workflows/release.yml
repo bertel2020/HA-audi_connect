@@ -26,6 +26,10 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # semantic-release needs the full history and the tags to find the
+          # last release; a shallow checkout made it start again at 1.0.0.
+          fetch-depth: 0
 
       - name: Gets semantic release info
         id: semantic_release_info
