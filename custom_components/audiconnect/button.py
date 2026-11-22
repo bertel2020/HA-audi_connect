@@ -65,13 +65,11 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     AudiButtonEntityDescription(
         key="refresh_vehicle_data",
         translation_key="refresh_vehicle_data",
-        icon="mdi:cloud-refresh",
         press_fn=lambda account, vin: account.refresh_vehicle_data(vin),
     ),
     AudiButtonEntityDescription(
         key="flash_lights",
         translation_key="flash_lights",
-        icon="mdi:car-light-alert",
         # Gated on the car's own capability, not on a field being present in
         # the current poll. The horn shares this capability and is deliberately
         # not exposed.
@@ -83,7 +81,6 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     AudiButtonEntityDescription(
         key="honk_horn",
         translation_key="honk_horn",
-        icon="mdi:bullhorn",
         # Loud, so off until the user turns it on.
         entity_registry_enabled_default=False,
         supported_fn=lambda vehicle: is_entity_supported(
@@ -94,7 +91,6 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     AudiButtonEntityDescription(
         key="start_window_heating_modern",
         translation_key="start_window_heating_modern",
-        icon="mdi:car-defrost-rear",
         experimental=True,
         supported_fn=_window_heating_capable,
         press_fn=lambda account, vin: account.connection.set_vehicle_window_heating(
@@ -104,7 +100,6 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     AudiButtonEntityDescription(
         key="stop_window_heating_modern",
         translation_key="stop_window_heating_modern",
-        icon="mdi:car-defrost-rear",
         experimental=True,
         supported_fn=_window_heating_capable,
         press_fn=lambda account, vin: account.connection.set_vehicle_window_heating(
@@ -114,7 +109,6 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     AudiButtonEntityDescription(
         key="wake_vehicle_modern",
         translation_key="wake_vehicle_modern",
-        icon="mdi:car-connected",
         # Off for now: Audi's wake-up service has answered 502 and 504 to every
         # request, whatever the car's state. Enable it by hand once it works.
         entity_registry_enabled_default=False,
@@ -124,14 +118,12 @@ BUTTON_DESCRIPTIONS: tuple[AudiButtonEntityDescription, ...] = (
     AudiButtonEntityDescription(
         key="start_engine",
         translation_key="start_engine",
-        icon="mdi:car-key",
         supported_fn=_engine_controls_supported,
         press_fn=lambda account, vin: account.start_engine(vin),
     ),
     AudiButtonEntityDescription(
         key="stop_engine",
         translation_key="stop_engine",
-        icon="mdi:car-off",
         supported_fn=_engine_controls_supported,
         press_fn=lambda account, vin: account.stop_engine(vin),
     ),

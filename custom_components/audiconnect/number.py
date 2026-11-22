@@ -49,7 +49,6 @@ NUMBER_DESCRIPTIONS: tuple[AudiNumberEntityDescription, ...] = (
         key="target_state_of_charge",
         attr_key="target_state_of_charge",
         translation_key="target_state_of_charge",
-        icon="mdi:battery-charging-80",
         device_class=NumberDeviceClass.BATTERY,
         native_unit_of_measurement=PERCENTAGE,
         native_min_value=_SOC_MIN,
@@ -64,7 +63,6 @@ NUMBER_DESCRIPTIONS: tuple[AudiNumberEntityDescription, ...] = (
         key="active_charging_profile_target_soc",
         attr_key="active_charging_profile_target_soc",
         translation_key="active_charging_profile_target_soc",
-        icon="mdi:map-marker",
         device_class=NumberDeviceClass.BATTERY,
         native_unit_of_measurement=PERCENTAGE,
         native_min_value=_SOC_MIN,
@@ -223,8 +221,6 @@ class AudiProfileChargeTarget(AudiChargeTargetEntity):
     the myAudi app, so a name-keyed unique_id would orphan the entity on a
     rename.
     """
-
-    _attr_icon = "mdi:map-marker-radius"
 
     def __init__(
         self,

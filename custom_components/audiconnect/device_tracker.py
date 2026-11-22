@@ -45,7 +45,6 @@ async def async_setup_entry(
 class AudiDeviceTracker(AudiEntity, TrackerEntity):
     """Representation of an Audi device tracker."""
 
-    _attr_icon = "mdi:car"
     _attr_translation_key = "position"
     _attr_should_poll = False
     _attr_source_type = SourceType.GPS

@@ -13,7 +13,9 @@ TRANSLATIONS = Path(__file__).parent.parent / "custom_components" / "audiconnect
 def test_the_climate_switch_icon_is_a_real_one():
     # "mdi:car-air-conditioner" does not exist and shows as no icon at all.
     switch = AudiClimateQuickSwitch(MagicMock(), SimpleNamespace(vin="V1"))
-    assert switch.icon == "mdi:air-conditioner"
+    icons = json.loads((TRANSLATIONS / "icons.json").read_text())
+    key = switch.translation_key
+    assert icons["entity"]["switch"][key]["default"] == "mdi:air-conditioner"
 
 
 def test_every_charge_mode_the_select_can_offer_has_a_translated_name():

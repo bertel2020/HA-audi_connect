@@ -47,7 +47,18 @@ def test_other_switches_are_unaffected(uses_auth0):
 
 
 def test_unlock_setting_does_not_share_the_window_heating_icon():
-    icons = {d.key: d.icon for d in switch.SWITCH_DESCRIPTIONS}
+    import json
+    from pathlib import Path
+
+    path = (
+        Path(__file__).resolve().parents[1] / "custom_components/audiconnect/icons.json"
+    )
+    by_key = json.loads(path.read_text())["entity"]["switch"]
+    icons = {
+        d.key: by_key[d.translation_key]["default"]
+        for d in switch.SWITCH_DESCRIPTIONS
+        if d.translation_key in by_key
+    }
     assert icons["climatisation_at_unlock"] != icons["climatisation_window_heating"]
 
 

@@ -138,7 +138,6 @@ class AudiChargeModeSelect(AssumedValueMixin, AudiEntity, SelectEntity):
     _backing_attr = _ATTR_KEY
 
     _attr_translation_key = "charge_mode"
-    _attr_icon = "mdi:battery-clock"
 
     def __init__(
         self,
@@ -180,7 +179,6 @@ class AudiClimatisationModeSelect(AssumedValueMixin, AudiEntity, SelectEntity):
     _backing_attr = "climatisation_mode"
 
     _attr_translation_key = "climatisation_mode"
-    _attr_icon = "mdi:thermostat-auto"
 
     def __init__(
         self,
@@ -233,7 +231,6 @@ class AudiProfileCurrentSelect(AssumedValueMixin, AudiEntity, SelectEntity):
     _backing_attr = "active_charging_profile_max_current"
 
     _attr_translation_key = "profile_charging_current"
-    _attr_icon = "mdi:current-ac"
     _attr_options = _PROFILE_CURRENTS
 
     def __init__(

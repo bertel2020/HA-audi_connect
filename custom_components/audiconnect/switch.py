@@ -87,16 +87,6 @@ _CLIMATISATION_SETTINGS: tuple[tuple[str, str, str], ...] = (
 )
 
 
-_SETTING_ICONS = {
-    "climatisation_window_heating": "mdi:car-defrost-front",
-    "climatisation_at_unlock": "mdi:car-key",
-    "climatisation_zone_front_left": "mdi:car-seat-heater",
-    "climatisation_zone_front_right": "mdi:car-seat-heater",
-    "climatisation_zone_rear_left": "mdi:car-seat-heater",
-    "climatisation_zone_rear_right": "mdi:car-seat-heater",
-}
-
-
 _SETTING_SUPPORTS = {
     "climatisation_window_heating": "supportsWindowHeatingEnabled",
     "climatisation_at_unlock": "supportsClimatisationAtUnlock",
@@ -113,7 +103,6 @@ def _setting_switch(key, attr_key, field) -> AudiSwitchEntityDescription:
         supports_key=_SETTING_SUPPORTS[key],
         attr_key=attr_key,
         translation_key=key,
-        icon=_SETTING_ICONS[key],
         entity_category=EntityCategory.CONFIG,
         turn_on_fn=lambda conn, vin, f=field: conn.set_climatisation_setting(
             vin, f, True
@@ -129,7 +118,6 @@ SWITCH_DESCRIPTIONS: tuple[AudiSwitchEntityDescription, ...] = (
         key="preheater_active",
         attr_key="preheater_active",
         translation_key="preheater_active",
-        icon="mdi:radiator",
         legacy_api_only=True,
         turn_on_fn=lambda conn, vin: conn.set_vehicle_pre_heater(vin, True),
         turn_off_fn=lambda conn, vin: conn.set_vehicle_pre_heater(vin, False),
@@ -139,7 +127,6 @@ SWITCH_DESCRIPTIONS: tuple[AudiSwitchEntityDescription, ...] = (
         key="plug_auto_unlock",
         attr_key="charging_plug_auto_unlock",
         translation_key="plug_auto_unlock",
-        icon="mdi:ev-plug-type2",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda value: value == "enabled",
         turn_on_fn=lambda conn, vin: conn.set_plug_auto_unlock(vin, True),
@@ -217,7 +204,6 @@ class AudiClimateQuickSwitch(AudiEntity, SwitchEntity):
     """
 
     _attr_translation_key = "climate_quick_control"
-    _attr_icon = "mdi:air-conditioner"
     _backing_attr = "climatisation_state"
 
     def __init__(self, coordinator: AudiDataUpdateCoordinator, vehicle: Any) -> None:
