@@ -838,5 +838,76 @@
         "name": "Posição"
       }
     }
+  },
+  "exceptions": {
+    "unknown_device": {
+      "message": "Nenhum Audi encontrado para o dispositivo {device_id}"
+    },
+    "account_not_loaded": {
+      "message": "A conta Audi Connect do dispositivo {device_id} não está carregada"
+    },
+    "probe_path_invalid": {
+      "message": "O caminho só pode conter letras, dígitos e /_-.?=&,"
+    },
+    "sign_in_again": {
+      "message": "O Audi Connect precisa entrar novamente"
+    },
+    "sign_in_credentials": {
+      "message": "O Audi Connect precisa do seu usuário e senha do myAudi para entrar"
+    },
+    "unknown_action": {
+      "message": "Ação desconhecida do veículo Audi: {action}"
+    },
+    "command_failed": {
+      "message": "Audi Connect: {action} falhou. O erro da API está no log da integração."
+    },
+    "command_failed_for_vin": {
+      "message": "O Audi Connect não conseguiu executar {action} para {vin}. O erro está no log."
+    },
+    "location_charge_target_failed": {
+      "message": "O Audi Connect não conseguiu definir a meta de carga do local para {vin}. O erro está no log."
+    },
+    "climatisation_setting_invalid": {
+      "message": "targetTemperature recebe um número, qualquer outra configuração ligada ou desligada"
+    },
+    "engine_control_not_verified": {
+      "message": "A partida e a parada remotas do motor não estão confirmadas para este veículo. Apenas uma capacidade de partida remota informada pelo veículo a habilita; ela não substitui o pré-condicionamento de um carro elétrico."
+    },
+    "engine_start_failed": {
+      "message": "O Audi Connect não conseguiu ligar o motor."
+    },
+    "engine_stop_failed": {
+      "message": "O Audi Connect não conseguiu desligar o motor."
+    },
+    "button_failed": {
+      "message": "A solicitação Audi {action} falhou; verifique os logs da integração Audi Connect"
+    },
+    "lock_failed": {
+      "message": "A solicitação Audi {action} foi rejeitada ou não pôde ser concluída; veja o log da integração."
+    },
+    "climate_start_failed": {
+      "message": "Falha ao iniciar a climatização; veja o log"
+    },
+    "climate_stop_failed": {
+      "message": "Falha ao parar a climatização; veja o log"
+    },
+    "climate_target_failed": {
+      "message": "Falha ao definir a temperatura alvo; veja o log"
+    },
+    "switch_failed": {
+      "message": "Falha ao alternar {entity}; veja o log"
+    },
+    "number_failed": {
+      "message": "Falha ao definir {entity}; veja o log"
+    },
+    "charge_mode_failed": {
+      "message": "Falha ao definir o modo de carga como {option}; veja o log"
+    },
+    "climatisation_mode_failed": {
+      "message": "Falha ao definir o modo de climatização como {option}; veja o log"
+    },
+    "profile_current_failed": {
+      "message": "Falha ao definir a corrente de carga do perfil como {option}; veja o log"
+    }
   }
 }

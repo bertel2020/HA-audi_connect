@@ -17,7 +17,6 @@ from homeassistant.core import (
     ServiceResponse,
     SupportsResponse,
 )
-from homeassistant.exceptions import ConfigEntryAuthFailed, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceEntry
@@ -71,6 +70,7 @@ from .const import (
 from .capability_jobs import BASE_SELECTIVE_JOBS
 from .audi_entity import _english_entity_names
 from .card import async_register_card
+from .errors import request_error, sign_in_error
 from .coordinator import AudiDataUpdateCoordinator
 from .diagnostics_payload import redact
 
@@ -193,12 +193,10 @@ def _resolve_service_call(
     device_id = service.data[CONF_DEVICE_ID]
     vin = _resolve_device_to_vin(hass, device_id)
     if vin is None:
-        raise ServiceValidationError(f"No Audi vehicle found for device {device_id}")
+        raise request_error("unknown_device", device_id=device_id)
     account = _get_account_for_vin(hass, vin)
     if account is None:
-        raise ServiceValidationError(
-            f"The Audi Connect account for device {device_id} is not loaded"
-        )
+        raise request_error("account_not_loaded", device_id=device_id)
     return vin, account
 
 
@@ -284,9 +282,7 @@ def _async_register_services(hass: HomeAssistant) -> None:
         path = service.data.get("path")
         if path is not None:
             if not _PROBE_PATH.fullmatch(path) or ".." in path:
-                raise ServiceValidationError(
-                    "path may only contain letters, digits and /_-.?=&,"
-                )
+                raise request_error("probe_path_invalid")
             query = path
         else:
             jobs = service.data.get("jobs") or list(BASE_SELECTIVE_JOBS)
@@ -451,10 +447,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         config_entry.data.get(CONF_USERNAME) and config_entry.data.get(CONF_PASSWORD)
     )
     if not has_refresh_token and not has_credentials:
-        raise ConfigEntryAuthFailed(
-            "Audi Connect needs to sign in again"
+        raise sign_in_error(
+            "sign_in_again"
             if uses_auth0(config_entry.data.get(CONF_REGION))
-            else "Audi Connect needs your myAudi username and password to sign in"
+            else "sign_in_credentials"
         )
 
     account = AudiAccount(hass, config_entry)

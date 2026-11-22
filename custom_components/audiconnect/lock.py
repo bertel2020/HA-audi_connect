@@ -8,10 +8,10 @@ from typing import Any
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AudiRuntimeData
+from .errors import command_error
 from .audi_entity import AudiEntity, entity_unique_id, should_create_entity
 from .coordinator import AudiDataUpdateCoordinator
 
@@ -103,10 +103,7 @@ class AudiLock(AudiEntity, LockEntity):
                 "last_command": action,
                 "last_command_status": "request_failed",
             }
-            raise HomeAssistantError(
-                f"Audi {action} request was rejected or could not be completed; "
-                "see the integration log for details."
-            )
+            raise command_error("lock_failed", action=action)
 
         try:
             # Exactly one vehicle refresh and no automatic duplicate command.

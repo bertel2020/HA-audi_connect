@@ -838,5 +838,76 @@
         "name": "Positie"
       }
     }
+  },
+  "exceptions": {
+    "unknown_device": {
+      "message": "Geen Audi gevonden voor apparaat {device_id}"
+    },
+    "account_not_loaded": {
+      "message": "Het Audi Connect-account van apparaat {device_id} is niet geladen"
+    },
+    "probe_path_invalid": {
+      "message": "Het pad mag alleen letters, cijfers en /_-.?=&, bevatten"
+    },
+    "sign_in_again": {
+      "message": "Audi Connect moet opnieuw inloggen"
+    },
+    "sign_in_credentials": {
+      "message": "Audi Connect heeft je myAudi-gebruikersnaam en wachtwoord nodig om in te loggen"
+    },
+    "unknown_action": {
+      "message": "Onbekende Audi-voertuigactie: {action}"
+    },
+    "command_failed": {
+      "message": "Audi Connect: {action} is mislukt. De API-fout staat in het log van de integratie."
+    },
+    "command_failed_for_vin": {
+      "message": "Audi Connect kon {action} niet uitvoeren voor {vin}. De fout staat in het log."
+    },
+    "location_charge_target_failed": {
+      "message": "Audi Connect kon het laaddoel voor de locatie van {vin} niet instellen. De fout staat in het log."
+    },
+    "climatisation_setting_invalid": {
+      "message": "targetTemperature verwacht een getal, elke andere instelling aan of uit"
+    },
+    "engine_control_not_verified": {
+      "message": "Het op afstand starten en stoppen van de motor is niet bevestigd voor dit voertuig. Alleen een door het voertuig gemelde startfunctie op afstand schakelt het in. Het vervangt niet het voorconditioneren van een elektrische auto."
+    },
+    "engine_start_failed": {
+      "message": "Audi Connect kon de motor niet starten."
+    },
+    "engine_stop_failed": {
+      "message": "Audi Connect kon de motor niet stoppen."
+    },
+    "button_failed": {
+      "message": "Audi-verzoek {action} mislukt; bekijk de logs van de Audi Connect-integratie"
+    },
+    "lock_failed": {
+      "message": "Audi-verzoek {action} is geweigerd of kon niet worden voltooid; zie het log van de integratie."
+    },
+    "climate_start_failed": {
+      "message": "Klimatisering starten is mislukt; zie het log"
+    },
+    "climate_stop_failed": {
+      "message": "Klimatisering stoppen is mislukt; zie het log"
+    },
+    "climate_target_failed": {
+      "message": "De doeltemperatuur instellen is mislukt; zie het log"
+    },
+    "switch_failed": {
+      "message": "Schakelen van {entity} is mislukt; zie het log"
+    },
+    "number_failed": {
+      "message": "Instellen van {entity} is mislukt; zie het log"
+    },
+    "charge_mode_failed": {
+      "message": "Laadmodus instellen op {option} is mislukt; zie het log"
+    },
+    "climatisation_mode_failed": {
+      "message": "Klimatiseringsmodus instellen op {option} is mislukt; zie het log"
+    },
+    "profile_current_failed": {
+      "message": "Laadstroom van het profiel instellen op {option} is mislukt; zie het log"
+    }
   }
 }

@@ -838,5 +838,76 @@
         "name": "Position"
       }
     }
+  },
+  "exceptions": {
+    "unknown_device": {
+      "message": "Für das Gerät {device_id} wurde kein Audi gefunden"
+    },
+    "account_not_loaded": {
+      "message": "Das Audi-Connect-Konto für das Gerät {device_id} ist nicht geladen"
+    },
+    "probe_path_invalid": {
+      "message": "Der Pfad darf nur Buchstaben, Ziffern und /_-.?=&, enthalten"
+    },
+    "sign_in_again": {
+      "message": "Audi Connect muss sich neu anmelden"
+    },
+    "sign_in_credentials": {
+      "message": "Audi Connect braucht deinen myAudi-Benutzernamen und dein Passwort zur Anmeldung"
+    },
+    "unknown_action": {
+      "message": "Unbekannte Audi-Fahrzeugaktion: {action}"
+    },
+    "command_failed": {
+      "message": "Audi Connect: {action} ist fehlgeschlagen. Der Fehler der API steht im Log der Integration."
+    },
+    "command_failed_for_vin": {
+      "message": "Audi Connect konnte für {vin} nicht: {action}. Der Fehler steht im Log."
+    },
+    "location_charge_target_failed": {
+      "message": "Audi Connect konnte das Ladeziel für den Ort bei {vin} nicht setzen. Der Fehler steht im Log."
+    },
+    "climatisation_setting_invalid": {
+      "message": "targetTemperature erwartet eine Zahl, jede andere Einstellung ein oder aus"
+    },
+    "engine_control_not_verified": {
+      "message": "Motor-Fernstart und -Stopp sind für dieses Fahrzeug nicht bestätigt. Nur eine vom Fahrzeug gemeldete Fernstart-Fähigkeit schaltet es frei. Es ersetzt nicht das Vorklimatisieren eines Elektroautos."
+    },
+    "engine_start_failed": {
+      "message": "Audi Connect konnte den Motor nicht starten."
+    },
+    "engine_stop_failed": {
+      "message": "Audi Connect konnte den Motor nicht stoppen."
+    },
+    "button_failed": {
+      "message": "Audi-Anfrage {action} fehlgeschlagen; siehe Log der Audi-Connect-Integration"
+    },
+    "lock_failed": {
+      "message": "Die Audi-Anfrage {action} wurde abgelehnt oder konnte nicht abgeschlossen werden; Details im Log der Integration."
+    },
+    "climate_start_failed": {
+      "message": "Die Klimatisierung konnte nicht gestartet werden; Details im Log"
+    },
+    "climate_stop_failed": {
+      "message": "Die Klimatisierung konnte nicht gestoppt werden; Details im Log"
+    },
+    "climate_target_failed": {
+      "message": "Die Zieltemperatur konnte nicht gesetzt werden; Details im Log"
+    },
+    "switch_failed": {
+      "message": "{entity} konnte nicht geschaltet werden; Details im Log"
+    },
+    "number_failed": {
+      "message": "{entity} konnte nicht gesetzt werden; Details im Log"
+    },
+    "charge_mode_failed": {
+      "message": "Der Lademodus konnte nicht auf {option} gesetzt werden; Details im Log"
+    },
+    "climatisation_mode_failed": {
+      "message": "Der Klimatisierungsmodus konnte nicht auf {option} gesetzt werden; Details im Log"
+    },
+    "profile_current_failed": {
+      "message": "Der Ladestrom des Profils konnte nicht auf {option} gesetzt werden; Details im Log"
+    }
   }
 }

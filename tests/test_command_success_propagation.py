@@ -45,12 +45,14 @@ def account(result=False):
 @pytest.mark.parametrize("action", ["lock", "unlock"])
 def test_vehicle_actions_fail_loudly_when_connection_rejects(action):
     obj, conn = account(result=False)
-    with pytest.raises(HomeAssistantError, match=action):
+    with pytest.raises(HomeAssistantError) as err:
         asyncio.run(
             obj.execute_vehicle_action(
                 "EXAMPLEVIN00000001", NS(data={CONF_ACTION: action})
             )
         )
+    assert err.value.translation_key == "command_failed"
+    assert err.value.translation_placeholders == {"action": action}
     assert len(conn.calls) == 1
 
 
@@ -74,18 +76,20 @@ def test_legacy_named_start_climatisation_uses_modern_bodyless_start():
 
 def test_legacy_named_start_climatisation_reports_rejection():
     obj, _ = account(result=False)
-    with pytest.raises(HomeAssistantError, match="start climatisation"):
+    with pytest.raises(HomeAssistantError) as err:
         asyncio.run(
             obj.execute_vehicle_action(
                 "EXAMPLEVIN00000001", NS(data={CONF_ACTION: "start_climatisation"})
             )
         )
+    assert err.value.translation_placeholders == {"action": "start climatisation"}
 
 
 def test_climate_direct_service_rejection_raises():
     obj, conn = account(result=False)
-    with pytest.raises(HomeAssistantError, match="start climate control"):
+    with pytest.raises(HomeAssistantError) as err:
         asyncio.run(obj.start_climate_control("EXAMPLEVIN00000001", NS(data={})))
+    assert err.value.translation_placeholders == {"action": "start climate control"}
     assert conn.calls[0][0] == "climate"
 
 
@@ -105,9 +109,10 @@ def test_charge_services_rejection_raises(method, data):
 
 def test_unknown_action_cannot_be_reported_as_success():
     obj, _ = account()
-    with pytest.raises(HomeAssistantError, match="Unknown"):
+    with pytest.raises(HomeAssistantError) as err:
         asyncio.run(
             obj.execute_vehicle_action(
                 "EXAMPLEVIN00000001", NS(data={CONF_ACTION: "not_existing"})
             )
         )
+    assert err.value.translation_key == "unknown_action"

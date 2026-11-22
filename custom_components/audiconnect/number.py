@@ -15,10 +15,10 @@ from homeassistant.components.number import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AudiRuntimeData
+from .errors import command_error
 from .audi_entity import (
     AssumedValueMixin,
     AudiEntity,
@@ -165,9 +165,8 @@ class AudiChargeTargetEntity(AssumedValueMixin, AudiEntity, NumberEntity):
         connection = self.coordinator.account.connection
         started = self._command_started()
         if not await set_value_fn(connection, self._vehicle.vin, int(value)):
-            raise HomeAssistantError(
-                f"Failed to set {self.entity_id or self.unique_id}; "
-                "see the log for details"
+            raise command_error(
+                "number_failed", entity=self.entity_id or self.unique_id
             )
         self._assume(float(int(value)))
         await self._refresh_after_command(started)

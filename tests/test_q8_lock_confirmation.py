@@ -81,8 +81,9 @@ def test_rejected_command_does_not_refresh(requested):
     car = NS(vin="NOT_A_REAL_VIN", door_lock_status="unlocked", doors_trunk_status=None)
     coord = Coordinator(car, accepted=False)
     entity = AudiLock(coord, car)
-    with pytest.raises(HomeAssistantError, match="rejected or could not be completed"):
+    with pytest.raises(HomeAssistantError) as err:
         asyncio.run(entity.async_lock() if requested else entity.async_unlock())
+    assert err.value.translation_key == "lock_failed"
     assert coord.refreshes == 0
     assert entity.extra_state_attributes["last_command_status"] == "request_failed"
 

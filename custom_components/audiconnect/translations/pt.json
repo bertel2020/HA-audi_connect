@@ -838,5 +838,76 @@
         "name": "Posição"
       }
     }
+  },
+  "exceptions": {
+    "unknown_device": {
+      "message": "Nenhum Audi encontrado para o dispositivo {device_id}"
+    },
+    "account_not_loaded": {
+      "message": "A conta Audi Connect do dispositivo {device_id} não está carregada"
+    },
+    "probe_path_invalid": {
+      "message": "O caminho só pode conter letras, dígitos e /_-.?=&,"
+    },
+    "sign_in_again": {
+      "message": "O Audi Connect precisa de iniciar sessão novamente"
+    },
+    "sign_in_credentials": {
+      "message": "O Audi Connect precisa do seu utilizador e palavra-passe do myAudi para iniciar sessão"
+    },
+    "unknown_action": {
+      "message": "Ação desconhecida do veículo Audi: {action}"
+    },
+    "command_failed": {
+      "message": "Audi Connect: {action} falhou. O erro da API está no registo da integração."
+    },
+    "command_failed_for_vin": {
+      "message": "O Audi Connect não conseguiu executar {action} para {vin}. O erro está no registo."
+    },
+    "location_charge_target_failed": {
+      "message": "O Audi Connect não conseguiu definir o objetivo de carga do local para {vin}. O erro está no registo."
+    },
+    "climatisation_setting_invalid": {
+      "message": "targetTemperature recebe um número, qualquer outra definição ligada ou desligada"
+    },
+    "engine_control_not_verified": {
+      "message": "O arranque e a paragem remotos do motor não estão confirmados para este veículo. Apenas uma capacidade de arranque remoto comunicada pelo veículo o ativa; não substitui o pré-condicionamento de um carro elétrico."
+    },
+    "engine_start_failed": {
+      "message": "O Audi Connect não conseguiu arrancar o motor."
+    },
+    "engine_stop_failed": {
+      "message": "O Audi Connect não conseguiu parar o motor."
+    },
+    "button_failed": {
+      "message": "O pedido Audi {action} falhou; verifique os registos da integração Audi Connect"
+    },
+    "lock_failed": {
+      "message": "O pedido Audi {action} foi rejeitado ou não pôde ser concluído; veja o registo da integração."
+    },
+    "climate_start_failed": {
+      "message": "Falha ao iniciar a climatização; veja o registo"
+    },
+    "climate_stop_failed": {
+      "message": "Falha ao parar a climatização; veja o registo"
+    },
+    "climate_target_failed": {
+      "message": "Falha ao definir a temperatura alvo; veja o registo"
+    },
+    "switch_failed": {
+      "message": "Falha ao alternar {entity}; veja o registo"
+    },
+    "number_failed": {
+      "message": "Falha ao definir {entity}; veja o registo"
+    },
+    "charge_mode_failed": {
+      "message": "Falha ao definir o modo de carregamento como {option}; veja o registo"
+    },
+    "climatisation_mode_failed": {
+      "message": "Falha ao definir o modo de climatização como {option}; veja o registo"
+    },
+    "profile_current_failed": {
+      "message": "Falha ao definir a corrente de carregamento do perfil como {option}; veja o registo"
+    }
   }
 }

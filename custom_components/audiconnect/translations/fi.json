@@ -838,5 +838,76 @@
         "name": "Sijainti"
       }
     }
+  },
+  "exceptions": {
+    "unknown_device": {
+      "message": "Laitteelle {device_id} ei löytynyt Audia"
+    },
+    "account_not_loaded": {
+      "message": "Laitteen {device_id} Audi Connect -tiliä ei ole ladattu"
+    },
+    "probe_path_invalid": {
+      "message": "Polku saa sisältää vain kirjaimia, numeroita ja merkkejä /_-.?=&,"
+    },
+    "sign_in_again": {
+      "message": "Audi Connectin on kirjauduttava uudelleen"
+    },
+    "sign_in_credentials": {
+      "message": "Audi Connect tarvitsee myAudi-käyttäjätunnuksesi ja salasanasi kirjautumiseen"
+    },
+    "unknown_action": {
+      "message": "Tuntematon Audi-ajoneuvon toiminto: {action}"
+    },
+    "command_failed": {
+      "message": "Audi Connect: {action} epäonnistui. Katso API-virhe integraation lokista."
+    },
+    "command_failed_for_vin": {
+      "message": "Audi Connect ei voinut suorittaa toimintoa {action} ajoneuvolle {vin}. Katso virhe lokista."
+    },
+    "location_charge_target_failed": {
+      "message": "Audi Connect ei voinut asettaa sijainnin latausten tavoitetta ajoneuvolle {vin}. Katso virhe lokista."
+    },
+    "climatisation_setting_invalid": {
+      "message": "targetTemperature vaatii luvun, kaikki muut asetukset päälle tai pois"
+    },
+    "engine_control_not_verified": {
+      "message": "Moottorin etäkäynnistystä ja -pysäytystä ei ole varmistettu tälle ajoneuvolle. Vain ajoneuvon ilmoittama etäkäynnistysominaisuus ottaa sen käyttöön; se ei korvaa sähköauton ohjaamon esilämmitystä."
+    },
+    "engine_start_failed": {
+      "message": "Audi Connect ei voinut käynnistää moottoria."
+    },
+    "engine_stop_failed": {
+      "message": "Audi Connect ei voinut pysäyttää moottoria."
+    },
+    "button_failed": {
+      "message": "Audi-pyyntö {action} epäonnistui; katso Audi Connect -integraation lokit"
+    },
+    "lock_failed": {
+      "message": "Audi-pyyntö {action} hylättiin tai sitä ei voitu suorittaa loppuun; katso lisätiedot integraation lokista."
+    },
+    "climate_start_failed": {
+      "message": "Ilmastoinnin käynnistys epäonnistui; katso lisätiedot lokista"
+    },
+    "climate_stop_failed": {
+      "message": "Ilmastoinnin pysäytys epäonnistui; katso lisätiedot lokista"
+    },
+    "climate_target_failed": {
+      "message": "Tavoitelämpötilan asettaminen epäonnistui; katso lisätiedot lokista"
+    },
+    "switch_failed": {
+      "message": "Kohteen {entity} kytkeminen epäonnistui; katso lisätiedot lokista"
+    },
+    "number_failed": {
+      "message": "Kohteen {entity} asettaminen epäonnistui; katso lisätiedot lokista"
+    },
+    "charge_mode_failed": {
+      "message": "Lataustilan asettaminen arvoon {option} epäonnistui; katso lisätiedot lokista"
+    },
+    "climatisation_mode_failed": {
+      "message": "Ilmastointitilan asettaminen arvoon {option} epäonnistui; katso lisätiedot lokista"
+    },
+    "profile_current_failed": {
+      "message": "Profiilin latausvirran asettaminen arvoon {option} epäonnistui; katso lisätiedot lokista"
+    }
   }
 }

@@ -156,15 +156,18 @@ def test_the_account_is_found_by_vin_ignoring_case():
 def test_a_service_call_for_an_unknown_device_is_a_validation_error(monkeypatch):
     _device_registry(monkeypatch, {(DOMAIN, "WAU1")})
     call = SimpleNamespace(data={"device_id": "nope"})
-    with pytest.raises(ServiceValidationError, match="No Audi vehicle"):
+    with pytest.raises(ServiceValidationError) as err:
         integration._resolve_service_call(_hass(), call)
+    assert err.value.translation_key == "unknown_device"
+    assert err.value.translation_placeholders == {"device_id": "nope"}
 
 
 def test_a_service_call_for_an_account_that_is_not_loaded_says_so(monkeypatch):
     _device_registry(monkeypatch, {(DOMAIN, "WAU1")})
     call = SimpleNamespace(data={"device_id": "dev"})
-    with pytest.raises(ServiceValidationError, match="not loaded"):
+    with pytest.raises(ServiceValidationError) as err:
         integration._resolve_service_call(_hass(), call)
+    assert err.value.translation_key == "account_not_loaded"
 
 
 def test_a_vehicle_service_calls_the_account_with_the_vin(monkeypatch):
@@ -337,8 +340,9 @@ def test_the_probe_asks_for_the_base_jobs_and_hides_the_vin(monkeypatch):
 def test_the_probe_refuses_a_path_that_could_leave_the_vehicle(monkeypatch):
     for path in ("../other", "a b", "vehicles/<x>"):
         account, handler, hass, call = _probe(monkeypatch, path=path)
-        with pytest.raises(ServiceValidationError):
+        with pytest.raises(ServiceValidationError) as err:
             run(handler(call))
+        assert err.value.translation_key == "probe_path_invalid"
         account.connection.probe.assert_not_awaited()
 
 

@@ -13,10 +13,10 @@ from homeassistant.components.switch import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AudiRuntimeData
+from .errors import command_error
 from .audi_entity import (
     AudiEntity,
     entity_unique_id,
@@ -243,9 +243,7 @@ class AudiClimateQuickSwitch(AudiEntity, SwitchEntity):
         if not await self.coordinator.account.connection.start_climate_control(
             self._vehicle.vin
         ):
-            raise HomeAssistantError(
-                "Audi climate start failed; check the integration log"
-            )
+            raise command_error("climate_start_failed")
         # The connection already schedules the post-command coordinator refresh.
 
     async def async_turn_off(self, **kwargs: Any) -> None:
@@ -255,9 +253,7 @@ class AudiClimateQuickSwitch(AudiEntity, SwitchEntity):
         if not await self.coordinator.account.connection.set_vehicle_climatisation(
             self._vehicle.vin, False
         ):
-            raise HomeAssistantError(
-                "Audi climate stop failed; check the integration log"
-            )
+            raise command_error("climate_stop_failed")
         # No duplicate cloud GET: the account wrapper notifies the coordinator.
 
 
@@ -305,9 +301,8 @@ class AudiSwitch(AudiEntity, SwitchEntity):
         connection = self.coordinator.account.connection
         started = self._command_started()
         if not await fn(connection, self._vehicle.vin):
-            raise HomeAssistantError(
-                f"Failed to switch {self.entity_id or self.unique_id}; "
-                "see the log for details"
+            raise command_error(
+                "switch_failed", entity=self.entity_id or self.unique_id
             )
         # The car acknowledges the write before it reports the new value, so the
         # refresh below usually re-reads the old one and the switch snaps back to

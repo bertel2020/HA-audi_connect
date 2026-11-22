@@ -7,10 +7,10 @@ from typing import Any
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AudiRuntimeData
+from .errors import command_error
 from .audi_entity import (
     AssumedValueMixin,
     AudiEntity,
@@ -162,9 +162,7 @@ class AudiChargeModeSelect(AssumedValueMixin, AudiEntity, SelectEntity):
         connection = self.coordinator.account.connection
         started = self._command_started()
         if not await connection.set_charge_mode(self._vehicle.vin, option):
-            raise HomeAssistantError(
-                f"Failed to set charge mode to {option}; see the log for details"
-            )
+            raise command_error("charge_mode_failed", option=option)
         self._assume(option)
         await self._refresh_after_command(started)
 
@@ -214,9 +212,7 @@ class AudiClimatisationModeSelect(AssumedValueMixin, AudiEntity, SelectEntity):
         if not await connection.set_climatisation_setting(
             self._vehicle.vin, "climatisationMode", option
         ):
-            raise HomeAssistantError(
-                f"Failed to set climatisation mode to {option}; see the log for details"
-            )
+            raise command_error("climatisation_mode_failed", option=option)
         self._assume(option)
         await self._refresh_after_command(started)
 
@@ -259,10 +255,7 @@ class AudiProfileCurrentSelect(AssumedValueMixin, AudiEntity, SelectEntity):
         if not await connection.set_profile_charging_current(
             self._vehicle.vin, None, option
         ):
-            raise HomeAssistantError(
-                f"Failed to set the profile charging current to {option}; "
-                "see the log for details"
-            )
+            raise command_error("profile_current_failed", option=option)
         self._assume(option)
         await self._refresh_after_command(started)
 

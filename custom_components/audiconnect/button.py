@@ -9,10 +9,10 @@ from typing import Any
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import AudiRuntimeData
+from .errors import command_error
 from .audi_entity import AudiEntity, is_entity_supported
 from .coordinator import AudiDataUpdateCoordinator
 from .vehicle_controls import engine_start_stop_supported
@@ -170,10 +170,7 @@ class AudiButton(AudiEntity, ButtonEntity):
         )
         if result is False:
             # Prevent UI from silently accepting a failed API action.
-            raise HomeAssistantError(
-                f"Audi {self.entity_description.key} request failed; "
-                "check the Audi Connect integration logs"
-            )
+            raise command_error("button_failed", action=self.entity_description.key)
 
 
 __all__ = ["AudiButton", "async_setup_entry"]

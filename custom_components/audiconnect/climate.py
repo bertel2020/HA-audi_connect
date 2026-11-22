@@ -14,11 +14,11 @@ from homeassistant.components.climate import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from . import AudiRuntimeData
+from .errors import command_error
 from .audi_entity import AudiEntity, entity_unique_id, should_create_entity
 from .const import CLIMATISATION_NO_READING_STATES, CLIMATISATION_OFF_STATES
 from .coordinator import AudiDataUpdateCoordinator
@@ -203,18 +203,14 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
         if not await connection.start_climate_control(
             self._vehicle.vin, temp_c=temperature
         ):
-            raise HomeAssistantError(
-                "Failed to start climatisation; see the log for details"
-            )
+            raise command_error("climate_start_failed")
         await self._refresh_after_command(started)
 
     async def async_turn_off(self) -> None:
         connection = self.coordinator.account.connection
         started = self._command_started()
         if not await connection.set_vehicle_climatisation(self._vehicle.vin, False):
-            raise HomeAssistantError(
-                "Failed to stop climatisation; see the log for details"
-            )
+            raise command_error("climate_stop_failed")
         await self._refresh_after_command(started)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
@@ -234,9 +230,7 @@ class AudiClimate(AudiEntity, ClimateEntity, RestoreEntity):
             if not await connection.set_climatisation_setting(
                 self._vehicle.vin, "targetTemperature", float(temperature)
             ):
-                raise HomeAssistantError(
-                    "Failed to set the target temperature; see the log for details"
-                )
+                raise command_error("climate_target_failed")
             await self._refresh_after_command(started)
             return
         # Re-send only if it is already running, so setting a temperature while

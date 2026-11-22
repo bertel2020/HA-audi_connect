@@ -838,5 +838,76 @@
         "name": "Position"
       }
     }
+  },
+  "exceptions": {
+    "unknown_device": {
+      "message": "No Audi vehicle found for device {device_id}"
+    },
+    "account_not_loaded": {
+      "message": "The Audi Connect account for device {device_id} is not loaded"
+    },
+    "probe_path_invalid": {
+      "message": "The path may only contain letters, digits and /_-.?=&,"
+    },
+    "sign_in_again": {
+      "message": "Audi Connect needs to sign in again"
+    },
+    "sign_in_credentials": {
+      "message": "Audi Connect needs your myAudi username and password to sign in"
+    },
+    "unknown_action": {
+      "message": "Unknown Audi vehicle action: {action}"
+    },
+    "command_failed": {
+      "message": "Audi Connect {action} failed. Inspect the integration log for the underlying API error."
+    },
+    "command_failed_for_vin": {
+      "message": "Audi Connect could not {action} for {vin}. See the log for the underlying error."
+    },
+    "location_charge_target_failed": {
+      "message": "Audi Connect could not set the location charge target for {vin}. See the log for the underlying error."
+    },
+    "climatisation_setting_invalid": {
+      "message": "targetTemperature takes a number, every other setting on or off"
+    },
+    "engine_control_not_verified": {
+      "message": "Remote engine start/stop is not verified for this vehicle. Only a vehicle-reported remote-start capability can enable it; do not substitute this for electric cabin preconditioning."
+    },
+    "engine_start_failed": {
+      "message": "Audi Connect could not start the engine."
+    },
+    "engine_stop_failed": {
+      "message": "Audi Connect could not stop the engine."
+    },
+    "button_failed": {
+      "message": "Audi {action} request failed; check the Audi Connect integration logs"
+    },
+    "lock_failed": {
+      "message": "Audi {action} request was rejected or could not be completed; see the integration log for details."
+    },
+    "climate_start_failed": {
+      "message": "Failed to start climatisation; see the log for details"
+    },
+    "climate_stop_failed": {
+      "message": "Failed to stop climatisation; see the log for details"
+    },
+    "climate_target_failed": {
+      "message": "Failed to set the target temperature; see the log for details"
+    },
+    "switch_failed": {
+      "message": "Failed to switch {entity}; see the log for details"
+    },
+    "number_failed": {
+      "message": "Failed to set {entity}; see the log for details"
+    },
+    "charge_mode_failed": {
+      "message": "Failed to set charge mode to {option}; see the log for details"
+    },
+    "climatisation_mode_failed": {
+      "message": "Failed to set climatisation mode to {option}; see the log for details"
+    },
+    "profile_current_failed": {
+      "message": "Failed to set the profile charging current to {option}; see the log for details"
+    }
   }
 }

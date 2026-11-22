@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from .errors import command_error
 from .audi_connect_account import (
     AudiAuthError,
     AudiConnectAccount,
@@ -361,16 +362,13 @@ class AudiAccount(AudiConnectObserver):
             result = await self.connection.set_vehicle_window_heating(vin, False)
             self._raise_on_failed_command(result, action)
         else:
-            raise HomeAssistantError(f"Unknown Audi vehicle action: {action}")
+            raise command_error("unknown_action", action=action)
 
     @staticmethod
     def _raise_on_failed_command(result: Any, action: str) -> None:
         """Do not return HA service success when the connection returned False."""
         if result is False:
-            raise HomeAssistantError(
-                f"Audi Connect {action.replace('_', ' ')} failed. "
-                "Inspect the integration log for the underlying API error."
-            )
+            raise command_error("command_failed", action=action.replace("_", " "))
 
     async def _charger_action(
         self, vin: str, action: str, start: bool, timer: bool
@@ -383,9 +381,8 @@ class AudiAccount(AudiConnectObserver):
         Stop button needs to be able to tell the difference.
         """
         if not await self.connection.set_battery_charger(vin, start, timer):
-            raise HomeAssistantError(
-                f"Audi Connect could not {action.replace('_', ' ')} for {vin}. "
-                "See the log for the underlying error."
+            raise command_error(
+                "command_failed_for_vin", action=action.replace("_", " "), vin=vin
             )
 
     async def start_climate_control(self, vin: str, service: ServiceCall) -> None:
@@ -424,10 +421,7 @@ class AudiAccount(AudiConnectObserver):
             service.data.get(CONF_PROFILE_ID),
             service.data.get(CONF_TARGET_SOC),
         ):
-            raise HomeAssistantError(
-                f"Audi Connect could not set the location charge target for {vin}. "
-                "See the log for the underlying error."
-            )
+            raise command_error("location_charge_target_failed", vin=vin)
 
     async def set_charge_mode(self, vin: str, service: ServiceCall) -> None:
         """Set which mode the car charges in, without starting or stopping one."""
@@ -480,9 +474,7 @@ class AudiAccount(AudiConnectObserver):
         """Write one climatisation setting with a chosen body, to find what the car takes."""
         setting, value = service.data["setting"], service.data["value"]
         if (setting == "targetTemperature") == isinstance(value, bool):
-            raise HomeAssistantError(
-                "targetTemperature takes a number, every other setting on or off"
-            )
+            raise command_error("climatisation_setting_invalid")
         result = await self.connection.set_climatisation_setting(
             vin.lower(),
             setting,
@@ -502,23 +494,19 @@ class AudiAccount(AudiConnectObserver):
                 and engine_start_stop_supported(vehicle)
             ):
                 return
-        raise HomeAssistantError(
-            "Remote engine start/stop is not verified for this vehicle. "
-            "Only a vehicle-reported remote-start capability can enable it; "
-            "do not substitute this for electric cabin preconditioning."
-        )
+        raise command_error("engine_control_not_verified")
 
     async def start_engine(self, vin: str) -> None:
         """Start only when the vehicle explicitly reports remote-start support."""
         self._require_remote_engine_support(vin)
         if not await self.connection.start_engine(vin.lower()):
-            raise HomeAssistantError("Audi Connect could not start the engine.")
+            raise command_error("engine_start_failed")
 
     async def stop_engine(self, vin: str) -> None:
         """Stop only when the vehicle explicitly reports remote-start support."""
         self._require_remote_engine_support(vin)
         if not await self.connection.stop_engine(vin.lower()):
-            raise HomeAssistantError("Audi Connect could not stop the engine.")
+            raise command_error("engine_stop_failed")
 
     async def handle_notification(self, vin: str, action: str) -> None:
         if self.config_entry.options.get(CONF_REFRESH_AFTER_ACTION, False):

@@ -838,5 +838,76 @@
         "name": "Position"
       }
     }
+  },
+  "exceptions": {
+    "unknown_device": {
+      "message": "Aucune Audi trouvée pour l'appareil {device_id}"
+    },
+    "account_not_loaded": {
+      "message": "Le compte Audi Connect de l'appareil {device_id} n'est pas chargé"
+    },
+    "probe_path_invalid": {
+      "message": "Le chemin ne peut contenir que des lettres, des chiffres et /_-.?=&,"
+    },
+    "sign_in_again": {
+      "message": "Audi Connect doit se reconnecter"
+    },
+    "sign_in_credentials": {
+      "message": "Audi Connect a besoin de votre identifiant et mot de passe myAudi pour se connecter"
+    },
+    "unknown_action": {
+      "message": "Action inconnue sur le véhicule Audi : {action}"
+    },
+    "command_failed": {
+      "message": "Audi Connect : {action} a échoué. L'erreur de l'API figure dans le journal de l'intégration."
+    },
+    "command_failed_for_vin": {
+      "message": "Audi Connect n'a pas pu exécuter {action} pour {vin}. L'erreur figure dans le journal."
+    },
+    "location_charge_target_failed": {
+      "message": "Audi Connect n'a pas pu définir l'objectif de charge du lieu pour {vin}. L'erreur figure dans le journal."
+    },
+    "climatisation_setting_invalid": {
+      "message": "targetTemperature attend un nombre, tous les autres réglages activé ou désactivé"
+    },
+    "engine_control_not_verified": {
+      "message": "Le démarrage et l'arrêt du moteur à distance ne sont pas confirmés pour ce véhicule. Seule une capacité de démarrage à distance signalée par le véhicule l'active ; ce n'est pas un substitut au préconditionnement de l'habitacle d'une voiture électrique."
+    },
+    "engine_start_failed": {
+      "message": "Audi Connect n'a pas pu démarrer le moteur."
+    },
+    "engine_stop_failed": {
+      "message": "Audi Connect n'a pas pu arrêter le moteur."
+    },
+    "button_failed": {
+      "message": "La demande Audi {action} a échoué ; consultez les journaux de l'intégration Audi Connect"
+    },
+    "lock_failed": {
+      "message": "La demande Audi {action} a été refusée ou n'a pas pu aboutir ; voir le journal de l'intégration."
+    },
+    "climate_start_failed": {
+      "message": "Échec du démarrage de la climatisation ; voir le journal"
+    },
+    "climate_stop_failed": {
+      "message": "Échec de l'arrêt de la climatisation ; voir le journal"
+    },
+    "climate_target_failed": {
+      "message": "Échec du réglage de la température cible ; voir le journal"
+    },
+    "switch_failed": {
+      "message": "Échec de la commutation de {entity} ; voir le journal"
+    },
+    "number_failed": {
+      "message": "Échec du réglage de {entity} ; voir le journal"
+    },
+    "charge_mode_failed": {
+      "message": "Échec du réglage du mode de charge sur {option} ; voir le journal"
+    },
+    "climatisation_mode_failed": {
+      "message": "Échec du réglage du mode de climatisation sur {option} ; voir le journal"
+    },
+    "profile_current_failed": {
+      "message": "Échec du réglage du courant de charge du profil sur {option} ; voir le journal"
+    }
   }
 }

@@ -838,5 +838,76 @@
         "name": "Posisjon"
       }
     }
+  },
+  "exceptions": {
+    "unknown_device": {
+      "message": "Fant ingen Audi for enheten {device_id}"
+    },
+    "account_not_loaded": {
+      "message": "Audi Connect-kontoen for enheten {device_id} er ikke lastet"
+    },
+    "probe_path_invalid": {
+      "message": "Stien kan bare inneholde bokstaver, sifre og /_-.?=&,"
+    },
+    "sign_in_again": {
+      "message": "Audi Connect må logge inn på nytt"
+    },
+    "sign_in_credentials": {
+      "message": "Audi Connect trenger myAudi-brukernavnet og passordet ditt for å logge inn"
+    },
+    "unknown_action": {
+      "message": "Ukjent Audi-kjøretøyhandling: {action}"
+    },
+    "command_failed": {
+      "message": "Audi Connect: {action} mislyktes. Se API-feilen i integrasjonens logg."
+    },
+    "command_failed_for_vin": {
+      "message": "Audi Connect kunne ikke utføre {action} for {vin}. Se feilen i loggen."
+    },
+    "location_charge_target_failed": {
+      "message": "Audi Connect kunne ikke sette lademålet for stedet for {vin}. Se feilen i loggen."
+    },
+    "climatisation_setting_invalid": {
+      "message": "targetTemperature tar et tall, alle andre innstillinger på eller av"
+    },
+    "engine_control_not_verified": {
+      "message": "Fjernstart og fjernstopp av motoren er ikke bekreftet for dette kjøretøyet. Bare en fjernstartfunksjon som kjøretøyet melder, slår det på. Det erstatter ikke forvarming av en elbil."
+    },
+    "engine_start_failed": {
+      "message": "Audi Connect kunne ikke starte motoren."
+    },
+    "engine_stop_failed": {
+      "message": "Audi Connect kunne ikke stoppe motoren."
+    },
+    "button_failed": {
+      "message": "Audi-forespørselen {action} mislyktes; se loggene til Audi Connect-integrasjonen"
+    },
+    "lock_failed": {
+      "message": "Audi-forespørselen {action} ble avvist eller kunne ikke fullføres; se integrasjonens logg for detaljer."
+    },
+    "climate_start_failed": {
+      "message": "Kunne ikke starte klimaanlegget; se loggen for detaljer"
+    },
+    "climate_stop_failed": {
+      "message": "Kunne ikke stoppe klimaanlegget; se loggen for detaljer"
+    },
+    "climate_target_failed": {
+      "message": "Kunne ikke sette måltemperaturen; se loggen for detaljer"
+    },
+    "switch_failed": {
+      "message": "Kunne ikke slå {entity} av eller på; se loggen for detaljer"
+    },
+    "number_failed": {
+      "message": "Kunne ikke sette {entity}; se loggen for detaljer"
+    },
+    "charge_mode_failed": {
+      "message": "Kunne ikke sette lademodus til {option}; se loggen for detaljer"
+    },
+    "climatisation_mode_failed": {
+      "message": "Kunne ikke sette klimamodus til {option}; se loggen for detaljer"
+    },
+    "profile_current_failed": {
+      "message": "Kunne ikke sette ladestrømmen for profilen til {option}; se loggen for detaljer"
+    }
   }
 }
