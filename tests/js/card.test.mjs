@@ -592,7 +592,7 @@ test("the seat options are indented sub-items under 'show climate', front and re
   assert.match(el._seatForm.computeLabel({ name: "show_seats_front" }), /front seat\/zone/);
   assert.match(el._seatForm.computeLabel({ name: "show_seats_rear" }), /rear seat\/zone/);
   // Order: the main form (ending with show climate), then the indented box, then the rest.
-  assert.deepEqual([...el.children], [el._form, el._seatBox, el._restForm]);
+  assert.deepEqual([...el.children], [el._form, el._seatBox, el._restForm, el._rowsBox]);
   assert.equal(el._form.schema.at(-1).name, "show_climate");
   assert.equal(el._restForm.schema[0].name, "show_stats");
   assert.match(el._seatBox.style.marginLeft, /28px/);
@@ -651,7 +651,9 @@ test("a change in the seat form keeps the rest of the config", async () => {
 test("the editor is labelled in the user's language", async () => {
   const el = editor({ language: "de" });
   await settle();
-  assert.equal(el._form.computeLabel({ name: "show_trips" }), "Fahrten anzeigen");
+  assert.equal(el._form.computeLabel({ name: "show_trip_last" }), "Letzte Fahrt anzeigen");
+  assert.equal(el._form.computeLabel({ name: "show_trip_long" }), "Langzeit anzeigen");
+  assert.equal(el._rowsForm.computeLabel({ name: "stats_rows" }), "Angezeigte Fahrzeugdetails");
 });
 
 // ---- the car drawing in the doors and windows popup ----------------------------
@@ -729,3 +731,94 @@ test("the badges stay inside the drawing", () => {
     assert.ok(x - 13 >= 0 && x + 13 <= w && y - 13 >= 0 && y + 13 <= h, `${x},${y}`);
   }
 });
+
+// ---- choosing what the trips and the vehicle details show -----------------------------
+
+// The fixture has no trip or detail entities, so these tests add the ones they need.
+function withEntities(list, config) {
+  const hass = build();
+  for (const [id, tk, state, attrs = {}] of list) {
+    hass.entities[id] = { entity_id: id, platform: "audiconnect", device_id: "dev1", translation_key: tk };
+    hass.states[id] = { entity_id: id, state, attributes: { friendly_name: tk, ...attrs }, last_updated: "2026-11-20T10:00:00+00:00" };
+  }
+  card.setConfig({ device_id: "dev1", ...config });
+  card.hass = hass;
+}
+const TRIPS = [
+  ["sensor.lt", "last_trip_distance", "12", { unit_of_measurement: "km" }],
+  ["sensor.tt", "trip_totals_distance", "3400", { unit_of_measurement: "km" }],
+];
+const DETAILS = [
+  ["sensor.pt", "park_time", "2026-11-20T08:00:00+00:00"],
+  ["sensor.oc", "outdoor_temperature", "9", { unit_of_measurement: "°C" }],
+  ["sensor.ins", "service_inspection_time", "304", { unit_of_measurement: "d" }],
+];
+const tripIds = () => [...root().querySelectorAll("details")].map((d) => d.dataset.id).filter((i) => i.startsWith("trip-"));
+const factLabels = () => [...root().querySelectorAll(".fact .fl")].map((e) => e.textContent);
+
+test("the last trip and the long-term trip are shown by default", () => {
+  withEntities(TRIPS, {});
+  assert.deepEqual(tripIds(), ["trip-last", "trip-long"]);
+});
+
+test("the last trip and the long-term trip can be switched off one by one", () => {
+  withEntities(TRIPS, { show_trip_long: false });
+  assert.deepEqual(tripIds(), ["trip-last"]);
+  withEntities(TRIPS, { show_trip_last: false });
+  assert.deepEqual(tripIds(), ["trip-long"]);
+});
+
+test("the older show_trips option still switches both trips", () => {
+  withEntities(TRIPS, { show_trips: false });
+  assert.deepEqual(tripIds(), []);
+  withEntities(TRIPS, { show_trips: false, show_trip_long: true });
+  assert.deepEqual(tripIds(), ["trip-long"]);
+});
+
+test("the vehicle details show every row the car reports unless some are chosen", () => {
+  withEntities(DETAILS, {});
+  assert.deepEqual(factLabels(), ["Parked for", "Outside temperature", "Inspection in"]);
+  withEntities(DETAILS, { stats_rows: ["parked", "inspection_days"] });
+  assert.deepEqual(factLabels(), ["Parked for", "Inspection in"]);
+});
+
+test("the editor offers only the detail rows the car reports, all ticked", async () => {
+  const el = editor();
+  el._hass = { ...el._hass, entities: withRows(el._hass.entities, DETAILS) };
+  el._render();
+  const field = el._rowsForm.schema[0];
+  assert.deepEqual(field.selector.select.options.map((o) => o.value), ["parked", "outdoor", "inspection_days"]);
+  assert.equal(field.selector.select.multiple, true);
+  assert.deepEqual(el._rowsForm.data.stats_rows, ["parked", "outdoor", "inspection_days"]);
+  assert.equal(el._rowsBox.hidden, false);
+});
+
+test("ticking every detail row is saved as not choosing, so new rows still show", async () => {
+  const el = editor();
+  el._hass = { ...el._hass, entities: withRows(el._hass.entities, DETAILS) };
+  el._render();
+  let saved;
+  el.addEventListener("config-changed", (e) => { saved = e.detail.config; });
+  el._rowsForm.dispatchEvent(new window.CustomEvent("value-changed", { detail: { value: { device_id: "dev1", stats_rows: ["parked", "outdoor", "inspection_days"] } } }));
+  assert.equal("stats_rows" in saved, false);
+  el._rowsForm.dispatchEvent(new window.CustomEvent("value-changed", { detail: { value: { device_id: "dev1", stats_rows: ["parked"] } } }));
+  assert.deepEqual(saved.stats_rows, ["parked"]);
+});
+
+test("the editor saves the two trip options and drops show_trips", async () => {
+  const el = editor({ config: { device_id: "dev1", show_trips: false } });
+  await settle();
+  assert.equal(el._form.data.show_trip_last, false);
+  assert.equal(el._form.data.show_trip_long, false);
+  let saved;
+  el.addEventListener("config-changed", (e) => { saved = e.detail.config; });
+  el._form.dispatchEvent(new window.CustomEvent("value-changed", { detail: { value: { ...el._form.data, show_trip_last: true } } }));
+  assert.equal(saved.show_trip_last, true);
+  assert.equal("show_trips" in saved, false);
+});
+
+function withRows(entities, list) {
+  const out = { ...entities };
+  for (const [id, tk] of list) out[id] = { entity_id: id, platform: "audiconnect", device_id: "dev1", translation_key: tk };
+  return out;
+}

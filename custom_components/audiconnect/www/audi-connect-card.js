@@ -10,6 +10,15 @@
 const CARD_VERSION = "1.0.0";
 const DOMAIN = "audiconnect";
 
+// The rows of the vehicle details, each with the entity key that supplies it. The id is also the text key of its label.
+const STAT_ROWS = {
+  fuel_range: "secondary_engine_range", tank: "tank_level", parked: "park_time", parking_brake: "parking_brake",
+  warning_lights: "warning_lights", security: "access_overall_status", outdoor: "outdoor_temperature",
+  inspection_days: "service_inspection_time", inspection_distance: "service_inspection_distance",
+  oil_change_days: "oil_change_time", oil_change_distance: "oil_change_distance", oil_level: "oil_level",
+  adblue: "service_adblue_distance", charge_type: "charging_type", max_current: "max_charge_current",
+};
+
 const TEXT = {
   en: {
     locked: "Locked", unlocked: "Unlocked", lock_unknown: "Lock state unknown", not_secured: "Not secured",
@@ -20,7 +29,7 @@ const TEXT = {
     last_trip: "Last trip", long_term: "Long term",
     distance: "Distance", speed: "Avg. speed", consumption: "Consumption", energy: "Energy",
     electric_range: "Electric range", inspection: "Inspection", inspection_days: "Inspection in", inspection_distance: "Inspection in (distance)", oil_change_days: "Oil change in", oil_change_distance: "Oil change in (distance)", parked: "Parked for",
-    vehicle: "Vehicle", parking_brake: "Parking brake", brake_on: "Engaged", brake_off: "Released", warning_lights: "Warning lights", warning_active: "Active", warning_none: "None", security: "Security status", fuel_range: "Fuel range", tank: "Tank", outdoor: "Outside temperature", oil_change: "Oil change", oil_level: "Oil level", adblue: "AdBlue range", charge_type: "Charging type", max_current: "Max. charging current",
+    vehicle: "Vehicle", parking_brake: "Parking brake", brake_on: "Engaged", brake_off: "Released", warning_lights: "Warning lights", warning_active: "Active", warning_none: "None", security: "Security status", secured: "Secure", unsecured: "Not secure", fuel_range: "Fuel range", tank: "Tank", outdoor: "Outside temperature", oil_change: "Oil change", oil_level: "Oil level", adblue: "AdBlue range", charge_type: "Charging type", max_current: "Max. charging current",
     climate: "Climate", climate_on: "Running", climate_off: "Off", mode: "Mode",
     heating: "Heating", cooling: "Cooling", ventilating: "Ventilating", running: "Running", remaining: "Time left",
     start: "Start", stop: "Stop",
@@ -39,7 +48,7 @@ const TEXT = {
     doors_unknown: "Doors: unknown", windows_unknown: "Windows: unknown",
     // editor
     e_device: "Vehicle", e_name: "Name", e_image: "Upload a photo (optional)", e_image_local: "…or pick one from the www folder", e_none: "none",
-    e_icon: "Icon instead of the Audi logo (optional)", e_logo: "Show Audi logo", e_trips: "Show trips", e_climate: "Show climate", e_stats: "Show vehicle details", e_seats_front: "Show front seat/zone buttons", e_seats_rear: "Show rear seat/zone buttons",
+    e_icon: "Icon instead of the Audi logo (optional)", e_logo: "Show Audi logo", e_trip_last: "Show last trip", e_trip_long: "Show long-term trip", e_stats_rows: "Vehicle details shown", e_climate: "Show climate", e_stats: "Show vehicle details", e_seats_front: "Show front seat/zone buttons", e_seats_rear: "Show rear seat/zone buttons",
   },
   de: {
     locked: "Verriegelt", unlocked: "Entriegelt", lock_unknown: "Schlosszustand unbekannt", not_secured: "Nicht gesichert",
@@ -50,7 +59,7 @@ const TEXT = {
     last_trip: "Letzte Fahrt", long_term: "Langzeit",
     distance: "Strecke", speed: "Ø Tempo", consumption: "Verbrauch", energy: "Energie",
     electric_range: "Elektrische Reichweite", inspection: "Inspektion", inspection_days: "Inspektion in", inspection_distance: "Inspektion in (Strecke)", oil_change_days: "Ölwechsel in", oil_change_distance: "Ölwechsel in (Strecke)", parked: "Geparkt seit",
-    vehicle: "Fahrzeug", parking_brake: "Parkbremse", brake_on: "Angezogen", brake_off: "Gelöst", warning_lights: "Warnleuchten", warning_active: "Aktiv", warning_none: "Keine", security: "Sicherheitsstatus", fuel_range: "Reichweite Kraftstoff", tank: "Tank", outdoor: "Außentemperatur", oil_change: "Ölwechsel", oil_level: "Ölstand", adblue: "AdBlue-Reichweite", charge_type: "Ladeart", max_current: "Max. Ladestrom",
+    vehicle: "Fahrzeug", parking_brake: "Parkbremse", brake_on: "Angezogen", brake_off: "Gelöst", warning_lights: "Warnleuchten", warning_active: "Aktiv", warning_none: "Keine", security: "Sicherheitsstatus", secured: "Gesichert", unsecured: "Nicht gesichert", fuel_range: "Reichweite Kraftstoff", tank: "Tank", outdoor: "Außentemperatur", oil_change: "Ölwechsel", oil_level: "Ölstand", adblue: "AdBlue-Reichweite", charge_type: "Ladeart", max_current: "Max. Ladestrom",
     climate: "Klimatisierung", climate_on: "Läuft", climate_off: "Aus", mode: "Modus",
     heating: "Heizt", cooling: "Kühlt", ventilating: "Lüftet", running: "Läuft", remaining: "Restlaufzeit",
     start: "Starten", stop: "Stoppen",
@@ -68,7 +77,7 @@ const TEXT = {
     a_start_climate: "Klima starten", a_stop_climate: "Klima stoppen", a_temp: "Temperatur setzen", a_target: "Ladeziel setzen", a_mode: "Modus setzen", a_toggle: "Umschalten",
     doors_unknown: "Türen: unbekannt", windows_unknown: "Fenster: unbekannt",
     e_device: "Fahrzeug", e_name: "Name", e_image: "Foto hochladen (optional)", e_image_local: "…oder eines aus dem www-Ordner wählen", e_none: "keines",
-    e_icon: "Icon statt Audi-Logo (optional)", e_logo: "Audi-Logo anzeigen", e_trips: "Fahrten anzeigen", e_climate: "Klimatisierung anzeigen", e_stats: "Fahrzeugdetails anzeigen", e_seats_front: "Vordere Sitz-/Zonen-Tasten anzeigen", e_seats_rear: "Hintere Sitz-/Zonen-Tasten anzeigen",
+    e_icon: "Icon statt Audi-Logo (optional)", e_logo: "Audi-Logo anzeigen", e_trip_last: "Letzte Fahrt anzeigen", e_trip_long: "Langzeit anzeigen", e_stats_rows: "Angezeigte Fahrzeugdetails", e_climate: "Klimatisierung anzeigen", e_stats: "Fahrzeugdetails anzeigen", e_seats_front: "Vordere Sitz-/Zonen-Tasten anzeigen", e_seats_rear: "Hintere Sitz-/Zonen-Tasten anzeigen",
   },
 };
 
@@ -636,7 +645,7 @@ class AudiConnectCard extends HTMLElement {
     parts.push(this._renderInfoRow());
     parts.push(this._renderIcons());
     parts.push(this._renderEnergy());
-    if (c.show_trips) parts.push(this._renderTrips());
+    parts.push(this._renderTrips());
     if (c.show_stats) parts.push(this._renderStats());
     if (c.show_climate && this._has("climatisation")) parts.push(this._renderClimate());
     if (this._ui.popup) parts.push(this._renderPopup());
@@ -828,6 +837,9 @@ class AudiConnectCard extends HTMLElement {
   }
 
   _renderTrips() {
+    const c = this._config;
+    const lastOn = c.show_trip_last ?? c.show_trips;
+    const longOn = c.show_trip_long ?? c.show_trips;
     const block = (id, title, icon, prefix) => {
       if (!this._has(`${prefix}_distance`)) return "";
       const f = (k, u) => this._fmt(`${prefix}_${k}`, u);
@@ -844,8 +856,8 @@ class AudiConnectCard extends HTMLElement {
           ${cell("mdi:lightning-bolt", "energy", "energy", "kWh")}
         </div></details>`;
     };
-    return block("trip-last", this._t("last_trip"), "mdi:history", "last_trip") +
-           block("trip-long", this._t("long_term"), "mdi:infinity", "trip_totals");
+    return (lastOn ? block("trip-last", this._t("last_trip"), "mdi:history", "last_trip") : "") +
+           (longOn ? block("trip-long", this._t("long_term"), "mdi:infinity", "trip_totals") : "");
   }
 
   _rounded(tk) {
@@ -857,8 +869,9 @@ class AudiConnectCard extends HTMLElement {
 
   _renderStats() {
     const rows = [];
-    const add = (icon, label, value, tk) => {
-      if (value) rows.push({ icon, label, value, id: this._id(tk) });
+    const shown = this._config.stats_rows;
+    const add = (id, icon, label, value, tk) => {
+      if (value && (!Array.isArray(shown) || shown.includes(id))) rows.push({ icon, label, value, id: this._id(tk) });
     };
     const known = (tk) => this._known(tk);
     const withDays = (tk) => {
@@ -867,27 +880,28 @@ class AudiConnectCard extends HTMLElement {
       return n !== undefined && (!unit || unit === "d") ? `${n} ${this._t("days")}` : this._fmt(tk);
     };
 
-    if (known("secondary_engine_range")) add("mdi:gas-station", this._t("fuel_range"), this._fmt("secondary_engine_range", "km"), "secondary_engine_range");
-    if (known("tank_level") && known("state_of_charge")) add("mdi:gauge", this._t("tank"), this._fmt("tank_level"), "tank_level");
-    if (known("park_time")) add("mdi:parking", this._t("parked"), this._since(this._s("park_time").state), "park_time");
-    if (this._has("parking_brake") && this._known("parking_brake")) add("mdi:car-brake-parking", this._t("parking_brake"), this._on("parking_brake") ? this._t("brake_on") : this._t("brake_off"), "parking_brake");
+    if (known("secondary_engine_range")) add("fuel_range", "mdi:gas-station", this._t("fuel_range"), this._fmt("secondary_engine_range", "km"), "secondary_engine_range");
+    if (known("tank_level") && known("state_of_charge")) add("tank", "mdi:gauge", this._t("tank"), this._fmt("tank_level"), "tank_level");
+    if (known("park_time")) add("parked", "mdi:parking", this._t("parked"), this._since(this._s("park_time").state), "park_time");
+    if (this._has("parking_brake") && this._known("parking_brake")) add("parking_brake", "mdi:car-brake-parking", this._t("parking_brake"), this._on("parking_brake") ? this._t("brake_on") : this._t("brake_off"), "parking_brake");
     if (this._has("warning_lights") && this._known("warning_lights")) {
       const count = this._num("warning_light_count");
-      add("mdi:car-light-alert", this._t("warning_lights"), this._on("warning_lights") ? this._t("warning_active") + (count ? ` · ${count}` : "") : this._t("warning_none"), "warning_lights");
+      add("warning_lights", "mdi:car-light-alert", this._t("warning_lights"), this._on("warning_lights") ? this._t("warning_active") + (count ? ` · ${count}` : "") : this._t("warning_none"), "warning_lights");
     }
     if (known("access_overall_status")) {
       const raw = this._fmt("access_overall_status");
-      add("mdi:shield-car", this._t("security"), raw.charAt(0).toUpperCase() + raw.slice(1), "access_overall_status");
+      const verdict = { safe: "secured", unsafe: "unsecured" }[raw.toLowerCase()];
+      add("security", "mdi:shield-car", this._t("security"), verdict ? this._t(verdict) : raw.charAt(0).toUpperCase() + raw.slice(1), "access_overall_status");
     }
-    if (known("outdoor_temperature")) add("mdi:thermometer", this._t("outdoor"), this._fmt("outdoor_temperature"), "outdoor_temperature");
-    if (known("service_inspection_time")) add("mdi:wrench-clock", this._t("inspection_days"), withDays("service_inspection_time"), "service_inspection_time");
-    if (known("service_inspection_distance")) add("mdi:wrench", this._t("inspection_distance"), this._fmt("service_inspection_distance", "km"), "service_inspection_distance");
-    if (known("oil_change_time")) add("mdi:oil", this._t("oil_change_days"), withDays("oil_change_time"), "oil_change_time");
-    if (known("oil_change_distance")) add("mdi:oil", this._t("oil_change_distance"), this._fmt("oil_change_distance", "km"), "oil_change_distance");
-    if (known("oil_level")) add("mdi:oil-level", this._t("oil_level"), this._fmt("oil_level"), "oil_level");
-    if (known("service_adblue_distance")) add("mdi:water-outline", this._t("adblue"), this._fmt("service_adblue_distance", "km"), "service_adblue_distance");
-    if (known("charging_type")) add("mdi:ev-plug-type2", this._t("charge_type"), this._fmt("charging_type"), "charging_type");
-    if (known("max_charge_current")) add("mdi:current-ac", this._t("max_current"), this._fmt("max_charge_current"), "max_charge_current");
+    if (known("outdoor_temperature")) add("outdoor", "mdi:thermometer", this._t("outdoor"), this._fmt("outdoor_temperature"), "outdoor_temperature");
+    if (known("service_inspection_time")) add("inspection_days", "mdi:wrench-clock", this._t("inspection_days"), withDays("service_inspection_time"), "service_inspection_time");
+    if (known("service_inspection_distance")) add("inspection_distance", "mdi:wrench", this._t("inspection_distance"), this._fmt("service_inspection_distance", "km"), "service_inspection_distance");
+    if (known("oil_change_time")) add("oil_change_days", "mdi:oil", this._t("oil_change_days"), withDays("oil_change_time"), "oil_change_time");
+    if (known("oil_change_distance")) add("oil_change_distance", "mdi:oil", this._t("oil_change_distance"), this._fmt("oil_change_distance", "km"), "oil_change_distance");
+    if (known("oil_level")) add("oil_level", "mdi:oil-level", this._t("oil_level"), this._fmt("oil_level"), "oil_level");
+    if (known("service_adblue_distance")) add("adblue", "mdi:water-outline", this._t("adblue"), this._fmt("service_adblue_distance", "km"), "service_adblue_distance");
+    if (known("charging_type")) add("charge_type", "mdi:ev-plug-type2", this._t("charge_type"), this._fmt("charging_type"), "charging_type");
+    if (known("max_charge_current")) add("max_current", "mdi:current-ac", this._t("max_current"), this._fmt("max_charge_current"), "max_charge_current");
     const canRefresh = !!this._id("refresh_vehicle_data");
     if (!rows.length && !canRefresh) return "";
 
@@ -1348,6 +1362,17 @@ class AudiConnectCardEditor extends HTMLElement {
     );
   }
 
+  // The detail rows the chosen vehicle (or any Audi Connect vehicle, before one is chosen) has an entity for.
+  _statRowsAvailable() {
+    const device = this._config?.device_id;
+    const keys = new Set(
+      Object.values(this._hass?.entities || {})
+        .filter((e) => e.platform === DOMAIN && (!device || e.device_id === device))
+        .map((e) => e.translation_key),
+    );
+    return Object.keys(STAT_ROWS).filter((id) => keys.has(STAT_ROWS[id]));
+  }
+
   _render() {
     if (!this._hass || !this._config) return;
     if (!this._form) {
@@ -1358,6 +1383,11 @@ class AudiConnectCardEditor extends HTMLElement {
           const config = Object.fromEntries(Object.entries(ev.detail.value).filter(([, v]) => v !== "" && v !== undefined));
           // Replaced by show_seats_front; the card still reads it, but a saved config does not keep it.
           delete config.show_seats;
+          // Replaced by show_trip_last and show_trip_long.
+          delete config.show_trips;
+          // Every row ticked is the same as not choosing, so rows a car gains later still show.
+          const avail = this._statRowsAvailable();
+          if (Array.isArray(config.stats_rows) && avail.every((id) => config.stats_rows.includes(id))) delete config.stats_rows;
           this.dispatchEvent(new CustomEvent("config-changed", { detail: { config }, bubbles: true, composed: true }));
         });
         return form;
@@ -1367,15 +1397,20 @@ class AudiConnectCardEditor extends HTMLElement {
       this._form = make();
       this._seatForm = make();
       this._restForm = make();
+      this._rowsForm = make();
+      this._rowsBox = document.createElement("div");
+      this._rowsBox.style.cssText = "margin-left:28px;padding-left:12px;border-left:2px solid var(--divider-color)";
+      this._rowsBox.appendChild(this._rowsForm);
       this._seatBox = document.createElement("div");
       this._seatBox.style.cssText = "margin-left:28px;padding-left:12px;border-left:2px solid var(--divider-color)";
       this._seatBox.appendChild(this._seatForm);
-      this._forms = [this._form, this._seatForm, this._restForm];
-      this.append(this._form, this._seatBox, this._restForm);
+      this._forms = [this._form, this._seatForm, this._restForm, this._rowsForm];
+      this.append(this._form, this._seatBox, this._restForm, this._rowsBox);
       for (const form of this._forms) form.hass = this._hass;
     }
     const data = {
-      show_logo: true, show_trips: true, show_climate: true, show_stats: true,
+      show_logo: true, show_trip_last: this._config.show_trips ?? true, show_trip_long: this._config.show_trips ?? true,
+      show_climate: true, show_stats: true, stats_rows: this._statRowsAvailable(),
       show_seats_front: this._config.show_seats ?? false, show_seats_rear: false, image_local: "", ...this._config,
     };
     for (const form of this._forms) form.data = data;
@@ -1390,7 +1425,8 @@ class AudiConnectCardEditor extends HTMLElement {
       { name: "image_local", selector: { select: { options, mode: "dropdown" } } },
       { name: "icon", selector: { icon: {} } },
       { name: "show_logo", selector: { boolean: {} } },
-      { name: "show_trips", selector: { boolean: {} } },
+      { name: "show_trip_last", selector: { boolean: {} } },
+      { name: "show_trip_long", selector: { boolean: {} } },
       { name: "show_climate", selector: { boolean: {} } },
     ];
     // A sub-item of the climate option: only offered when the car has such zones, and switched off with it.
@@ -1402,9 +1438,16 @@ class AudiConnectCardEditor extends HTMLElement {
     this._seatBox.hidden = !this._seatForm.schema.length;
     this._seatForm.disabled = data.show_climate === false;
     this._restForm.schema = [{ name: "show_stats", selector: { boolean: {} } }];
+    // A sub-item of the details option: one entry per row the car reports.
+    const avail = this._statRowsAvailable();
+    this._rowsForm.schema = avail.length
+      ? [{ name: "stats_rows", selector: { select: { multiple: true, mode: "list", options: avail.map((id) => ({ value: id, label: this._t(id) })) } } }]
+      : [];
+    this._rowsBox.hidden = !avail.length;
+    this._rowsForm.disabled = data.show_stats === false;
     const labels = {
       device_id: "e_device", name: "e_name", image: "e_image", image_local: "e_image_local",
-      icon: "e_icon", show_logo: "e_logo", show_trips: "e_trips", show_climate: "e_climate", show_stats: "e_stats", show_seats_front: "e_seats_front", show_seats_rear: "e_seats_rear",
+      icon: "e_icon", show_logo: "e_logo", show_trip_last: "e_trip_last", show_trip_long: "e_trip_long", stats_rows: "e_stats_rows", show_climate: "e_climate", show_stats: "e_stats", show_seats_front: "e_seats_front", show_seats_rear: "e_seats_rear",
     };
     for (const form of this._forms) form.computeLabel = (sc) => this._t(labels[sc.name]);
   }
