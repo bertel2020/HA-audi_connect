@@ -4,7 +4,7 @@
 
 Versionen bis `v2.5.3b1` stehen auf der [Release-Seite](https://github.com/bertel2020/HA-audi_connect/releases). Diese Datei beginnt mit dem, was danach kam.
 
-## 3.0.0 – 2026-11-22
+## 1.0.0 – 2026-11-22
 
 **Neu**
 - **Karte:** Die Integration bringt eine eigene Dashboard-Karte (`audi-connect-card`) mit: Foto oder Symbol, Status, Ladeband, Fahrten, Fahrzeugdetails und eine einklappbare Klimatisierung. Ein Tipp auf den Titel öffnet die Integration, langes Drücken aktualisiert die Fahrzeugdaten.
