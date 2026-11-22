@@ -78,7 +78,10 @@ def _trip_view(block: Any) -> dict[str, Any]:
         return {"held": False}
     end = block.get("tripEndTimestamp")
     readable = False
-    if isinstance(end, str):
+    if isinstance(end, datetime):
+        # The reply is parsed already, so a real car hands over a datetime.
+        readable = end.tzinfo is not None
+    elif isinstance(end, str):
         try:
             readable = datetime.fromisoformat(end).tzinfo is not None
         except ValueError:
