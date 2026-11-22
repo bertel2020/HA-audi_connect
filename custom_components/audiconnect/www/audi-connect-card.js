@@ -515,9 +515,9 @@ class AudiConnectCard extends HTMLElement {
     const open = this._on(DOOR_KEYS[k]);
     let locked = true;
     let unk = false;
-    if ((k === "trunk" || k === "hood") && this._has(`${k}_unlocked`)) {
-      unk = !this._known(`${k}_unlocked`);
-      locked = !this._on(`${k}_unlocked`);
+    if (k === "trunk" && this._has("trunk_unlocked")) {
+      unk = !this._known("trunk_unlocked");
+      locked = !this._on("trunk_unlocked");
     } else if (k !== "hood") {
       const ls = this._lockState();
       unk = ls === "unknown";
@@ -990,8 +990,6 @@ class AudiConnectCard extends HTMLElement {
     const lead = (y, side) => `<path d="M${side === "r" ? 203 : mx(203)} ${y}H${side === "r" ? 217 : mx(217)}" stroke="var(--c-line)" stroke-width="1.2" stroke-linecap="round"/>`;
     const mirror = `<path d="${C.MIRROR}" fill="url(#acbody)" stroke="var(--c-bodyline)" stroke-width=".8"/>`;
     const hood = this._doorState("hood");
-    const hoodLock = this._has("hood_unlocked");
-    const hoodKind = kindOf("hood");
     const trunk = this._doorState("trunk");
     const trunkOpen = trunk.open;
     const trunkKind = kindOf("trunk");
@@ -1016,7 +1014,7 @@ class AudiConnectCard extends HTMLElement {
       s += `<g><path d="${C.HOOD}" fill="var(--c-cavity)"/><rect x="128" y="34" width="44" height="22" rx="5" fill="var(--c-engine)"/>` +
         `<g transform="translate(0 90) scale(1 .42) translate(0 -90)">${pn(C.HOOD, "open")}</g></g>`;
     } else {
-      s += `<g>${hoodLock ? pn(C.HOOD, hoodKind) : `<path d="${C.HOOD}" fill="url(#acbody)" stroke="var(--c-line)" stroke-width=".8"/>`}</g>`;
+      s += `<g><path d="${C.HOOD}" fill="url(#acbody)" stroke="var(--c-line)" stroke-width=".8"/></g>`;
     }
     for (const tf of ["", MIR]) {
       s += `<g${tf}><path d="${C.HEAD}" fill="var(--c-head)" stroke="var(--c-line)" stroke-width=".6"/>` +
@@ -1090,7 +1088,6 @@ class AudiConnectCard extends HTMLElement {
     if (doorsTab) {
       s += trunkOpen ? badge(150, 337, "open", "open") : badge(150, 337, trunkKind, trunkKind === "lk" ? "lock" : trunkKind === "unk" ? "help" : "unlock");
       if (hood.open) s += badge(150, 52, "open", "open");
-      else if (hoodLock) s += badge(150, 52, hoodKind, hoodKind === "lk" ? "lock" : hoodKind === "unk" ? "help" : "unlock");
     }
     return s + badges + "</svg>";
   }

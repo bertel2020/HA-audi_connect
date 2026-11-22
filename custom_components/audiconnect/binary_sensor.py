@@ -105,12 +105,6 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[AudiBinarySensorEntityDescription, ...] = (
         device_class=BinarySensorDeviceClass.DOOR,
     ),
     AudiBinarySensorEntityDescription(
-        key="hood_unlocked",
-        attr_key="hood_unlocked",
-        translation_key="hood_unlocked",
-        device_class=BinarySensorDeviceClass.LOCK,
-    ),
-    AudiBinarySensorEntityDescription(
         key="left_front_door_open",
         attr_key="left_front_door_open",
         translation_key="left_front_door_open",

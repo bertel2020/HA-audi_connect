@@ -687,9 +687,6 @@
       "hood_open": {
         "name": "Capot"
       },
-      "hood_unlocked": {
-        "name": "Verrouillage du capot"
-      },
       "left_front_door_open": {
         "name": "Porte avant gauche"
       },

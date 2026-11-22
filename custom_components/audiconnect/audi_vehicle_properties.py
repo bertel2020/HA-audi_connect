@@ -229,7 +229,6 @@ class AudiVehicleProperties:
     trunk_unlocked = _Field(_FIELDS, "LOCK_STATE_TRUNK_LID", _truthy, _is_not_2)
     trunk_open = _Field(_FIELDS, "OPEN_STATE_TRUNK_LID", _truthy, _is_not_3)
     hood_open = _Field(_FIELDS, "OPEN_STATE_HOOD", _truthy, _is_not_3)
-    hood_unlocked = _Field(_FIELDS, "LOCK_STATE_HOOD", _truthy, _is_not_2)
     charging_state = _Field(_STATE, "chargingState", _truthy)
     charging_mode = _Field(_STATE, "chargeMode", _is_known)
     preferred_charge_mode = _Field(
