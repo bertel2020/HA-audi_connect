@@ -23,6 +23,9 @@ from .audi_entity import AudiEntity, entity_unique_id, should_create_entity
 from .const import CLIMATISATION_NO_READING_STATES, CLIMATISATION_OFF_STATES
 from .coordinator import AudiDataUpdateCoordinator
 
+# One command to the car at a time: it answers slowly and Audi limits the requests.
+PARALLEL_UPDATES = 1
+
 _ATTR_KEY = "climatisation_state"
 # services.yaml bounds the temp_c field the same way.
 _MIN_TEMP_C = 15

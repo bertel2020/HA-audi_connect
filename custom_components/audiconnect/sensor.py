@@ -37,6 +37,10 @@ from .freshness import usable_vehicle_timestamp, vehicle_age_minutes, vehicle_fr
 from .util import parse_datetime
 
 
+# Read-only: the coordinator fetches, so the entities never need to queue.
+PARALLEL_UPDATES = 0
+
+
 @dataclass(frozen=True, kw_only=True)
 class AudiSensorEntityDescription(SensorEntityDescription):
     """Describes an Audi sensor entity."""

@@ -28,6 +28,9 @@ from .audi_entity import (
 from .coordinator import AudiDataUpdateCoordinator
 
 # The Cariad API rejects anything outside 20-100 and only accepts 5% steps.
+# One command to the car at a time: it answers slowly and Audi limits the requests.
+PARALLEL_UPDATES = 1
+
 _SOC_MIN = 20
 _SOC_MAX = 100
 _SOC_STEP = 5

@@ -18,6 +18,9 @@ from .coordinator import AudiDataUpdateCoordinator
 # Lock uses attr_key="lock" which maps to the lock_supported property on the
 # vehicle.  State is derived from doors_trunk_status (matching the legacy
 # Lock instrument exactly).
+# One command to the car at a time: it answers slowly and Audi limits the requests.
+PARALLEL_UPDATES = 1
+
 _LOCK_ATTR_KEY = "lock"
 _LOGGER = logging.getLogger(__name__)
 

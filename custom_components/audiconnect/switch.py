@@ -27,6 +27,10 @@ from .const import CLIMATISATION_NO_READING_STATES, CLIMATISATION_OFF_STATES
 from .coordinator import AudiDataUpdateCoordinator
 
 
+# One command to the car at a time: it answers slowly and Audi limits the requests.
+PARALLEL_UPDATES = 1
+
+
 @dataclass(frozen=True, kw_only=True)
 class AudiSwitchEntityDescription(SwitchEntityDescription):
     """Describes an Audi switch entity."""

@@ -20,6 +20,10 @@ from .audi_entity import AudiEntity, entity_unique_id, should_create_entity
 from .coordinator import AudiDataUpdateCoordinator
 
 
+# Read-only: the coordinator fetches, so the entities never need to queue.
+PARALLEL_UPDATES = 0
+
+
 @dataclass(frozen=True, kw_only=True)
 class AudiBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Describes an Audi binary sensor entity."""

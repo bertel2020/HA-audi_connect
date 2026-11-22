@@ -15,6 +15,9 @@ from .audi_entity import AudiEntity, entity_unique_id, should_create_entity
 from .coordinator import AudiDataUpdateCoordinator
 from .freshness import vehicle_age_minutes, vehicle_freshness
 
+# Read-only: the coordinator fetches, so the entities never need to queue.
+PARALLEL_UPDATES = 0
+
 _POSITION_ATTR_KEY = "position"
 
 

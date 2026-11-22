@@ -22,6 +22,10 @@ from .vehicle_controls import engine_start_stop_supported
 _engine_controls_supported = engine_start_stop_supported
 
 
+# One command to the car at a time: it answers slowly and Audi limits the requests.
+PARALLEL_UPDATES = 1
+
+
 @dataclass(frozen=True, kw_only=True)
 class AudiButtonEntityDescription(ButtonEntityDescription):
     """Describes an Audi button entity."""

@@ -19,6 +19,9 @@ from .audi_entity import (
 )
 from .coordinator import AudiDataUpdateCoordinator
 
+# One command to the car at a time: it answers slowly and Audi limits the requests.
+PARALLEL_UPDATES = 1
+
 _ATTR_KEY = "preferred_charge_mode"
 
 # What set_charge_mode accepts. The car also reports availableChargeModes, but
