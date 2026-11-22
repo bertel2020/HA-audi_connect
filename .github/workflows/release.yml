@@ -18,7 +18,7 @@ jobs:
   build:
     needs: test
     # Skip the version commit of an earlier release.
-    if: ${{ !startsWith(github.event.head_commit.message, 'chore: bump') }}
+    if: "${{ !startsWith(github.event.head_commit.message, 'chore: bump') }}"
     runs-on: ubuntu-latest
     # Pushing the version commit and tag, and creating the release, need write
     # access; the repository default is read-only.
