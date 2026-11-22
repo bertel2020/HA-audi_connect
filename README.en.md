@@ -84,6 +84,8 @@ Find configuration options under **Settings ➤ Devices & Services ➤ Integrati
 | `Excluded VINs`                     | `str`  | –       | Comma-separated VIN list to exclude from setup and updates.                                                                                                                                                                                                                                                         |
 | `Quick start climate using car-stored settings` | `bool` | `False` | When the climate entity is switched on, send a bodyless CARIAD start request that uses the settings stored in the car. The temperature shown in Home Assistant is not sent. Optional workaround for newer cars. |
 | `Enable experimental vehicle controls` | `bool` | `False` | Shows the window-heating start/stop buttons and the plug release switch. Verify real operation; HTTP 200 is not proof the vehicle acted. |
+| `Log raw API responses (debug)` | `bool` | `False` | For troubleshooting only: writes each vehicle reply from Audi whole into the debug log. The VIN, positions, user ID, PINs and tokens are masked, and sign-in and token routes are never logged. Needs the integration's debug logging to be on (see [Diagnostics](#diagnostics)). Check a log before you share it. |
+| `Also log VIN and position unredacted` | `bool` | `False` | Only with the option above: leaves the VIN, the position and the user ID in the logged replies. |
 
 _Note: The integration will reload automatically upon clicking `Submit`, but a Home Assistant restart is suggested._
 
@@ -431,7 +433,13 @@ The following service actions are for troubleshooting. Use them only when invest
 - `audiconnect.probe_api_paths` checks eight known read-only endpoints (`extended` adds four experimental ones). The result appears in the next **Download diagnostics** export. Running it again with a different mode within 15 minutes is rejected.
 - `audiconnect.test_climatisation_write` is experimental. It writes one climatisation setting with a chosen request body variant (`app_dto` is the default; `app_full` sends all twelve fields of the app's request) and **changes the setting stored in the car**.
 
+To see what Audi really sends, switch on `Log raw API responses (debug)` in the **options**, enable **debug logging** under **Settings ➤ Devices & Services ➤ Audi Connect**, trigger **Refresh vehicle data** and read the log (lines `Raw API response from …`). Then switch both off again. The VIN, coordinates, user ID, PINs and tokens are masked; with `Also log VIN and position unredacted` the VIN, the position and the user ID stay in. Sign-in and token replies never reach the log, unlike the `DEBUG_VERBOSE` switch in the code, which also prints tokens.
+
 The diagnostic sensors `Vehicle data freshness`, `Vehicle data age`, `Cloud last successful poll` and `API Requests Remaining` show how current the data is. For detailed logs set `custom_components.audiconnect: debug` under `logger:` in `configuration.yaml`.
+
+### Repair hints
+
+After every successful poll the integration checks the end dates of the online services the car lists. When one has ended, or one ends within 30 days, a hint appears under **Settings ➤ System ➤ Repairs** with the services concerned and the date (at most one per car, "ended" wins over "ends soon"). The hint goes away by itself once the dates are far off again, and with the entry when you remove the integration. Data and controls that depend on an ended service can stop working; renew it in the myAudi app or at your Audi dealer. The VIN is in neither the hint nor its identifier.
 
 ## Dashboard Card
 
@@ -459,10 +467,12 @@ What it shows:
 - Tap the title or the photo to open the integration; hold it to refresh the vehicle data.
 - Position, mileage and how old the data is, then one row of status icons for lock, doors, windows, plug, lights and warnings. When no door or window sensor reports a value, it says "unknown" instead of "closed". Tapping doors or windows opens a top view with every door and window; the lock button in that pop-up locks or unlocks after a confirmation.
 - The state of charge as a bar, with the charge target as a marker (and a slider to change it). While charging the bar is animated and a band shows the power, the range gained per hour and when it will be done (with the day, for example "done tomorrow", when that is after midnight). A plugged-in car that is waiting, a reached charge target or a charging error is shown as a short note below the bar.
-- Last trip and long-term trip, each collapsed until you open it.
-- The Vehicle section, collapsed until you open it: how long the car has been parked, parking brake, warning lights, security status, outside temperature, inspection and oil change (days and distance), charging type and maximum charge current, as far as the car reports them. The refresh-vehicle-data button is there too.
+- Last trip and long-term trip, each collapsed until you open it. The last trip's row says how long ago it was ("10 h ago") when the car reports the time (sensor `Last trip ended`).
+- The Vehicle section, collapsed until you open it: how long the car has been parked, parking brake, warning lights, security status, outside temperature, inspection and oil change (days and distance), charging type and maximum charge current, as far as the car reports them. The refresh-vehicle-data button is there too. Which rows appear is chosen in the card editor under **Vehicle details shown** (`stats_rows`); only what the car reports is offered. With no choice, or with every row ticked, all of them appear, including rows a car gains later.
 - Climatisation with mode, temperature, start and stop. The zone buttons (seat heating) are hidden by default, because it is not confirmed what the zones control on a given car. In the card editor the front buttons (front left and right) and the rear buttons can be turned on separately: **Show front seat/zone buttons** and **Show rear seat/zone buttons**. Both are indented as sub-items under **Show climate**, only appear when the car reports those zones, and are greyed out while the climate section is hidden. The earlier option `show_seats` still works and means the front buttons.
 - When an action fails (for example because Audi does not answer), a red note names the action (for example "Start climate failed") and shows Home Assistant's message at the top of the card (inside the doors popup while that is open) for a few seconds. Home Assistant then shows no second message.
+
+The card editor also switches the Audi logo, trips, climate and the vehicle details on and off. **Show last trip** (`show_trip_last`) and **Show long-term trip** (`show_trip_long`) are separate switches; the older option `show_trips` still switches both.
 
 Entities are found through the vehicle's device and each entity's translation key, so they are picked up whatever you named them. Parts the car does not have are left out.
 

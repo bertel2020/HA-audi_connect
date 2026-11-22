@@ -17,6 +17,8 @@ Versionen bis `v2.5.3b1` stehen auf der [Release-Seite](https://github.com/berte
 - **Bedienung:** Hupen-Taste (standardmäßig aus, getrennt vom stillen Blinken). Dienste zum Anlegen, Löschen und Ein-/Ausschalten von Klimatisierungs-Timern.
 - **Übersetzungen:** Entitätsnamen auf Englisch und Deutsch, dazu vollständige Übersetzungen für fi, fr, nl, nb, pt und pt-BR. Entitäts-IDs entstehen aus den englischen Namen, in welcher Sprache Home Assistant auch läuft.
 - **Fehlersuche:** Zwei Optionen, beide standardmäßig aus: Die Rohantworten des Autos ins Debug-Log schreiben (FIN, Positionen, Benutzer-ID, PINs und Tokens maskiert) und optional FIN und Position ungeschwärzt lassen. Anmelde- und Token-Routen werden nie geloggt.
+- **Reparatur-Hinweise:** Meldet das Auto Online-Dienste als beendet oder endet einer innerhalb von 30 Tagen, erscheint unter **Reparaturen** ein Hinweis mit den Diensten und dem Datum. Er verschwindet von selbst.
+- **Fehlermeldungen:** Die Meldungen bei fehlgeschlagenen Befehlen, Dienstaufrufen und der Anmeldung sind übersetzt (8 Sprachen).
 - **Diagnose:** Sie listet alle Capability-IDs und die Supports-Flags des Autos, benennt die Routen für Klimatisierung, Laden, Aufwecken, Hupen und Timer und sagt, welche Fahrtwerte vorliegen. `probe_api` und lesende Proben bekannter Routen (BFF, GraphQL, `bs/`, Fahrten).
 
 **Geändert**
@@ -24,6 +26,7 @@ Versionen bis `v2.5.3b1` stehen auf der [Release-Seite](https://github.com/berte
 - **Aufwecken:** Die Taste ist standardmäßig aus. Ein Aufwecken, das das Auto nicht ausführt, ist eine Warnung und kein Fehler.
 - **Optionen:** Das Abfrageintervall wird erklärt. Entitäten sind nach Nutzung einsortiert, Verbindungsdetails in der Diagnose, der Kilometerstand in der Hauptansicht. Der Fahrzeugtyp gehört zum Gerätemodell und ist kein Sensor mehr.
 - **Sensoren nur bei Bedarf:** Konnektivität, Aktivität, AC-Strombegrenzung und ein weiterer Motor entstehen nur bei Autos, die sie melden. Die Händler- und Service-Sensoren erscheinen nur, wenn es etwas zu zeigen gibt.
+- **Befehle:** Befehle ans Auto (Schalter, Tasten, Schloss, Klima, Zahlen, Auswahlen) laufen nacheinander statt gleichzeitig, weil Audi die Anfragen begrenzt.
 - **Neuanmeldung:** Sie lehnt ein anderes myAudi-Konto ab als das, mit dem der Eintrag eingerichtet wurde.
 
 **Korrigiert**

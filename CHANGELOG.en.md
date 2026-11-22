@@ -17,6 +17,8 @@ Versions up to `v2.5.3b1` are on the [releases page](https://github.com/bertel20
 - **Controls:** A horn button (off by default, apart from the silent flash). Services to create, delete and switch climatisation timers on or off.
 - **Translations:** Entity names in English and German, plus complete fi, fr, nl, nb, pt and pt-BR translations. Entity IDs come from the English names, whatever language Home Assistant uses.
 - **Troubleshooting:** Two options, both off by default: write the car's raw replies to the debug log (VIN, positions, user ID, PINs and tokens masked), and optionally leave the VIN and the position in. Sign-in and token routes are never logged.
+- **Repair hints:** When the car reports online services as ended, or one ends within 30 days, a hint under **Repairs** names the services and the date. It goes away by itself.
+- **Error messages:** The messages for failed commands, service calls and the sign-in are translated (8 languages).
 - **Diagnostics:** They list every capability ID and the car's supports flags, name the climatisation, charging, wake-up, honk and timer routes, and say which trip figures are held. `probe_api` and read-only probes of known routes (BFF, GraphQL, `bs/`, trips).
 
 **Changed**
@@ -24,6 +26,7 @@ Versions up to `v2.5.3b1` are on the [releases page](https://github.com/bertel20
 - **Wake-up:** The button is off by default. A wake-up the car does not carry out is a warning, not an error.
 - **Options:** The scan interval is explained. Entities are filed by use, with connection details in diagnostics and the odometer in the main view. The car type is part of the device model and no longer a sensor.
 - **Sensors only when needed:** Connectivity, activity, the AC current limit and a further engine are only created for cars that report them. The dealer and service sensors only appear when there is something to show.
+- **Commands:** Commands to the car (switches, buttons, lock, climate, numbers, selects) now run one after the other instead of at once, because Audi limits the requests.
 - **Reauthentication:** It refuses a different myAudi account than the one the entry was set up with.
 
 **Fixed**
