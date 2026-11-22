@@ -582,19 +582,49 @@ test("empty choices are left out of the saved config", async () => {
   assert.deepEqual(saved, { device_id: "dev1", show_logo: false });
 });
 
-test("the editor offers the seat option only when the car has zone switches", async () => {
+test("the seat option is an indented sub-item under 'show climate'", async () => {
   const el = editor();
   await settle();
-  assert.ok(el._form.schema.some((f) => f.name === "show_seats"));
+  assert.ok(el._seatForm.schema.some((f) => f.name === "show_seats"));
+  assert.equal(el._seatBox.hidden, false);
   assert.equal(el._form.data.show_seats, false);
-  assert.match(el._form.computeLabel({ name: "show_seats" }), /seat\/zone/);
+  assert.match(el._seatForm.computeLabel({ name: "show_seats" }), /seat\/zone/);
+  // Order: the main form (ending with show climate), then the indented box, then the rest.
+  const order = [...el.children];
+  assert.deepEqual(order, [el._form, el._seatBox, el._restForm]);
+  assert.equal(el._form.schema.at(-1).name, "show_climate");
+  assert.equal(el._restForm.schema[0].name, "show_stats");
+  assert.match(el._seatBox.style.marginLeft, /28px/);
+  assert.ok(el._seatBox.contains(el._seatForm));
+});
 
+test("the seat option is switched off together with the climate option", async () => {
+  const el = editor({ config: { device_id: "dev1", show_climate: false } });
+  await settle();
+  assert.equal(el._seatForm.disabled, true);
+  const on = editor({ config: { device_id: "dev1", show_climate: true } });
+  await settle();
+  assert.equal(on._seatForm.disabled, false);
+});
+
+test("the seat option is not offered when the car has no zone switches", async () => {
   const none = window.document.createElement("audi-connect-card-editor");
   window.document.body.appendChild(none);
   none.setConfig({ device_id: "dev1" });
   none.hass = { ...build({}, { skip: ["switch.zfl", "switch.zfr"] }), callWS: async () => [] };
   await settle();
-  assert.ok(!none._form.schema.some((f) => f.name === "show_seats"));
+  assert.equal(none._seatBox.hidden, true);
+});
+
+test("a change in the seat form keeps the rest of the config", async () => {
+  const el = editor({ config: { device_id: "dev1", name: "Mine" } });
+  await settle();
+  let saved;
+  el.addEventListener("config-changed", (e) => { saved = e.detail.config; });
+  el._seatForm.dispatchEvent(new window.CustomEvent("value-changed", { detail: { value: { ...el._seatForm.data, show_seats: true } } }));
+  assert.equal(saved.show_seats, true);
+  assert.equal(saved.device_id, "dev1");
+  assert.equal(saved.name, "Mine");
 });
 
 test("the editor is labelled in the user's language", async () => {

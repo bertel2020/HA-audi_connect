@@ -1313,7 +1313,7 @@ class AudiConnectCardEditor extends HTMLElement {
   set hass(hass) {
     const first = !this._hass;
     this._hass = hass;
-    if (this._form) this._form.hass = hass;
+    for (const form of this._forms || []) form.hass = hass;
     if (first) this._loadImages();
     this._render();
   }
@@ -1344,16 +1344,29 @@ class AudiConnectCardEditor extends HTMLElement {
   _render() {
     if (!this._hass || !this._config) return;
     if (!this._form) {
-      this._form = document.createElement("ha-form");
-      this._form.addEventListener("value-changed", (ev) => {
-        // An empty choice means "not set", so it is left out of the config.
-        const config = Object.fromEntries(Object.entries(ev.detail.value).filter(([, v]) => v !== "" && v !== undefined));
-        this.dispatchEvent(new CustomEvent("config-changed", { detail: { config }, bubbles: true, composed: true }));
-      });
-      this.appendChild(this._form);
+      const make = () => {
+        const form = document.createElement("ha-form");
+        form.addEventListener("value-changed", (ev) => {
+          // An empty choice means "not set", so it is left out of the config.
+          const config = Object.fromEntries(Object.entries(ev.detail.value).filter(([, v]) => v !== "" && v !== undefined));
+          this.dispatchEvent(new CustomEvent("config-changed", { detail: { config }, bubbles: true, composed: true }));
+        });
+        return form;
+      };
+      // Three forms in a row, so the seat option can sit indented under "show climate" as its sub-item.
+      // Each one is given the whole config, and ha-form returns the whole config with its own change.
+      this._form = make();
+      this._seatForm = make();
+      this._restForm = make();
+      this._seatBox = document.createElement("div");
+      this._seatBox.style.cssText = "margin-left:28px;padding-left:12px;border-left:2px solid var(--divider-color)";
+      this._seatBox.appendChild(this._seatForm);
+      this._forms = [this._form, this._seatForm, this._restForm];
+      this.append(this._form, this._seatBox, this._restForm);
+      for (const form of this._forms) form.hass = this._hass;
     }
-    this._form.hass = this._hass;
-    this._form.data = { show_logo: true, show_trips: true, show_climate: true, show_stats: true, show_seats: false, image_local: "", ...this._config };
+    const data = { show_logo: true, show_trips: true, show_climate: true, show_stats: true, show_seats: false, image_local: "", ...this._config };
+    for (const form of this._forms) form.data = data;
     const options = [{ value: "", label: this._t("e_none") }, ...(this._images || []).map((i) => ({ value: i.path, label: i.name }))];
     // A picture that is no longer in the folder must stay selectable, or the editor would drop it.
     const current = this._config.image_local;
@@ -1367,15 +1380,18 @@ class AudiConnectCardEditor extends HTMLElement {
       { name: "show_logo", selector: { boolean: {} } },
       { name: "show_trips", selector: { boolean: {} } },
       { name: "show_climate", selector: { boolean: {} } },
-      { name: "show_stats", selector: { boolean: {} } },
-      // Only offered when the car has such zones; hidden by default because what they heat is not confirmed.
-      ...(this._hasSeatZones() ? [{ name: "show_seats", selector: { boolean: {} } }] : []),
     ];
+    // A sub-item of the climate option: only offered when the car has such zones, and switched off with it.
+    // Hidden by default on the card because what the zones heat is not confirmed.
+    this._seatForm.schema = [{ name: "show_seats", selector: { boolean: {} } }];
+    this._seatBox.hidden = !this._hasSeatZones();
+    this._seatForm.disabled = data.show_climate === false;
+    this._restForm.schema = [{ name: "show_stats", selector: { boolean: {} } }];
     const labels = {
       device_id: "e_device", name: "e_name", image: "e_image", image_local: "e_image_local",
       icon: "e_icon", show_logo: "e_logo", show_trips: "e_trips", show_climate: "e_climate", show_stats: "e_stats", show_seats: "e_seats",
     };
-    this._form.computeLabel = (s) => this._t(labels[s.name]);
+    for (const form of this._forms) form.computeLabel = (sc) => this._t(labels[sc.name]);
   }
 }
 
