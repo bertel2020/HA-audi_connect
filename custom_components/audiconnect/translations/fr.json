@@ -87,7 +87,9 @@
           "update_sleep": "Délai d'actualisation du cloud",
           "scan_interval": "Intervalle de mises à jour",
           "filter_vins": "VIN exclus",
-          "experimental_commands": "Activer les commandes expérimentales du véhicule"
+          "experimental_commands": "Activer les commandes expérimentales du véhicule",
+          "log_raw_responses": "Journaliser les réponses brutes de l'API (debug)",
+          "log_raw_unredacted": "Journaliser VIN et position sans masquage"
         },
         "title": "Options Audi Connect",
         "data_description": {
@@ -96,7 +98,9 @@
           "update_sleep": "Secondes d'attente après une action avant d'actualiser les données du cloud. Un délai plus long laisse plus de temps au véhicule pour transmettre son nouvel état au cloud.",
           "scan_interval": "Minutes entre les mises à jour du cloud. Au moins 15, car Audi limite le nombre de requêtes par jour. Le véhicule signale surtout les événements : un intervalle plus long (par exemple 30) économise des requêtes sans grande perte. L'enregistrement recharge l'intégration.",
           "filter_vins": "Liste de VIN séparés par des virgules à exclure de la configuration et des mises à jour.",
-          "experimental_commands": "Affiche des actions CARIAD supplémentaires de chauffage des vitres, déclenchées par l'utilisateur, ainsi que le commutateur de déverrouillage de la prise de charge. Désactivé par défaut. Vérifiez le fonctionnement réel ; un HTTP 200 ne prouve pas que le véhicule a agi."
+          "experimental_commands": "Affiche des actions CARIAD supplémentaires de chauffage des vitres, déclenchées par l'utilisateur, ainsi que le commutateur de déverrouillage de la prise de charge. Désactivé par défaut. Vérifiez le fonctionnement réel ; un HTTP 200 ne prouve pas que le véhicule a agi.",
+          "log_raw_responses": "Uniquement pour le dépannage. Écrit chaque réponse d'Audi sur le véhicule en entier dans le journal de Home Assistant (niveau debug : la journalisation debug de l'intégration doit être activée). Les jetons, les codes PIN et la connexion ne sont jamais journalisés ; le VIN et la position sont masqués. Désactivé par défaut ; vérifiez un journal avant de le partager.",
+          "log_raw_unredacted": "Uniquement avec l'option ci-dessus : ne pas masquer le VIN et la position dans les réponses journalisées."
         }
       }
     }

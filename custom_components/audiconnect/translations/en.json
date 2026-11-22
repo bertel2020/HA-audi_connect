@@ -87,7 +87,9 @@
           "update_sleep": "Cloud Refresh Delay",
           "scan_interval": "Scan Interval",
           "filter_vins": "Excluded VINs",
-          "experimental_commands": "Enable experimental vehicle controls"
+          "experimental_commands": "Enable experimental vehicle controls",
+          "log_raw_responses": "Log raw API responses (debug)",
+          "log_raw_unredacted": "Also log VIN and position unredacted"
         },
         "title": "Audi Connect Options",
         "data_description": {
@@ -96,7 +98,9 @@
           "update_sleep": "Seconds to wait after a service action before refreshing cloud data. A longer delay gives the vehicle more time to report its updated state to the cloud.",
           "scan_interval": "Minutes between cloud polling updates. At least 15, because Audi limits the requests per day. The car mostly reports when something happens, so a longer interval (for example 30) saves requests and loses little. Saving reloads the integration.",
           "filter_vins": "Comma-separated VIN list to exclude from setup and updates.",
-          "experimental_commands": "Show additional user-triggered CARIAD window heating actions and the charging plug release switch. Off by default. Verify real operation; HTTP 200 is not proof the vehicle acted."
+          "experimental_commands": "Show additional user-triggered CARIAD window heating actions and the charging plug release switch. Off by default. Verify real operation; HTTP 200 is not proof the vehicle acted.",
+          "log_raw_responses": "For troubleshooting only. Writes each vehicle reply from Audi whole into the Home Assistant log (debug level, so debug logging must be on for this integration). Tokens, PINs and the sign-in are never logged; the VIN and the position are masked. Off by default; check a log before you share it.",
+          "log_raw_unredacted": "Only with the option above: do not mask the VIN and the position in the logged replies."
         }
       }
     }

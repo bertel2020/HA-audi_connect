@@ -34,6 +34,8 @@ from .const import (
     AUTH0_REDIRECT_URI,
     CONF_API_LEVEL,
     CONF_FILTER_VINS,
+    CONF_LOG_RAW_RESPONSES,
+    CONF_LOG_RAW_UNREDACTED,
     CONF_PASSWORD,
     CONF_REFRESH_AFTER_ACTION,
     CONF_REFRESH_TOKEN,
@@ -506,6 +508,18 @@ class OptionsFlowHandler(OptionsFlow):
                     ): NumberSelector(
                         NumberSelectorConfig(min=MIN_UPDATE_INTERVAL, mode="box")
                     ),
+                    vol.Required(
+                        CONF_LOG_RAW_RESPONSES,
+                        default=self.config_entry.options.get(
+                            CONF_LOG_RAW_RESPONSES, False
+                        ),
+                    ): bool,
+                    vol.Required(
+                        CONF_LOG_RAW_UNREDACTED,
+                        default=self.config_entry.options.get(
+                            CONF_LOG_RAW_UNREDACTED, False
+                        ),
+                    ): bool,
                     vol.Optional(
                         CONF_FILTER_VINS,
                         default=self.config_entry.options.get(

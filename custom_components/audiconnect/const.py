@@ -38,6 +38,8 @@ CONF_FILTER_VINS = "filter_vins"
 CONF_REFRESH_AFTER_ACTION = "refresh_vehicle_data_after_action"
 CONF_REFRESH_TOKEN = "refresh_token"
 CONF_UPDATE_SLEEP = "update_sleep"
+CONF_LOG_RAW_RESPONSES = "log_raw_responses"
+CONF_LOG_RAW_UNREDACTED = "log_raw_unredacted"
 AUTH0_REFRESH_TOKEN_PREFIX = "auth0:"
 AUTH0_REDIRECT_URI = "http://localhost:8080/myaudi-callback"
 
@@ -100,6 +102,8 @@ __all__ = [
     "AUTH0_REDIRECT_URI",
     "AUTH0_REGIONS",
     "CONF_ACTION",
+    "CONF_LOG_RAW_RESPONSES",
+    "CONF_LOG_RAW_UNREDACTED",
     "CONF_API_LEVEL",
     "CONF_CARNAME",
     "CONF_CLIMATE_AT_UNLOCK",

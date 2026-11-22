@@ -87,7 +87,9 @@
           "update_sleep": "Vertraging cloudvernieuwing",
           "scan_interval": "Scaninterval",
           "filter_vins": "Uitgesloten VIN's",
-          "experimental_commands": "Experimentele voertuigbediening inschakelen"
+          "experimental_commands": "Experimentele voertuigbediening inschakelen",
+          "log_raw_responses": "Ruwe API-antwoorden loggen (debug)",
+          "log_raw_unredacted": "VIN en positie ongemaskeerd loggen"
         },
         "title": "Audi Connect-opties",
         "data_description": {
@@ -96,7 +98,9 @@
           "update_sleep": "Aantal seconden wachten na een service-actie voordat de cloudgegevens worden vernieuwd. Een langere vertraging geeft het voertuig meer tijd om de nieuwe status aan de cloud door te geven.",
           "scan_interval": "Minuten tussen cloudopvragingen. Minimaal 15, omdat Audi het aantal verzoeken per dag beperkt. De auto meldt vooral wanneer er iets gebeurt; een langer interval (bijvoorbeeld 30) bespaart verzoeken en kost weinig. Bij opslaan wordt de integratie opnieuw geladen.",
           "filter_vins": "Door komma's gescheiden lijst met VIN's die van de installatie en updates worden uitgesloten.",
-          "experimental_commands": "Toont optionele, door de gebruiker te bedienen CARIAD-functies voor ruitverwarming en de schakelaar voor het vrijgeven van de laadstekker. Standaard uit. Verifieer acties fysiek; API HTTP 200 is geen bewijs van uitvoering."
+          "experimental_commands": "Toont optionele, door de gebruiker te bedienen CARIAD-functies voor ruitverwarming en de schakelaar voor het vrijgeven van de laadstekker. Standaard uit. Verifieer acties fysiek; API HTTP 200 is geen bewijs van uitvoering.",
+          "log_raw_responses": "Alleen voor probleemoplossing. Schrijft elk voertuigantwoord van Audi volledig naar het Home Assistant-log (debugniveau, dus debuglogging voor de integratie moet aan staan). Tokens, pincodes en de aanmelding worden nooit gelogd; VIN en positie worden gemaskeerd. Standaard uit; controleer een log voordat je het deelt.",
+          "log_raw_unredacted": "Alleen met de optie hierboven: VIN en positie in de gelogde antwoorden niet maskeren."
         }
       }
     }

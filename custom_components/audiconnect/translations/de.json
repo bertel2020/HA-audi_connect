@@ -87,7 +87,9 @@
           "climate_quick_start": "Klimatisierung mit gespeicherten Fahrzeugeinstellungen starten",
           "update_sleep": "Verzögerung der Cloud-Aktualisierung",
           "filter_vins": "Ausgeschlossene VINs",
-          "experimental_commands": "Experimentelle Fahrzeugsteuerungen aktivieren"
+          "experimental_commands": "Experimentelle Fahrzeugsteuerungen aktivieren",
+          "log_raw_responses": "Rohe API-Antworten loggen (Debug)",
+          "log_raw_unredacted": "FIN und Position ungeschwärzt loggen"
         },
         "title": "Audi Connect-Optionen",
         "data_description": {
@@ -96,7 +98,9 @@
           "climate_quick_start": "Beim Einschalten der Klimatisierung wird eine CARIAD-Startanfrage ohne zusätzliche Parameter gesendet. Dabei verwendet das Fahrzeug seine gespeicherten Einstellungen. Die in Home Assistant angezeigte Solltemperatur wird nicht übertragen. Diese Option dient als alternative Startmethode für neuere Fahrzeuge und sollte nur bei Bedarf aktiviert werden.",
           "update_sleep": "Wartezeit in Sekunden nach einer Fahrzeugaktion, bevor die Cloud-Daten aktualisiert werden. Eine längere Wartezeit gibt dem Fahrzeug mehr Zeit, seinen neuen Status an die Cloud zu übermitteln.",
           "filter_vins": "Kommagetrennte Liste von VINs, die bei der Einrichtung und bei Aktualisierungen ausgeschlossen werden.",
-          "experimental_commands": "Aktiviert zusätzliche, manuell auslösbare CARIAD-Fahrzeugaktionen für die Scheibenheizung sowie den Schalter zur Freigabe des Ladesteckers. Standardmässig deaktiviert. Die tatsächliche Ausführung muss überprüft werden, da eine erfolgreiche API-Antwort nicht zwangsläufig bedeutet, dass das Fahrzeug die Aktion ausgeführt hat."
+          "experimental_commands": "Aktiviert zusätzliche, manuell auslösbare CARIAD-Fahrzeugaktionen für die Scheibenheizung sowie den Schalter zur Freigabe des Ladesteckers. Standardmässig deaktiviert. Die tatsächliche Ausführung muss überprüft werden, da eine erfolgreiche API-Antwort nicht zwangsläufig bedeutet, dass das Fahrzeug die Aktion ausgeführt hat.",
+          "log_raw_responses": "Nur zur Fehlersuche. Schreibt jede Fahrzeugantwort von Audi vollständig ins Home-Assistant-Log (Debug-Stufe, die Debug-Protokollierung der Integration muss also an sein). Tokens, PINs und die Anmeldung werden nie geloggt; FIN und Position werden maskiert. Standardmäßig aus; prüfe ein Log, bevor du es teilst.",
+          "log_raw_unredacted": "Nur mit der Option darüber: FIN und Position in den geloggten Antworten nicht maskieren."
         }
       }
     }

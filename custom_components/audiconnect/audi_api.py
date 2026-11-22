@@ -77,6 +77,21 @@ def _redact_secrets(value: Any) -> Any:
     return value
 
 
+_POSITION_KEYS = frozenset({"lat", "lon", "latitude", "longitude"})
+
+
+def _mask_position(value: Any) -> Any:
+    """Return `value` with coordinates replaced by a marker."""
+    if isinstance(value, dict):
+        return {
+            k: "<position>" if str(k).lower() in _POSITION_KEYS else _mask_position(v)
+            for k, v in value.items()
+        }
+    if isinstance(value, list):
+        return [_mask_position(v) for v in value]
+    return value
+
+
 class AudiAPI:
     HDR_XAPP_VERSION = "4.31.0"
     HDR_USER_AGENT = "Android/4.31.0 (Build 800341641.root project 'myaudi_android'.ext.buildTime) Android/13"
@@ -88,6 +103,8 @@ class AudiAPI:
         self.vcf_remaining_calls: int | None = None
         self.vcf_remaining_calls_last_observed: datetime | None = None
         self.diagnostic_events = deque(maxlen=40)
+        # "off", "redacted" or "full": whether, and how, vehicle replies are logged whole.
+        self.raw_logging = "off"
 
     def use_token(self, token: dict[str, Any] | None) -> None:
         self.__token = token
@@ -98,6 +115,26 @@ class AudiAPI:
         self.__xclientid = xclientid
         if DEBUG_VERBOSE:
             _LOGGER.debug("[set_xclient_id] X-Client-ID set: %s", xclientid)
+
+    def _log_raw_response(self, url: str, payload: Any) -> None:
+        """Log a vehicle reply whole, when the user asked for it in the options.
+
+        Only routes under /vehicles/ are logged, so the sign-in and token replies
+        never reach the log. Unless the user chose "full", the VIN is masked and
+        PINs, tokens and positions are replaced by a marker.
+        """
+        if self.raw_logging == "off" or "/vehicles/" not in url:
+            return
+        route = url.split("?")[0]
+        if self.raw_logging == "full":
+            _LOGGER.debug("Raw API response from %s: %s", route, json.dumps(payload))
+            return
+        text = json.dumps(_mask_position(_redact_secrets(payload)))
+        _LOGGER.debug(
+            "Raw API response from %s: %s",
+            _VIN_PATTERN.sub("<vin>", route),
+            _VIN_PATTERN.sub("<vin>", text),
+        )
 
     async def _log_rejected_write(
         self, method: str, url: str, response: Any, sent: Any = None
@@ -218,6 +255,7 @@ class AudiAPI:
                         if not raw_body.strip():
                             return None
                         json_data = json_loads(raw_body)
+                        self._log_raw_response(url, json_data)
                         if DEBUG_VERBOSE:
                             _LOGGER.debug("Parsed JSON data (full): %s", json_data)
                         else:

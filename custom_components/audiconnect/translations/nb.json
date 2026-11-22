@@ -87,7 +87,9 @@
           "update_sleep": "Forsinkelse for skyoppdatering",
           "scan_interval": "Skanneintervall",
           "filter_vins": "Ekskluderte VIN-er",
-          "experimental_commands": "Aktiver eksperimentelle kjøretøystyringer"
+          "experimental_commands": "Aktiver eksperimentelle kjøretøystyringer",
+          "log_raw_responses": "Logg rå API-svar (feilsøking)",
+          "log_raw_unredacted": "Logg VIN og posisjon uten maskering"
         },
         "title": "Audi Connect-alternativer",
         "data_description": {
@@ -96,7 +98,9 @@
           "update_sleep": "Sekunder å vente etter en tjenestehandling før skydata oppdateres. En lengre forsinkelse gir kjøretøyet mer tid til å rapportere ny status til skyen.",
           "scan_interval": "Minutter mellom skyspørringer. Minst 15, fordi Audi begrenser antall forespørsler per dag. Bilen melder hovedsakelig når noe skjer, så et lengre intervall (for eksempel 30) sparer forespørsler og koster lite. Lagring laster integrasjonen på nytt.",
           "filter_vins": "Kommaseparert liste over VIN-er som skal utelates fra oppsett og oppdateringer.",
-          "experimental_commands": "Vis flere brukerutløste CARIAD-handlinger for vindusoppvarming og bryteren for å frigjøre ladepluggen. Av som standard. Kontroller at det faktisk fungerer; HTTP 200 er ikke bevis på at kjøretøyet utførte handlingen."
+          "experimental_commands": "Vis flere brukerutløste CARIAD-handlinger for vindusoppvarming og bryteren for å frigjøre ladepluggen. Av som standard. Kontroller at det faktisk fungerer; HTTP 200 er ikke bevis på at kjøretøyet utførte handlingen.",
+          "log_raw_responses": "Kun for feilsøking. Skriver hvert kjøretøysvar fra Audi i sin helhet til Home Assistant-loggen (debug-nivå, så debug-logging for integrasjonen må være på). Tokener, PIN-koder og innloggingen logges aldri; VIN og posisjon maskeres. Av som standard; sjekk en logg før du deler den.",
+          "log_raw_unredacted": "Bare med alternativet over: ikke maskér VIN og posisjon i de loggførte svarene."
         }
       }
     }

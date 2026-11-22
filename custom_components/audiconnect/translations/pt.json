@@ -87,7 +87,9 @@
           "update_sleep": "Atraso da atualização da cloud",
           "scan_interval": "Intervalo de pesquisa",
           "filter_vins": "VIN excluídos",
-          "experimental_commands": "Ativar comandos experimentais do veículo"
+          "experimental_commands": "Ativar comandos experimentais do veículo",
+          "log_raw_responses": "Registar respostas brutas da API (debug)",
+          "log_raw_unredacted": "Registar VIN e posição sem ocultar"
         },
         "title": "Opções Audi Connect",
         "data_description": {
@@ -96,7 +98,9 @@
           "update_sleep": "Segundos de espera após uma ação de serviço antes de atualizar os dados da cloud. Um atraso maior dá mais tempo ao veículo para comunicar o seu novo estado à cloud.",
           "scan_interval": "Minutos entre as consultas à cloud. No mínimo 15, porque a Audi limita os pedidos por dia. O automóvel comunica sobretudo quando algo acontece, por isso um intervalo maior (por exemplo, 30) poupa pedidos e perde pouco. Ao guardar, a integração é recarregada.",
           "filter_vins": "Lista de VIN separados por vírgulas a excluir da configuração e das atualizações.",
-          "experimental_commands": "Mostra ações adicionais CARIAD de aquecimento dos vidros acionadas pelo utilizador e o interruptor de libertação da ficha de carregamento. Desativado por predefinição. Verifique o funcionamento real; HTTP 200 não prova que o veículo executou a ação."
+          "experimental_commands": "Mostra ações adicionais CARIAD de aquecimento dos vidros acionadas pelo utilizador e o interruptor de libertação da ficha de carregamento. Desativado por predefinição. Verifique o funcionamento real; HTTP 200 não prova que o veículo executou a ação.",
+          "log_raw_responses": "Apenas para resolução de problemas. Grava cada resposta do veículo enviada pela Audi por inteiro no registo do Home Assistant (nível debug, pelo que o registo de debug da integração tem de estar ativo). Tokens, PIN e o início de sessão nunca são registados; o VIN e a posição são ocultados. Desativado por predefinição; verifique um registo antes de o partilhar.",
+          "log_raw_unredacted": "Apenas com a opção acima: não ocultar o VIN e a posição nas respostas registadas."
         }
       }
     }

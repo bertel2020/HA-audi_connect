@@ -87,7 +87,9 @@
           "update_sleep": "Pilvipäivityksen viive",
           "scan_interval": "Aikaväli",
           "filter_vins": "Poissuljetut VIN-tunnukset",
-          "experimental_commands": "Ota kokeelliset ajoneuvon ohjaukset käyttöön"
+          "experimental_commands": "Ota kokeelliset ajoneuvon ohjaukset käyttöön",
+          "log_raw_responses": "Kirjaa raakat API-vastaukset (debug)",
+          "log_raw_unredacted": "Kirjaa VIN ja sijainti sensuroimatta"
         },
         "title": "Audi Connect -asetukset",
         "data_description": {
@@ -96,7 +98,9 @@
           "update_sleep": "Sekuntia, jotka odotetaan palvelutoiminnon jälkeen ennen pilvitietojen päivitystä. Pidempi viive antaa ajoneuvolle enemmän aikaa raportoida päivitetty tilansa pilveen.",
           "scan_interval": "Minuutit pilvikyselyjen välillä. Vähintään 15, koska Audi rajoittaa pyyntöjen määrää päivässä. Auto raportoi lähinnä silloin, kun jotain tapahtuu, joten pidempi väli (esimerkiksi 30) säästää pyyntöjä ja menettää vain vähän. Tallennus lataa integraation uudelleen.",
           "filter_vins": "Pilkuilla erotettu luettelo VIN-tunnuksista, jotka suljetaan pois käyttöönotosta ja päivityksistä.",
-          "experimental_commands": "Näytä lisää käyttäjän käynnistämiä CARIADin ikkunalämmitystoimintoja ja latausliittimen vapautuskytkin. Oletuksena pois päältä. Tarkista toiminta itse; HTTP 200 ei todista, että ajoneuvo toimi."
+          "experimental_commands": "Näytä lisää käyttäjän käynnistämiä CARIADin ikkunalämmitystoimintoja ja latausliittimen vapautuskytkin. Oletuksena pois päältä. Tarkista toiminta itse; HTTP 200 ei todista, että ajoneuvo toimi.",
+          "log_raw_responses": "Vain vianmääritykseen. Kirjaa jokaisen Audin ajoneuvovastauksen kokonaisena Home Assistantin lokiin (debug-taso, joten integraation debug-lokituksen on oltava päällä). Tunnisteita, PIN-koodeja ja kirjautumista ei koskaan kirjata; VIN ja sijainti peitetään. Oletuksena pois päältä; tarkista loki ennen jakamista.",
+          "log_raw_unredacted": "Vain yllä olevan asetuksen kanssa: älä peitä VIN-tunnusta ja sijaintia kirjatuissa vastauksissa."
         }
       }
     }

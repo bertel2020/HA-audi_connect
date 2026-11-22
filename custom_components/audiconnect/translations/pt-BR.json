@@ -87,7 +87,9 @@
           "update_sleep": "Atraso da atualização da nuvem",
           "scan_interval": "Intervalo de escaneamento",
           "filter_vins": "VINs excluídos",
-          "experimental_commands": "Ativar controles experimentais do veículo"
+          "experimental_commands": "Ativar controles experimentais do veículo",
+          "log_raw_responses": "Registrar respostas brutas da API (debug)",
+          "log_raw_unredacted": "Registrar VIN e posição sem ocultar"
         },
         "title": "Opções Audi Connect",
         "data_description": {
@@ -96,7 +98,9 @@
           "update_sleep": "Segundos de espera após uma ação de serviço antes de atualizar os dados da nuvem. Um atraso maior dá mais tempo para o veículo informar seu novo estado à nuvem.",
           "scan_interval": "Minutos entre as consultas à nuvem. No mínimo 15, porque a Audi limita as solicitações por dia. O carro informa principalmente quando algo acontece, então um intervalo maior (por exemplo, 30) economiza solicitações e perde pouco. Ao salvar, a integração é recarregada.",
           "filter_vins": "Lista de VINs separados por vírgula a excluir da configuração e das atualizações.",
-          "experimental_commands": "Mostra ações adicionais CARIAD de aquecimento dos vidros acionadas pelo usuário e o interruptor de liberação do plugue de recarga. Desativado por padrão. Verifique o funcionamento real; HTTP 200 não prova que o veículo executou a ação."
+          "experimental_commands": "Mostra ações adicionais CARIAD de aquecimento dos vidros acionadas pelo usuário e o interruptor de liberação do plugue de recarga. Desativado por padrão. Verifique o funcionamento real; HTTP 200 não prova que o veículo executou a ação.",
+          "log_raw_responses": "Somente para solução de problemas. Grava cada resposta do veículo enviada pela Audi por inteiro no log do Home Assistant (nível debug, então o registro de debug da integração precisa estar ativado). Tokens, PINs e o login nunca são registrados; o VIN e a posição são ocultados. Desativado por padrão; confira um log antes de compartilhá-lo.",
+          "log_raw_unredacted": "Somente com a opção acima: não ocultar o VIN e a posição nas respostas registradas."
         }
       }
     }

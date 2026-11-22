@@ -33,6 +33,8 @@ from .const import (
     CONF_DEVICE_ID,
     CONF_DURATION,
     CONF_FILTER_VINS,
+    CONF_LOG_RAW_RESPONSES,
+    CONF_LOG_RAW_UNREDACTED,
     CONF_PASSWORD,
     CONF_REFRESH_AFTER_ACTION,
     CONF_REFRESH_TOKEN,
@@ -262,6 +264,13 @@ class AudiAccount(AudiConnectObserver):
             refresh_token=self.config_entry.data.get(CONF_REFRESH_TOKEN),
             username=self.config_entry.data.get(CONF_USERNAME),
             password=self.config_entry.data.get(CONF_PASSWORD),
+            raw_logging=(
+                "off"
+                if not self.config_entry.options.get(CONF_LOG_RAW_RESPONSES, False)
+                else "full"
+                if self.config_entry.options.get(CONF_LOG_RAW_UNREDACTED, False)
+                else "redacted"
+            ),
         )
         self.connection.add_observer(self)
         self.connection.set_refresh_token_listener(self._persist_refresh_token)

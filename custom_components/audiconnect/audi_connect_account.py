@@ -55,8 +55,10 @@ class AudiConnectAccount:
         refresh_token: str | None = None,
         username: str | None = None,
         password: str | None = None,
+        raw_logging: str = "off",
     ) -> None:
         self._api = AudiAPI(session)
+        self._api.raw_logging = raw_logging
         self._audi_service = AudiService(self._api, country, spin, api_level)
 
         # Either a device-code refresh token (Europe) or username/password
