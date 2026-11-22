@@ -65,7 +65,6 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[AudiBinarySensorEntityDescription, ...] = (
         key="parking_light",
         attr_key="parking_light",
         translation_key="parking_light",
-        device_class=BinarySensorDeviceClass.SAFETY,
         icon="mdi:lightbulb",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
@@ -165,7 +164,6 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[AudiBinarySensorEntityDescription, ...] = (
         key="braking_status",
         attr_key="braking_status",
         translation_key="braking_status",
-        device_class=BinarySensorDeviceClass.SAFETY,
         icon="mdi:car-brake-abs",
     ),
     AudiBinarySensorEntityDescription(
