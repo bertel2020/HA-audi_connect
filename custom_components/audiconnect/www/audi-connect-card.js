@@ -966,7 +966,6 @@ class AudiConnectCard extends HTMLElement {
     };
     const MIR = ' transform="matrix(-1 0 0 1 300 0)"';
     const mx = (x) => 300 - x;
-    const dim = doorsTab ? "" : ' opacity=".45"';
     const pn = (d, kind) => `<path d="${d}" class="pn ${kind}"${kind === "lk" || kind === "unk" ? ' fill="url(#acbody)"' : ""}/>`;
     const badge = (x, y, kind, icon) =>
       `<g transform="translate(${x} ${y})" style="pointer-events:none">` +
@@ -998,10 +997,10 @@ class AudiConnectCard extends HTMLElement {
     s += `<path d="M136 26C135 46 135.5 70 137 86M164 26C165 46 164.5 70 163 86" fill="none" stroke="var(--c-line)" stroke-width=".6"/>`;
     // hood
     if (hood.open) {
-      s += `<g${dim}><path d="${C.HOOD}" fill="var(--c-cavity)"/><rect x="128" y="34" width="44" height="22" rx="5" fill="var(--c-engine)"/>` +
+      s += `<g><path d="${C.HOOD}" fill="var(--c-cavity)"/><rect x="128" y="34" width="44" height="22" rx="5" fill="var(--c-engine)"/>` +
         `<g transform="translate(0 90) scale(1 .42) translate(0 -90)">${pn(C.HOOD, "open")}</g></g>`;
     } else {
-      s += `<g${dim}><path d="${C.HOOD}" fill="url(#acbody)" stroke="var(--c-line)" stroke-width=".8"/></g>`;
+      s += `<g><path d="${C.HOOD}" fill="url(#acbody)" stroke="var(--c-line)" stroke-width=".8"/></g>`;
     }
     for (const tf of ["", MIR]) {
       s += `<g${tf}><path d="${C.HEAD}" fill="var(--c-head)" stroke="var(--c-line)" stroke-width=".6"/>` +
@@ -1018,11 +1017,11 @@ class AudiConnectCard extends HTMLElement {
     if (!trunkOpen) s += `<path d="M108 282C125 285.5 175 285.5 192 282" fill="none" stroke="var(--c-line)" stroke-width=".8"/>`;
     // tailgate
     if (trunkOpen) {
-      s += `<g${dim}><path d="${C.REARW}" fill="var(--c-cavity)"/><path d="${C.TAILG}" fill="var(--c-cavity)" stroke="var(--c-cavity)" stroke-width="2"/>` +
+      s += `<g><path d="${C.REARW}" fill="var(--c-cavity)"/><path d="${C.TAILG}" fill="var(--c-cavity)" stroke="var(--c-cavity)" stroke-width="2"/>` +
         `<rect x="124" y="250" width="52" height="46" rx="6" fill="var(--c-engine)"/>` +
         `<g transform="translate(0 226) scale(1 .3) translate(0 -226)"><path d="${C.REARW}" fill="url(#acglass)"/>${pn(C.TAILG, "open")}</g></g>`;
     } else {
-      s += `<g${dim}>${pn(C.TAILG, trunkKind)}<path d="${C.TAILL}" fill="var(--c-tail)"/></g>`;
+      s += `<g>${pn(C.TAILG, trunkKind)}<path d="${C.TAILL}" fill="var(--c-tail)"/></g>`;
     }
     // doors and windows, right side drawn once and mirrored for the left
     let opened = "";
@@ -1037,10 +1036,10 @@ class AudiConnectCard extends HTMLElement {
         const wopen = this._on(WINDOW_KEYS[key]);
         const [hx, hy] = C.HINGE[pos];
         const handle = C.HANDLE[pos];
-        const panel = `<g${dim}>${pn(C.DOOR[pos], kind)}<rect x="${handle[0]}" y="${handle[1]}" width="1.6" height="9" rx=".8" fill="var(--c-line)"/></g>`;
+        const panel = `<g>${pn(C.DOOR[pos], kind)}<rect x="${handle[0]}" y="${handle[1]}" width="1.6" height="9" rx=".8" fill="var(--c-line)"/></g>`;
         if (kind === "open") {
           closed += `<path d="${C.DOOR[pos]}" fill="var(--c-cavity)"/><path d="${C.WIN[pos]}" fill="var(--c-cavity)"/>`;
-          swung += `<g transform="rotate(-38 ${hx} ${hy})"${doorsTab ? "" : ' opacity=".4"'}>` +
+          swung += `<g transform="rotate(-38 ${hx} ${hy})">` +
             `<path d="${C.DOOR[pos]}" transform="translate(2 2.5)" fill="var(--primary-text-color)" opacity=".25" filter="url(#acsoft)"/>` +
             `<path d="${C.WIN[pos]}" fill="var(--c-trim)"/>${panel}${pos === "f" ? mirror : ""}</g>`;
         } else {
