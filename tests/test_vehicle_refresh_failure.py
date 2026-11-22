@@ -12,14 +12,14 @@ import logging
 
 import pytest
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectAccount
-from custom_components.audiconnect.audi_services import (
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectAccount
+from custom_components.ha_audi_connect.audi_services import (
     AudiService,
     AudiVehicleRequestFailed,
 )
 
 VIN = "TESTVIN00000000001"
-LOGGER = "custom_components.audiconnect.audi_connect_account"
+LOGGER = "custom_components.ha_audi_connect.audi_connect_account"
 
 
 def _account(error: Exception):
@@ -60,7 +60,7 @@ def test_any_other_failure_is_still_an_error(caplog):
 @pytest.mark.parametrize("status", ["fail", "failed", "rejected"])
 def test_the_pending_request_check_raises_the_specific_error(status, monkeypatch):
     monkeypatch.setattr(
-        "custom_components.audiconnect.audi_services.REQUEST_STATUS_SLEEP", 0
+        "custom_components.ha_audi_connect.audi_services.REQUEST_STATUS_SLEEP", 0
     )
 
     class API:

@@ -5,7 +5,7 @@ from typing import Any
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 
-DOMAIN = "audiconnect"
+DOMAIN = "ha_audi_connect"
 
 CONF_VIN = "vin"
 CONF_DEVICE_ID = "device_id"

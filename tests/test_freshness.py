@@ -6,13 +6,13 @@ import asyncio
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace as NS
 
-from custom_components.audiconnect.freshness import (
+from custom_components.ha_audi_connect.freshness import (
     usable_vehicle_timestamp,
     vehicle_age_minutes,
     vehicle_freshness,
 )
-from custom_components.audiconnect.coordinator import AudiDataUpdateCoordinator
-from custom_components.audiconnect.sensor import (
+from custom_components.ha_audi_connect.coordinator import AudiDataUpdateCoordinator
+from custom_components.ha_audi_connect.sensor import (
     AudiCloudLastPollSensor,
     AudiVehicleAgeSensor,
     AudiVehicleFreshnessSensor,

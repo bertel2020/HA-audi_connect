@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from homeassistant.exceptions import HomeAssistantError
 
-from custom_components.audiconnect.audi_payloads import build_profile_change
-from custom_components.audiconnect.select import (
+from custom_components.ha_audi_connect.audi_payloads import build_profile_change
+from custom_components.ha_audi_connect.select import (
     AudiProfileCurrentSelect,
     profile_current_supported,
 )

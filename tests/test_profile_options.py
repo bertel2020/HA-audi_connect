@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from custom_components.audiconnect.audi_models import VehicleDataResponse
-from custom_components.audiconnect.binary_sensor import BINARY_SENSOR_DESCRIPTIONS
-from custom_components.audiconnect.sensor import SENSOR_DESCRIPTIONS
+from custom_components.ha_audi_connect.audi_models import VehicleDataResponse
+from custom_components.ha_audi_connect.binary_sensor import BINARY_SENSOR_DESCRIPTIONS
+from custom_components.ha_audi_connect.sensor import SENSOR_DESCRIPTIONS
 from tests.test_a6_etron import vehicle_with
 
 # As the A6 sends it (position left out).

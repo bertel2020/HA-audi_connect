@@ -7,12 +7,12 @@ from hashlib import sha256
 
 import pytest
 
-from custom_components.audiconnect.config_flow import (
+from custom_components.ha_audi_connect.config_flow import (
     AudiConfigFlow,
     _generate_auth0_pkce,
     _parse_auth0_callback,
 )
-from custom_components.audiconnect.const import entry_uses_auth0, uses_auth0
+from custom_components.ha_audi_connect.const import entry_uses_auth0, uses_auth0
 
 
 class FakeConnection:

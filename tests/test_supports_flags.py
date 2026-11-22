@@ -1,6 +1,6 @@
 """The "supports..." answers of the climatisation capability."""
 
-from custom_components.audiconnect.audi_models import _supports_flags
+from custom_components.ha_audi_connect.audi_models import _supports_flags
 
 
 def test_real_a6_answers_are_read_as_booleans():
@@ -26,7 +26,7 @@ def test_garbage_gives_no_flags():
 def test_the_window_heating_buttons_follow_the_cars_own_answer():
     from types import SimpleNamespace
 
-    from custom_components.audiconnect.button import _window_heating_capable
+    from custom_components.ha_audi_connect.button import _window_heating_capable
 
     def car(flags):
         return SimpleNamespace(

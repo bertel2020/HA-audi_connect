@@ -4,6 +4,11 @@
 
 Versions up to `v2.5.3b1` are on the [releases page](https://github.com/bertel2020/HA-audi_connect/releases). This file starts with what came after.
 
+## Unreleased
+
+**Changed**
+- **Domain:** The integration is now called `ha_audi_connect` (it was `audiconnect`), in the directory `custom_components/ha_audi_connect`, so it no longer overlaps with the upstream integration. Home Assistant sees a new integration: remove the entry, set it up again, and change `audiconnect.*` services in automations to `ha_audi_connect.*`. History and entity IDs are kept when the old entry is removed first (see the README).
+
 ## 3.0.0 – 2026-11-22
 
 **New**

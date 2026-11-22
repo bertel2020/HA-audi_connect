@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
-from custom_components.audiconnect.select import AudiClimatisationModeSelect
+from custom_components.ha_audi_connect.select import AudiClimatisationModeSelect
 
 VIN = "WAUZZZ00000000001"
 

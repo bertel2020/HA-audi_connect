@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from types import SimpleNamespace as NS
 
-from custom_components.audiconnect.sensor import AudiServiceOverviewSensor
+from custom_components.ha_audi_connect.sensor import AudiServiceOverviewSensor
 
 
 class Coordinator:
@@ -53,7 +53,7 @@ def test_the_overview_has_no_locally_entered_fields():
 
 
 def test_the_options_form_no_longer_offers_the_local_dealer_steps():
-    root = Path(__file__).resolve().parents[1] / "custom_components/audiconnect"
+    root = Path(__file__).resolve().parents[1] / "custom_components/ha_audi_connect"
     for name in ("strings.json", "translations/en.json", "translations/nl.json"):
         data = json.loads((root / name).read_text())
         steps = data["options"]["step"]

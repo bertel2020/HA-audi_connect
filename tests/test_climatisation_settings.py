@@ -11,7 +11,7 @@ import copy
 
 import pytest
 
-from custom_components.audiconnect.audi_models import VehicleDataResponse
+from custom_components.ha_audi_connect.audi_models import VehicleDataResponse
 
 from tests.fixture_q8_etron import PAYLOAD
 
@@ -34,7 +34,7 @@ def test_the_target_temperature_is_reported_by_the_car(states):
 
 def test_the_car_stores_a_half_degree_and_the_write_keeps_it(states):
     """The car stores half degrees; the start request keeps them too."""
-    from custom_components.audiconnect.audi_payloads import (
+    from custom_components.ha_audi_connect.audi_payloads import (
         build_climatisation_start_body,
     )
 
@@ -90,7 +90,7 @@ class StubCoordinator:
 
 
 def climate_with(reported):
-    from custom_components.audiconnect.climate import AudiClimate
+    from custom_components.ha_audi_connect.climate import AudiClimate
 
     vehicle = type(
         "V",

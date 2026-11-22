@@ -10,9 +10,9 @@ from __future__ import annotations
 import asyncio
 import logging
 
-from custom_components.audiconnect import audi_connect_account
-from custom_components.audiconnect.audi_services import AudiTokenRefreshError
-from custom_components.audiconnect.audi_connect_account import (
+from custom_components.ha_audi_connect import audi_connect_account
+from custom_components.ha_audi_connect.audi_services import AudiTokenRefreshError
+from custom_components.ha_audi_connect.audi_connect_account import (
     MAX_LOGIN_RETRY_DELAY,
     AudiConnectAccount,
 )

@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.audiconnect import switch
+from custom_components.ha_audi_connect import switch
 
 
 def _created_keys(uses_auth0: bool) -> set[str]:
@@ -51,7 +51,8 @@ def test_unlock_setting_does_not_share_the_window_heating_icon():
     from pathlib import Path
 
     path = (
-        Path(__file__).resolve().parents[1] / "custom_components/audiconnect/icons.json"
+        Path(__file__).resolve().parents[1]
+        / "custom_components/ha_audi_connect/icons.json"
     )
     by_key = json.loads(path.read_text())["entity"]["switch"]
     icons = {

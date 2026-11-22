@@ -7,9 +7,9 @@ import json
 import logging
 from types import SimpleNamespace
 
-from custom_components.audiconnect.audi_api import AudiAPI
-from custom_components.audiconnect.config_flow import OptionsFlowHandler
-from custom_components.audiconnect.const import (
+from custom_components.ha_audi_connect.audi_api import AudiAPI
+from custom_components.ha_audi_connect.config_flow import OptionsFlowHandler
+from custom_components.ha_audi_connect.const import (
     CONF_LOG_RAW_RESPONSES,
     CONF_LOG_RAW_UNREDACTED,
 )

@@ -8,10 +8,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.audiconnect.audi_payloads import (
+from custom_components.ha_audi_connect.audi_payloads import (
     build_climatisation_settings_update,
 )
-from custom_components.audiconnect.select import (
+from custom_components.ha_audi_connect.select import (
     AudiClimatisationModeSelect,
     climatisation_mode_supported,
 )

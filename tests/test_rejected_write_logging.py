@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import pytest
 from aiohttp import ClientResponseError
 
-from custom_components.audiconnect.audi_api import AudiAPI
+from custom_components.ha_audi_connect.audi_api import AudiAPI
 
 VIN = "WAUZZZGH7SA000001"
 URL = (

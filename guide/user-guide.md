@@ -84,7 +84,7 @@ Klima-Timer im Auto melden Sensoren (Anzahl aktiver Timer, nächster Timer in Or
 
 ### Audi Connect: Refresh Vehicle Data
 
-`audiconnect.refresh_vehicle_data`
+`ha_audi_connect.refresh_vehicle_data`
 
 Normale Updates holen Daten vom Audi-Connect-Cloud-Dienst und sprechen nicht direkt mit dem Fahrzeug. _Diese_ Service-Aktion löst eine Aktualisierungsanfrage beim Fahrzeug selbst aus. Werden die Daten erfolgreich abgerufen, aktualisiert sich Home Assistant automatisch. Die Service-Aktion braucht als Parameter das Fahrzeug (Gerät).
 
@@ -100,7 +100,7 @@ Normale Updates holen Daten vom Audi-Connect-Cloud-Dienst und sprechen nicht dir
 
 ### Audi Connect: Refresh Cloud Data
 
-`audiconnect.refresh_cloud_data`
+`ha_audi_connect.refresh_cloud_data`
 
 _Diese_ Service-Aktion löst eine Aktualisierungsanfrage bei der Cloud aus.
 
@@ -115,7 +115,7 @@ _Diese_ Service-Aktion löst eine Aktualisierungsanfrage bei der Cloud aus.
 
 ### Audi Connect: Execute Vehicle Action
 
-`audiconnect.execute_vehicle_action`
+`ha_audi_connect.execute_vehicle_action`
 
 Mit dieser Service-Aktion führst du Aktionen an deinem Audi aus, angegeben durch das Fahrzeug und die gewünschte Aktion.
 
@@ -140,7 +140,7 @@ Mit dieser Service-Aktion führst du Aktionen an deinem Audi aus, angegeben durc
 So verriegelst du ein Fahrzeug:
 
 ```yaml
-service: audiconnect.execute_vehicle_action
+service: ha_audi_connect.execute_vehicle_action
 data:
   device_id: 034986de941a1f824b3f06c0a1d9333f
   action: "lock"
@@ -153,7 +153,7 @@ data:
 
 ### Audi Connect: Start Climate Control
 
-`audiconnect.start_climate_control`
+`ha_audi_connect.start_climate_control`
 
 Mit dieser Service-Aktion startest du die Klimatisierung mit Optionen für Temperatur, Scheibenheizung und automatische Sitzheizung.
 
@@ -175,7 +175,7 @@ Mit dieser Service-Aktion startest du die Klimatisierung mit Optionen für Tempe
 So startest du die Klimatisierung mit 72 °F, Scheibenheizung und beiden vorderen Sitzheizungen:
 
 ```yaml
-service: audiconnect.start_climate_control
+service: ha_audi_connect.start_climate_control
 data:
   device_id: 034986de941a1f824b3f06c0a1d9333f
   temp_f: 72
@@ -192,7 +192,7 @@ data:
 
 ### Audi Connect: Start Auxiliary Heating
 
-`audiconnect.start_auxiliary_heating`
+`ha_audi_connect.start_auxiliary_heating`
 
 Mit dieser Service-Aktion startest du die Standheizung, optional mit Dauer.
 
@@ -206,7 +206,7 @@ Mit dieser Service-Aktion startest du die Standheizung, optional mit Dauer.
 So startest du die Standheizung für 40 Minuten:
 
 ```yaml
-service: audiconnect.start_auxiliary_heating
+service: ha_audi_connect.start_auxiliary_heating
 data:
   device_id: 034986de941a1f824b3f06c0a1d9333f
   duration: 40
@@ -219,7 +219,7 @@ data:
 
 ### Audi Connect: Set Target State of Charge
 
-`audiconnect.set_target_soc`
+`ha_audi_connect.set_target_soc`
 
 Setzt das globale Ladeziel (20-100 %, in 5er-Schritten). Was dieser Wert bestimmt und was nicht, steht unter [Ladeziele](#ladeziele).
 
@@ -228,7 +228,7 @@ Setzt das globale Ladeziel (20-100 %, in 5er-Schritten). Was dieser Wert bestimm
 
 ### Audi Connect: Set Location Charge Target
 
-`audiconnect.set_location_charge_target`
+`ha_audi_connect.set_location_charge_target`
 
 Setzt das Ladeziel eines Standortprofils (20-100 %, in 5er-Schritten). Diese dauerhafte Einstellung bestimmt, wo eine Ladung an diesem Standort endet.
 
@@ -238,7 +238,7 @@ Setzt das Ladeziel eines Standortprofils (20-100 %, in 5er-Schritten). Diese dau
 
 ### Audi Connect: Set Charge Mode
 
-`audiconnect.set_charge_mode`
+`ha_audi_connect.set_charge_mode`
 
 Setzt die Ladebetriebsart als Vorgabe. Eine laufende Ladung wird weder gestartet noch gestoppt.
 
@@ -247,7 +247,7 @@ Setzt die Ladebetriebsart als Vorgabe. Eine laufende Ladung wird weder gestartet
 
 ### Audi Connect: Start Engine / Stop Engine
 
-`audiconnect.start_engine`, `audiconnect.stop_engine`
+`ha_audi_connect.start_engine`, `ha_audi_connect.stop_engine`
 
 Startet oder stoppt den Motor aus der Ferne. Starten braucht die S-PIN. Es gelten die Fähigkeitsregeln unter **Funktionsstatus und API-Kompatibilität** in den [API-Hinweisen](api-notes.md).
 
@@ -255,7 +255,7 @@ Startet oder stoppt den Motor aus der Ferne. Starten braucht die S-PIN. Es gelte
 
 ### Audi Connect: Klima-Timer
 
-`audiconnect.create_climatisation_timer`, `audiconnect.set_climatisation_timer_enabled`, `audiconnect.delete_climatisation_timer`
+`ha_audi_connect.create_climatisation_timer`, `ha_audi_connect.set_climatisation_timer_enabled`, `ha_audi_connect.delete_climatisation_timer`
 
 Verwaltet die Klima-Timer des Autos. Zeiten gelten in der Ortszeit des Autos. Die Timer-Nummer steht in den Attributen der Klima-Timer-Sensoren.
 
@@ -268,13 +268,13 @@ Verwaltet die Klima-Timer des Autos. Zeiten gelten in der Ortszeit des Autos. Di
 
 Die folgenden Service-Aktionen dienen der Fehlersuche. Nutze sie nur, wenn du fehlenden Daten nachgehst, denn sie zählen gegen das API-Limit.
 
-- `audiconnect.probe_api` sendet eine reine Leseanfrage (selectivestatus-`jobs`, einen `path` unterhalb der Fahrzeug-URL oder eine feste `graphql`-Abfrage) und gibt die geschwärzte Antwort zurück.
-- `audiconnect.probe_api_paths` prüft acht bekannte Lese-Endpunkte (`extended` fügt vier experimentelle hinzu). Das Ergebnis erscheint im nächsten Export unter **Diagnose herunterladen**. Ein erneuter Lauf mit anderem Modus innerhalb von 15 Minuten wird abgelehnt.
-- `audiconnect.test_climatisation_write` ist experimentell. Es schreibt eine Klima-Einstellung mit einer wählbaren Variante des Anfragekörpers (`app_dto` ist der Standard; `app_full` sendet alle zwölf Felder der App-Anfrage) und **ändert die im Auto gespeicherte Einstellung**.
+- `ha_audi_connect.probe_api` sendet eine reine Leseanfrage (selectivestatus-`jobs`, einen `path` unterhalb der Fahrzeug-URL oder eine feste `graphql`-Abfrage) und gibt die geschwärzte Antwort zurück.
+- `ha_audi_connect.probe_api_paths` prüft acht bekannte Lese-Endpunkte (`extended` fügt vier experimentelle hinzu). Das Ergebnis erscheint im nächsten Export unter **Diagnose herunterladen**. Ein erneuter Lauf mit anderem Modus innerhalb von 15 Minuten wird abgelehnt.
+- `ha_audi_connect.test_climatisation_write` ist experimentell. Es schreibt eine Klima-Einstellung mit einer wählbaren Variante des Anfragekörpers (`app_dto` ist der Standard; `app_full` sendet alle zwölf Felder der App-Anfrage) und **ändert die im Auto gespeicherte Einstellung**.
 
 Wer sehen will, was Audi wirklich schickt, schaltet in den **Optionen** `Log raw API responses (debug)` ein, aktiviert unter **Einstellungen ➤ Geräte & Dienste ➤ Audi Connect** die **Debug-Protokollierung**, löst **Fahrzeugdaten aktualisieren** aus und liest das Log (Zeilen `Raw API response from …`). Danach beides wieder ausschalten. Maskiert werden FIN, Koordinaten, Benutzer-ID, PINs und Tokens; mit `Also log VIN and position unredacted` bleiben FIN, Position und Benutzer-ID stehen. Anmelde- und Token-Antworten kommen nie ins Log, anders als beim Schalter `DEBUG_VERBOSE` im Code, der auch Tokens ausgibt.
 
-Die Diagnosesensoren `Vehicle data freshness`, `Vehicle data age`, `Cloud last successful poll` und `API Requests Remaining` zeigen, wie aktuell die Daten sind. Für ausführliche Logs `custom_components.audiconnect: debug` unter `logger:` in der `configuration.yaml` setzen.
+Die Diagnosesensoren `Vehicle data freshness`, `Vehicle data age`, `Cloud last successful poll` und `API Requests Remaining` zeigen, wie aktuell die Daten sind. Für ausführliche Logs `custom_components.ha_audi_connect: debug` unter `logger:` in der `configuration.yaml` setzen.
 
 ### Reparatur-Hinweise
 

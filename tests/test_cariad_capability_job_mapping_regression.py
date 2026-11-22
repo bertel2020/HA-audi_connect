@@ -6,9 +6,9 @@ import asyncio
 from types import SimpleNamespace as NS
 from urllib.parse import parse_qs, urlsplit
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
-from custom_components.audiconnect.audi_services import AudiService
-from custom_components.audiconnect.capability_jobs import (
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_services import AudiService
+from custom_components.ha_audi_connect.capability_jobs import (
     BASE_SELECTIVE_JOBS,
     capability_snapshot,
     observed_readable_jobs,

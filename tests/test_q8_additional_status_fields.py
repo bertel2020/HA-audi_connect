@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from types import SimpleNamespace as NS
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
-from custom_components.audiconnect.audi_models import VehicleDataResponse
-from custom_components.audiconnect.sensor import SENSOR_DESCRIPTIONS
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_models import VehicleDataResponse
+from custom_components.ha_audi_connect.sensor import SENSOR_DESCRIPTIONS
 
 
 def parsed(data):

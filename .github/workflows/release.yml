@@ -33,7 +33,7 @@ jobs:
           GIT_TAG: ${{ steps.semantic_release_info.outputs.git_tag }}
         run: |
           echo "Version: ${VERSION}"
-          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/g" custom_components/audiconnect/manifest.json
+          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/g" custom_components/ha_audi_connect/manifest.json
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A

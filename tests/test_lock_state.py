@@ -18,9 +18,9 @@ from __future__ import annotations
 import copy
 import datetime
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
-from custom_components.audiconnect.audi_models import VehicleDataResponse
-from custom_components.audiconnect.lock import AudiLock
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_models import VehicleDataResponse
+from custom_components.ha_audi_connect.lock import AudiLock
 
 from tests.fixture_q8_etron import PAYLOAD
 

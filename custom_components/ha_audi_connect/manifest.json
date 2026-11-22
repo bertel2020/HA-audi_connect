@@ -1,5 +1,5 @@
 {
-  "domain": "audiconnect",
+  "domain": "ha_audi_connect",
   "name": "Audi Connect",
   "codeowners": ["@bertel2020"],
   "config_flow": true,
@@ -8,7 +8,7 @@
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/bertel2020/HA-audi_connect/issues",
-  "loggers": ["custom_components.audiconnect"],
+  "loggers": ["custom_components.ha_audi_connect"],
   "requirements": ["beautifulsoup4>=4.15.0"],
   "version": "3.0.0"
 }

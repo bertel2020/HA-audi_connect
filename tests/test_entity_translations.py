@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1] / "custom_components/audiconnect"
+ROOT = Path(__file__).resolve().parents[1] / "custom_components/ha_audi_connect"
 PLATFORMS = (
     "sensor",
     "binary_sensor",
@@ -31,7 +31,7 @@ def _entity(lang: str) -> dict:
 def _keys_in_code(platform: str) -> set[str]:
     """Keys written out in the source plus those of the description tables."""
     keys = set(KEY.findall((ROOT / f"{platform}.py").read_text()))
-    module = importlib.import_module(f"custom_components.audiconnect.{platform}")
+    module = importlib.import_module(f"custom_components.ha_audi_connect.{platform}")
     for name in dir(module):
         if name.endswith("_DESCRIPTIONS"):
             keys |= {d.translation_key for d in getattr(module, name)}

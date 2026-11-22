@@ -27,7 +27,7 @@ from __future__ import annotations
 import pytest
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.audiconnect.audi_entity import (
+from custom_components.ha_audi_connect.audi_entity import (
     entity_unique_id,
     is_entity_supported,
     should_create_entity,
@@ -86,7 +86,9 @@ def hass():
 
 def register(hass, platform, unique_id):
     """Put an entity in the registry the way an earlier, healthier poll would."""
-    return er.async_get(hass).async_get_or_create(platform, "audiconnect", unique_id)
+    return er.async_get(hass).async_get_or_create(
+        platform, "ha_audi_connect", unique_id
+    )
 
 
 # --- the gap itself ---------------------------------------------------------------
@@ -228,7 +230,7 @@ def test_the_gate_and_the_entity_agree_on_the_unique_id():
     the entity registers under cannot drift apart."""
     import inspect
 
-    from custom_components.audiconnect import (
+    from custom_components.ha_audi_connect import (
         binary_sensor,
         climate,
         device_tracker,
@@ -305,7 +307,7 @@ class _Coordinator:
 
 
 def _entity(vehicle, backing=None, description=None):
-    from custom_components.audiconnect.audi_entity import AudiEntity
+    from custom_components.ha_audi_connect.audi_entity import AudiEntity
 
     e = AudiEntity(_Coordinator(), vehicle)
     if backing is not None:
@@ -356,10 +358,10 @@ def test_a_failed_refresh_still_wins():
 def test_every_entity_class_kept_its_docstring():
     """_backing_attr placed above a class docstring silently replaces it, and
     nothing else in this suite would notice."""
-    from custom_components.audiconnect.climate import AudiClimate
-    from custom_components.audiconnect.device_tracker import AudiDeviceTracker
-    from custom_components.audiconnect.lock import AudiLock
-    from custom_components.audiconnect.select import AudiChargeModeSelect
+    from custom_components.ha_audi_connect.climate import AudiClimate
+    from custom_components.ha_audi_connect.device_tracker import AudiDeviceTracker
+    from custom_components.ha_audi_connect.lock import AudiLock
+    from custom_components.ha_audi_connect.select import AudiChargeModeSelect
 
     for cls in (AudiClimate, AudiChargeModeSelect, AudiLock, AudiDeviceTracker):
         assert cls.__doc__, f"{cls.__name__} lost its docstring"

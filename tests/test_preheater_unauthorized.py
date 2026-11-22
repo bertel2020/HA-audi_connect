@@ -22,7 +22,7 @@ from aiohttp import ClientResponseError, RequestInfo
 from multidict import CIMultiDictProxy, CIMultiDict
 from yarl import URL
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
 
 VIN = "WAUZZZ4M1RD000001"
 

@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import json
 
-from custom_components.audiconnect.audi_services import AudiService
+from custom_components.ha_audi_connect.audi_services import AudiService
 
 
 class _RecordingAPI:

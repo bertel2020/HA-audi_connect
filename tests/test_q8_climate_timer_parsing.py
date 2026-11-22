@@ -6,13 +6,13 @@ import json
 from pathlib import Path
 from types import SimpleNamespace as NS
 
-from custom_components.audiconnect.audi_models import VehicleDataResponse
-from custom_components.audiconnect.sensor import (
+from custom_components.ha_audi_connect.audi_models import VehicleDataResponse
+from custom_components.ha_audi_connect.sensor import (
     SENSOR_DESCRIPTIONS,
     _climatisation_timer_attrs,
 )
 
-ROOT = Path(__file__).resolve().parents[1] / "custom_components/audiconnect"
+ROOT = Path(__file__).resolve().parents[1] / "custom_components/ha_audi_connect"
 TS = "2026-11-10T14:00:00Z"
 
 

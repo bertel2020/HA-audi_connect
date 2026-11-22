@@ -6,8 +6,8 @@ from datetime import datetime, timedelta, timezone, UTC
 
 import pytest
 
-from custom_components.audiconnect.audi_api import _redact_secrets
-from custom_components.audiconnect.audi_services import _utc_offset_of
+from custom_components.ha_audi_connect.audi_api import _redact_secrets
+from custom_components.ha_audi_connect.audi_services import _utc_offset_of
 
 
 def test_spin_and_tokens_are_redacted_in_dicts():
@@ -41,7 +41,7 @@ def test_utc_offset_accepts_datetime_and_string():
 
 
 def test_service_end_accepts_a_bare_date():
-    from custom_components.audiconnect.audi_models import _service_end
+    from custom_components.ha_audi_connect.audi_models import _service_end
 
     assert _service_end("2033-09-30") == datetime(2033, 9, 30, tzinfo=UTC)
 
@@ -50,7 +50,7 @@ def test_service_end_accepts_a_bare_date():
 
 
 def test_mask_vins_keeps_only_the_last_four_characters():
-    from custom_components.audiconnect.util import mask_vins
+    from custom_components.ha_audi_connect.util import mask_vins
 
     out = mask_vins("Unable to lock WAUZZZF12345678AB now, wauzzzf12345678ab too")
     assert "WAUZZZF1234" not in out and "wauzzzf1234" not in out
@@ -76,7 +76,7 @@ def test_a_reading_of_zero_is_a_value_not_a_missing_one(key, attr):
 def test_an_empty_spin_does_not_count_as_configured():
     from types import SimpleNamespace
 
-    from custom_components.audiconnect.lock import _spin_configured
+    from custom_components.ha_audi_connect.lock import _spin_configured
 
     def car(spin):
         return SimpleNamespace(_audi_service=SimpleNamespace(_spin=spin))
@@ -94,7 +94,7 @@ def test_cleanup_does_nothing_while_no_vehicle_is_known():
     purpose: the registry must not even be looked at."""
     from types import SimpleNamespace
 
-    from custom_components.audiconnect import _async_cleanup_orphaned_devices
+    from custom_components.ha_audi_connect import _async_cleanup_orphaned_devices
 
     entry = SimpleNamespace(
         runtime_data=SimpleNamespace(account=SimpleNamespace(config_vehicles=[]))
@@ -108,7 +108,7 @@ def test_cleanup_does_nothing_while_no_vehicle_is_known():
 def test_climate_service_keeps_half_degrees_and_bounds_the_range():
     import voluptuous as vol
 
-    from custom_components.audiconnect.audi_account import (
+    from custom_components.ha_audi_connect.audi_account import (
         SERVICE_START_CLIMATE_CONTROL_SCHEMA as schema,
     )
 
@@ -119,7 +119,7 @@ def test_climate_service_keeps_half_degrees_and_bounds_the_range():
 
 
 def test_fahrenheit_is_rounded_to_half_degrees_not_truncated():
-    from custom_components.audiconnect.audi_payloads import (
+    from custom_components.ha_audi_connect.audi_payloads import (
         build_climatisation_start_body,
     )
 
@@ -131,7 +131,9 @@ def test_fahrenheit_is_rounded_to_half_degrees_not_truncated():
 
 
 def _account():
-    from custom_components.audiconnect.audi_connect_account import AudiConnectAccount
+    from custom_components.ha_audi_connect.audi_connect_account import (
+        AudiConnectAccount,
+    )
 
     return AudiConnectAccount(
         session=None, country="DE", spin=None, api_level=1, refresh_token="token"
@@ -189,8 +191,8 @@ def test_password_reauth_drops_the_refresh_token_that_just_failed():
     import asyncio
     from types import SimpleNamespace
 
-    from custom_components.audiconnect.config_flow import AudiConfigFlow
-    from custom_components.audiconnect.const import CONF_REFRESH_TOKEN
+    from custom_components.ha_audi_connect.config_flow import AudiConfigFlow
+    from custom_components.ha_audi_connect.const import CONF_REFRESH_TOKEN
 
     flow = AudiConfigFlow()
     flow._reauth_entry = SimpleNamespace(
@@ -222,7 +224,7 @@ def test_every_service_in_services_yaml_has_texts():
 
     import yaml
 
-    root = Path(__file__).resolve().parents[1] / "custom_components/audiconnect"
+    root = Path(__file__).resolve().parents[1] / "custom_components/ha_audi_connect"
     services = yaml.safe_load((root / "services.yaml").read_text())
     for lang in ("strings.json", "translations/en.json", "translations/de.json"):
         texts = json.loads((root / lang).read_text())["services"]
@@ -239,7 +241,7 @@ def test_every_service_in_services_yaml_has_texts():
 def _reauth_flow(unique_id):
     from types import SimpleNamespace
 
-    from custom_components.audiconnect.config_flow import AudiConfigFlow
+    from custom_components.ha_audi_connect.config_flow import AudiConfigFlow
 
     flow = AudiConfigFlow()
     flow._reauth_entry = SimpleNamespace(
@@ -296,7 +298,7 @@ def test_the_tracker_does_not_put_the_vin_into_state_attributes():
     from types import SimpleNamespace
     from unittest.mock import MagicMock
 
-    from custom_components.audiconnect.device_tracker import AudiDeviceTracker
+    from custom_components.ha_audi_connect.device_tracker import AudiDeviceTracker
 
     vehicle = SimpleNamespace(
         vin="WAUZZZF12345678AB",
@@ -315,7 +317,7 @@ def test_the_tracker_does_not_put_the_vin_into_state_attributes():
 def test_parse_datetime_converts_offsets_and_takes_long_fractions():
     from datetime import UTC
 
-    from custom_components.audiconnect.util import parse_datetime
+    from custom_components.ha_audi_connect.util import parse_datetime
 
     assert parse_datetime("2026-11-16 20:52:55+01:00") == datetime(
         2026, 11, 16, 19, 52, 55, tzinfo=UTC

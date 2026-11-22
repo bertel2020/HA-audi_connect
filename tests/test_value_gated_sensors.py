@@ -12,9 +12,9 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
-from custom_components.audiconnect.audi_entity import is_entity_supported
-from custom_components.audiconnect.sensor import SENSOR_DESCRIPTIONS
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_entity import is_entity_supported
+from custom_components.ha_audi_connect.sensor import SENSOR_DESCRIPTIONS
 
 KEYS = (
     "vehicle_reported_online",

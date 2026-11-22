@@ -7,8 +7,8 @@ import json
 
 import pytest
 
-from custom_components.audiconnect.audi_payloads import build_climatisation_timer
-from custom_components.audiconnect.audi_services import AudiService
+from custom_components.ha_audi_connect.audi_payloads import build_climatisation_timer
+from custom_components.ha_audi_connect.audi_services import AudiService
 
 VIN = "WAUZZZ00000000001"
 
@@ -137,7 +137,7 @@ def test_deleting_sends_a_delete_to_the_timer():
 
 # --- switching a timer on or off ---------------------------------------------------
 
-from custom_components.audiconnect.audi_payloads import (  # noqa: E402
+from custom_components.ha_audi_connect.audi_payloads import (  # noqa: E402
     build_climatisation_timers_update,
     timer_for_update,
 )

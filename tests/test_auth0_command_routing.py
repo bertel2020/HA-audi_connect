@@ -2,7 +2,7 @@
 
 import asyncio
 
-from custom_components.audiconnect.audi_services import AudiService
+from custom_components.ha_audi_connect.audi_services import AudiService
 
 VIN = "WAUZZZ00000000000"
 

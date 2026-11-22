@@ -9,7 +9,7 @@ from types import SimpleNamespace as NS
 from unittest import TestCase
 from unittest.mock import patch
 
-ROOT = Path(__file__).resolve().parents[1] / "custom_components/audiconnect"
+ROOT = Path(__file__).resolve().parents[1] / "custom_components/ha_audi_connect"
 
 
 def _module(name, package=False):

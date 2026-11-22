@@ -6,7 +6,7 @@ import unittest
 
 MODULE = (
     Path(__file__).resolve().parents[1]
-    / "custom_components/audiconnect/diagnostic_events.py"
+    / "custom_components/ha_audi_connect/diagnostic_events.py"
 )
 spec = importlib.util.spec_from_file_location("audi_diagnostic_events", MODULE)
 module = importlib.util.module_from_spec(spec)

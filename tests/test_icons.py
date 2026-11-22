@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1] / "custom_components/audiconnect"
+ROOT = Path(__file__).resolve().parents[1] / "custom_components/ha_audi_connect"
 ICONS = json.loads((ROOT / "icons.json").read_text())["entity"]
 PLATFORMS = (
     "binary_sensor",
@@ -39,7 +39,7 @@ def test_every_symbol_is_a_material_design_icon_with_a_default():
 
 @pytest.mark.parametrize("platform", ["binary_sensor", "button", "sensor", "switch"])
 def test_every_key_in_the_file_names_an_entity_that_exists(platform):
-    module = importlib.import_module(f"custom_components.audiconnect.{platform}")
+    module = importlib.import_module(f"custom_components.ha_audi_connect.{platform}")
     keys = set()
     for value in vars(module).values():
         if isinstance(value, (tuple, list)):

@@ -7,8 +7,8 @@ from unittest.mock import MagicMock
 import pytest
 from homeassistant.const import EntityCategory
 
-from custom_components.audiconnect.button import BUTTON_DESCRIPTIONS
-from custom_components.audiconnect.sensor import (
+from custom_components.ha_audi_connect.button import BUTTON_DESCRIPTIONS
+from custom_components.ha_audi_connect.sensor import (
     SENSOR_DESCRIPTIONS,
     AudiCloudLastPollSensor,
     AudiVehicleAgeSensor,

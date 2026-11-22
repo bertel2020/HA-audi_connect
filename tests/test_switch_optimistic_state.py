@@ -19,7 +19,7 @@ import asyncio
 import pytest
 from homeassistant.exceptions import HomeAssistantError
 
-from custom_components.audiconnect.switch import SWITCH_DESCRIPTIONS, AudiSwitch
+from custom_components.ha_audi_connect.switch import SWITCH_DESCRIPTIONS, AudiSwitch
 
 VIN = "WAUZZZ00000000001"
 

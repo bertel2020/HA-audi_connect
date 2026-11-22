@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from custom_components.audiconnect.freshness import vehicle_freshness
+from custom_components.ha_audi_connect.freshness import vehicle_freshness
 
 # Every value vehicle_freshness can return, one input per branch.
 OPTIONS = {
@@ -24,7 +24,7 @@ OPTIONS = {
         now=datetime(2026, 1, 1, 15, 0, tzinfo=UTC),
     ),
 }
-ROOT = Path(__file__).parent.parent / "custom_components" / "audiconnect"
+ROOT = Path(__file__).parent.parent / "custom_components" / "ha_audi_connect"
 
 
 @pytest.mark.parametrize(

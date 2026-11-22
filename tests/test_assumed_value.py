@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from homeassistant.exceptions import HomeAssistantError
 
-from custom_components.audiconnect import audi_entity
-from custom_components.audiconnect.select import AudiClimatisationModeSelect
+from custom_components.ha_audi_connect import audi_entity
+from custom_components.ha_audi_connect.select import AudiClimatisationModeSelect
 
 VIN = "WAUZZZ00000000001"
 

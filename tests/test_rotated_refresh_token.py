@@ -8,8 +8,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from custom_components.audiconnect.audi_auth import AudiAuthError
-from custom_components.audiconnect.audi_connect_account import AudiConnectAccount
+from custom_components.ha_audi_connect.audi_auth import AudiAuthError
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectAccount
 
 
 def _account(service):

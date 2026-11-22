@@ -20,10 +20,10 @@ from homeassistant.components.climate import (
 from homeassistant.const import ATTR_TEMPERATURE
 from homeassistant.exceptions import HomeAssistantError
 
-from custom_components.audiconnect import climate as climate_mod
-from custom_components.audiconnect.audi_connect_account import AudiConnectAccount
-from custom_components.audiconnect.audi_entity import is_entity_supported
-from custom_components.audiconnect.climate import AudiClimate
+from custom_components.ha_audi_connect import climate as climate_mod
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectAccount
+from custom_components.ha_audi_connect.audi_entity import is_entity_supported
+from custom_components.ha_audi_connect.climate import AudiClimate
 
 VIN = "WAUZZZ00000000001"
 
@@ -102,7 +102,7 @@ def test_state_is_read_from_an_attribute_that_exists():
     only ever reflected what HA last commanded."""
     assert climate_mod._ATTR_KEY == "climatisation_state"
     assert hasattr(AudiConnectAccount, "set_vehicle_climatisation")
-    from custom_components.audiconnect import audi_connect_account as aca
+    from custom_components.ha_audi_connect import audi_connect_account as aca
 
     assert not hasattr(aca.AudiConnectVehicle, "climatisation_active")
     assert hasattr(aca.AudiConnectVehicle, "climatisation_state")
@@ -265,7 +265,7 @@ def test_the_legacy_start_really_is_dead():
     the simpler call becomes available again."""
     import inspect
 
-    from custom_components.audiconnect import audi_services
+    from custom_components.ha_audi_connect import audi_services
 
     source = inspect.getsource(audi_services.AudiService.set_climatisation)
     assert "raise NotImplementedError" in source
@@ -285,7 +285,7 @@ def test_a_failed_command_raises_and_does_not_refresh(mode):
 def test_the_advertised_step_matches_what_the_car_receives():
     """The car stores half degrees and both requests that carry the target send
     them, so a 0.5 step promises nothing the car discards."""
-    from custom_components.audiconnect.audi_payloads import (
+    from custom_components.ha_audi_connect.audi_payloads import (
         build_climatisation_start_body,
     )
 
@@ -329,7 +329,7 @@ def test_inactive_and_stopped_read_as_off_like_the_quick_switch(state):
 
 
 def test_climate_and_quick_switch_agree_on_every_reported_state():
-    from custom_components.audiconnect.switch import AudiClimateQuickSwitch
+    from custom_components.ha_audi_connect.switch import AudiClimateQuickSwitch
 
     for state in [
         "off",

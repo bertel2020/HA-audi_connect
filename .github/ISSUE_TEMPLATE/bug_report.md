@@ -24,7 +24,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Logfile**
-How to enable audiconnect debugging?
+How to enable ha_audi_connect debugging?
 Settings > Integrations > Audi Connect > Enable Debug Logging
 Run service refresh_cloud_data
 Disable Debug Logging

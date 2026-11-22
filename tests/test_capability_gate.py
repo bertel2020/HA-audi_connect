@@ -15,8 +15,8 @@ import copy
 
 import pytest
 
-from custom_components.audiconnect.audi_entity import is_entity_supported
-from custom_components.audiconnect.audi_models import VehicleDataResponse
+from custom_components.ha_audi_connect.audi_entity import is_entity_supported
+from custom_components.ha_audi_connect.audi_models import VehicleDataResponse
 
 from tests.fixture_q8_etron import PAYLOAD
 
@@ -69,7 +69,7 @@ def test_the_job_is_actually_requested():
     Check the actual planner rather than source text that breaks on refactors.
     The service request path itself is exercised in test_q8_capability_poll_planner.
     """
-    from custom_components.audiconnect.capability_jobs import select_jobs
+    from custom_components.ha_audi_connect.capability_jobs import select_jobs
 
     assert "userCapabilities" in select_jobs()
     assert "userCapabilities" in select_jobs(frozenset({"charging"}))
@@ -155,7 +155,9 @@ def test_the_real_has_capability_matches_this_stub():
     version of this stub treated an empty list as "not capable" while the real
     property treats it as "said nothing", and the test that mattered failed
     for that reason alone."""
-    from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
+    from custom_components.ha_audi_connect.audi_connect_account import (
+        AudiConnectVehicle,
+    )
 
     real = object.__new__(AudiConnectVehicle)
     real._vehicle = type("V", (), {"state": {}})()

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from custom_components.audiconnect.audi_auth import (
+from custom_components.ha_audi_connect.audi_auth import (
     AudiAuthError,
     AudiTokenRefreshError,
     _raise_refresh_rejected,

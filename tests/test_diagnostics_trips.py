@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from custom_components.audiconnect.diagnostics import _trip_view
+from custom_components.ha_audi_connect.diagnostics import _trip_view
 
 
 def test_a_complete_block_is_described_without_its_values():

@@ -15,8 +15,8 @@ import copy
 import pytest
 from homeassistant.exceptions import HomeAssistantError
 
-from custom_components.audiconnect.audi_models import VehicleDataResponse
-from custom_components.audiconnect.select import AudiChargeModeSelect, _options_for
+from custom_components.ha_audi_connect.audi_models import VehicleDataResponse
+from custom_components.ha_audi_connect.select import AudiChargeModeSelect, _options_for
 
 from tests.fixture_q8_etron import PAYLOAD
 

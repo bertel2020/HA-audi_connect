@@ -7,11 +7,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
-from custom_components.audiconnect.audi_models import VehicleDataResponse
-from custom_components.audiconnect.capability_jobs import BASE_SELECTIVE_JOBS
-from custom_components.audiconnect import sensor as sensor_platform
-from custom_components.audiconnect.sensor import (
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_models import VehicleDataResponse
+from custom_components.ha_audi_connect.capability_jobs import BASE_SELECTIVE_JOBS
+from custom_components.ha_audi_connect import sensor as sensor_platform
+from custom_components.ha_audi_connect.sensor import (
     SENSOR_DESCRIPTIONS,
     is_sensor_available_for,
     sensor_descriptions_to_create,
@@ -200,7 +200,7 @@ def test_a_car_without_dates_has_no_expiry_sensor():
 
 
 def test_the_expiry_sensor_names_the_services_soonest_first():
-    from custom_components.audiconnect.sensor import _service_expiry_attrs
+    from custom_components.ha_audi_connect.sensor import _service_expiry_attrs
 
     attrs = _service_expiry_attrs(vehicle_with(_capability_state()))
 
@@ -215,7 +215,7 @@ def test_the_expiry_sensor_names_the_services_soonest_first():
 def test_profiles_without_a_target_get_no_slider():
     """The A6 reports profiles with no targetSOC_pct (the car says it does not
     support one), so a slider for it could never show or set anything."""
-    from custom_components.audiconnect.number import profiles_with_a_target
+    from custom_components.ha_audi_connect.number import profiles_with_a_target
 
     vehicle = SimpleNamespace(
         charging_profiles=[
@@ -229,7 +229,7 @@ def test_profiles_without_a_target_get_no_slider():
 
 
 def test_a_car_that_reports_no_profiles_is_unaffected():
-    from custom_components.audiconnect.number import profiles_with_a_target
+    from custom_components.ha_audi_connect.number import profiles_with_a_target
 
     assert profiles_with_a_target(SimpleNamespace(charging_profiles=None)) == []
 

@@ -6,7 +6,7 @@ import copy
 
 import pytest
 
-from custom_components.audiconnect.sensor import SENSOR_DESCRIPTIONS
+from custom_components.ha_audi_connect.sensor import SENSOR_DESCRIPTIONS
 from tests.fixture_a6_etron import PAYLOAD
 from tests.test_a6_etron import states_of, vehicle_with
 

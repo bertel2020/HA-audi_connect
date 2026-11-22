@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 
-from custom_components.audiconnect.button import BUTTON_DESCRIPTIONS
+from custom_components.ha_audi_connect.button import BUTTON_DESCRIPTIONS
 from tests.test_flash_lights import LAT, LON, VIN, service, sent
 
 
@@ -41,7 +41,7 @@ def test_the_buttons_are_named_after_what_the_app_calls_them():
     import json
     from pathlib import Path
 
-    root = Path(__file__).parent.parent / "custom_components" / "audiconnect"
+    root = Path(__file__).parent.parent / "custom_components" / "ha_audi_connect"
     de = json.loads((root / "translations/de.json").read_text(encoding="utf-8"))
     en = json.loads((root / "translations/en.json").read_text(encoding="utf-8"))
     assert de["entity"]["button"]["flash_lights"]["name"] == "Blinken"

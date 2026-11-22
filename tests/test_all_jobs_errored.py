@@ -7,7 +7,7 @@ the package importable.
 
 from __future__ import annotations
 
-from custom_components.audiconnect.audi_models import (
+from custom_components.ha_audi_connect.audi_models import (
     VehicleDataResponse,
     _count_error_objects,
 )

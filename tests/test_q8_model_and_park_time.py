@@ -6,10 +6,10 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-from custom_components.audiconnect.audi_entity import AudiEntity
-from custom_components.audiconnect.audi_models import Vehicle, VehiclesResponse
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
-from custom_components.audiconnect.sensor import _model_attrs, _park_time_attrs
+from custom_components.ha_audi_connect.audi_entity import AudiEntity
+from custom_components.ha_audi_connect.audi_models import Vehicle, VehiclesResponse
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.sensor import _model_attrs, _park_time_attrs
 
 
 @pytest.mark.parametrize(
@@ -83,7 +83,7 @@ def test_device_model_does_not_have_empty_year_parentheses():
     info = obj.device_info
     assert info["model"] == "Q8 PHEV"
     assert "()" not in info["model"]
-    assert info["identifiers"] == {("audiconnect", "not_a_real_vin")}
+    assert info["identifiers"] == {("ha_audi_connect", "not_a_real_vin")}
 
 
 def test_parking_clock_takes_priority_over_position_capture():

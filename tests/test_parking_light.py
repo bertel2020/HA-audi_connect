@@ -4,7 +4,7 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-from custom_components.audiconnect.audi_vehicle_properties import (
+from custom_components.ha_audi_connect.audi_vehicle_properties import (
     AudiVehicleProperties,
 )
 

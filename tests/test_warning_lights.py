@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import copy
 
-from custom_components.audiconnect.binary_sensor import BINARY_SENSOR_DESCRIPTIONS
-from custom_components.audiconnect.sensor import (
+from custom_components.ha_audi_connect.binary_sensor import BINARY_SENSOR_DESCRIPTIONS
+from custom_components.ha_audi_connect.sensor import (
     SENSOR_DESCRIPTIONS,
     _warning_light_attrs,
 )

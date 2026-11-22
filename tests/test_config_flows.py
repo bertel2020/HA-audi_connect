@@ -7,9 +7,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from custom_components.audiconnect import config_flow as cf
-from custom_components.audiconnect.audi_auth import AudiAuthError
-from custom_components.audiconnect.const import (
+from custom_components.ha_audi_connect import config_flow as cf
+from custom_components.ha_audi_connect.audi_auth import AudiAuthError
+from custom_components.ha_audi_connect.const import (
     CONF_REGION,
     CONF_SCAN_INTERVAL,
     CONF_SPIN,

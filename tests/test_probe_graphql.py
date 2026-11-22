@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from custom_components.audiconnect.audi_services import AudiService
+from custom_components.ha_audi_connect.audi_services import AudiService
 
 LIST = {"data": {"userVehicles": [{"vin": "WAUZZZ00000000001", "csid": "core-1"}]}}
 

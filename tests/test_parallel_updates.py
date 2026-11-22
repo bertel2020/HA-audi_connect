@@ -12,11 +12,11 @@ COMMANDS = ("button", "climate", "lock", "number", "select", "switch")
 
 @pytest.mark.parametrize("platform", READ_ONLY)
 def test_reading_platforms_do_not_queue(platform):
-    module = importlib.import_module(f"custom_components.audiconnect.{platform}")
+    module = importlib.import_module(f"custom_components.ha_audi_connect.{platform}")
     assert module.PARALLEL_UPDATES == 0
 
 
 @pytest.mark.parametrize("platform", COMMANDS)
 def test_platforms_that_command_the_car_go_one_at_a_time(platform):
-    module = importlib.import_module(f"custom_components.audiconnect.{platform}")
+    module = importlib.import_module(f"custom_components.ha_audi_connect.{platform}")
     assert module.PARALLEL_UPDATES == 1

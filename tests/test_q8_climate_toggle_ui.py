@@ -8,9 +8,9 @@ from types import SimpleNamespace as NS
 import pytest
 from homeassistant.exceptions import HomeAssistantError
 
-from custom_components.audiconnect.switch import AudiClimateQuickSwitch
-from custom_components.audiconnect.button import BUTTON_DESCRIPTIONS
-from custom_components.audiconnect.lock import AudiLock
+from custom_components.ha_audi_connect.switch import AudiClimateQuickSwitch
+from custom_components.ha_audi_connect.button import BUTTON_DESCRIPTIONS
+from custom_components.ha_audi_connect.lock import AudiLock
 
 
 class Connection:

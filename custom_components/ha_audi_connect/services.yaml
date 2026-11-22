@@ -1,5 +1,5 @@
 ---
-# Describes the format for available services for audiconnect
+# Describes the format for available services for ha_audi_connect
 
 probe_api_paths:
   fields:
@@ -7,7 +7,7 @@ probe_api_paths:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     extended:
       selector:
         boolean:
@@ -20,7 +20,7 @@ refresh_vehicle_data:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
 
 probe_api:
   fields:
@@ -28,7 +28,7 @@ probe_api:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     jobs:
       required: false
       example: "[access, charging]"
@@ -55,7 +55,7 @@ execute_vehicle_action:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     action:
       required: true
       example: "lock"
@@ -81,7 +81,7 @@ start_climate_control:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     temp_f:
       selector:
         number:
@@ -125,7 +125,7 @@ start_auxiliary_heating:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     duration:
       selector:
         number:
@@ -140,7 +140,7 @@ set_location_charge_target:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     profile_id:
       example: 1
       selector:
@@ -164,7 +164,7 @@ set_charge_mode:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     charge_mode:
       required: true
       example: "manual"
@@ -180,7 +180,7 @@ set_target_soc:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     target_soc:
       required: true
       example: 80
@@ -197,7 +197,7 @@ start_engine:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
 
 stop_engine:
   fields:
@@ -205,7 +205,7 @@ stop_engine:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
 
 test_climatisation_write:
   fields:
@@ -213,7 +213,7 @@ test_climatisation_write:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     setting:
       required: true
       selector:
@@ -254,7 +254,7 @@ create_climatisation_timer:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     time:
       required: true
       example: "07:30"
@@ -288,7 +288,7 @@ delete_climatisation_timer:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     timer_id:
       required: true
       selector:
@@ -303,7 +303,7 @@ set_climatisation_timer_enabled:
       required: true
       selector:
         device:
-          integration: audiconnect
+          integration: ha_audi_connect
     timer_id:
       required: true
       selector:

@@ -6,7 +6,7 @@ import asyncio
 from datetime import UTC, datetime
 from types import SimpleNamespace
 
-from custom_components.audiconnect.system_health import (
+from custom_components.ha_audi_connect.system_health import (
     async_register,
     system_health_info,
 )

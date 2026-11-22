@@ -6,10 +6,10 @@ import asyncio
 
 import pytest
 
-from custom_components.audiconnect.audi_vehicle_properties import (
+from custom_components.ha_audi_connect.audi_vehicle_properties import (
     AudiVehicleProperties,
 )
-from custom_components.audiconnect.switch import SWITCH_DESCRIPTIONS
+from custom_components.ha_audi_connect.switch import SWITCH_DESCRIPTIONS
 from tests.test_q8_charging_settings_preservation import VIN, service
 
 A6_SETTINGS = {

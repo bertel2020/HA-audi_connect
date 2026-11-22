@@ -8,11 +8,11 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 
-from custom_components.audiconnect.audi_entity import english_object_name
-from custom_components.audiconnect.number import AudiProfileChargeTarget
-from custom_components.audiconnect.sensor import SENSOR_DESCRIPTIONS, AudiSensor
+from custom_components.ha_audi_connect.audi_entity import english_object_name
+from custom_components.ha_audi_connect.number import AudiProfileChargeTarget
+from custom_components.ha_audi_connect.sensor import SENSOR_DESCRIPTIONS, AudiSensor
 
-TRANSLATIONS = Path(__file__).parent.parent / "custom_components" / "audiconnect"
+TRANSLATIONS = Path(__file__).parent.parent / "custom_components" / "ha_audi_connect"
 
 
 def test_a_sensor_id_comes_from_the_english_name():

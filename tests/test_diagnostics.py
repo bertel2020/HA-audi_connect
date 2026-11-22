@@ -6,7 +6,7 @@ import json
 import re
 from datetime import UTC, datetime
 
-from custom_components.audiconnect.diagnostics_payload import (
+from custom_components.ha_audi_connect.diagnostics_payload import (
     REDACTED,
     REDACTED_VIN,
     redact,

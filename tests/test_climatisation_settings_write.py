@@ -17,7 +17,7 @@ import json
 
 import pytest
 
-from custom_components.audiconnect.audi_services import (
+from custom_components.ha_audi_connect.audi_services import (
     build_climatisation_settings_update,
 )
 
@@ -108,7 +108,7 @@ class Api:
 
 
 def service(current=None):
-    from custom_components.audiconnect import audi_services
+    from custom_components.ha_audi_connect import audi_services
 
     svc = object.__new__(audi_services.AudiService)
     svc._api = Api(settings() if current is None else current)
@@ -142,7 +142,7 @@ def test_it_sends_nothing_when_the_car_reports_no_settings():
 
 
 def test_each_setting_switch_writes_its_own_field():
-    from custom_components.audiconnect.switch import SWITCH_DESCRIPTIONS
+    from custom_components.ha_audi_connect.switch import SWITCH_DESCRIPTIONS
 
     class Conn:
         def __init__(self):
@@ -177,7 +177,7 @@ def test_each_setting_switch_writes_its_own_field():
 def test_the_lambdas_bound_their_own_field():
     """Closures over a loop variable would give every switch the last field.
     This is the case that would make six switches all write the rear right seat."""
-    from custom_components.audiconnect.switch import SWITCH_DESCRIPTIONS
+    from custom_components.ha_audi_connect.switch import SWITCH_DESCRIPTIONS
 
     fields = set()
 
@@ -395,7 +395,7 @@ def test_a_new_target_temperature_replaces_the_stored_one_and_keeps_the_unit():
 
 
 def test_the_test_service_takes_a_number_for_the_temperature_and_a_flag_otherwise():
-    from custom_components.audiconnect.audi_account import (
+    from custom_components.ha_audi_connect.audi_account import (
         SERVICE_TEST_CLIMATISATION_WRITE_SCHEMA as schema,
     )
 

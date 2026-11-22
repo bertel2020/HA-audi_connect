@@ -9,10 +9,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from custom_components.audiconnect import repairs
+from custom_components.ha_audi_connect import repairs
 
 NOW = datetime(2026, 11, 22, 9, 0, tzinfo=UTC)
-ROOT = Path(__file__).resolve().parents[1] / "custom_components/audiconnect"
+ROOT = Path(__file__).resolve().parents[1] / "custom_components/ha_audi_connect"
 
 
 @pytest.fixture
@@ -102,8 +102,8 @@ def test_clearing_an_entry_removes_only_its_hints(monkeypatch):
     removed = []
     registry = SimpleNamespace(
         issues={
-            ("audiconnect", "services_expired_entry1_aa"): 1,
-            ("audiconnect", "services_ending_soon_entry2_bb"): 1,
+            ("ha_audi_connect", "services_expired_entry1_aa"): 1,
+            ("ha_audi_connect", "services_ending_soon_entry2_bb"): 1,
             ("other", "services_expired_entry1_cc"): 1,
         }
     )
@@ -128,7 +128,7 @@ def _coordinator(vehicles):
 
 
 def test_a_poll_hands_the_known_cars_to_the_hints(monkeypatch):
-    from custom_components.audiconnect import coordinator
+    from custom_components.ha_audi_connect import coordinator
 
     seen = []
     monkeypatch.setattr(
@@ -140,7 +140,7 @@ def test_a_poll_hands_the_known_cars_to_the_hints(monkeypatch):
 
 
 def test_a_failing_hint_never_fails_the_poll(monkeypatch):
-    from custom_components.audiconnect import coordinator
+    from custom_components.ha_audi_connect import coordinator
 
     def boom(*args):
         raise RuntimeError("no registry")
@@ -152,7 +152,7 @@ def test_a_failing_hint_never_fails_the_poll(monkeypatch):
 def test_removing_an_entry_clears_its_hints(monkeypatch):
     import asyncio
 
-    from custom_components import audiconnect as integration
+    from custom_components import ha_audi_connect as integration
 
     cleared = []
     monkeypatch.setattr(

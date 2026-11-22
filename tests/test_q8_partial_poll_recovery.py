@@ -3,8 +3,8 @@
 import asyncio
 import copy
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
-from custom_components.audiconnect.audi_models import VehicleDataResponse
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_models import VehicleDataResponse
 from tests.fixture_q8_etron import PAYLOAD
 
 

@@ -5,12 +5,12 @@ from __future__ import annotations
 import asyncio
 from urllib.parse import parse_qs, urlsplit
 
-from custom_components.audiconnect.capability_jobs import (
+from custom_components.ha_audi_connect.capability_jobs import (
     BASE_SELECTIVE_JOBS,
     capability_snapshot,
     select_jobs,
 )
-from custom_components.audiconnect.audi_services import AudiService
+from custom_components.ha_audi_connect.audi_services import AudiService
 
 
 def caps(*items):

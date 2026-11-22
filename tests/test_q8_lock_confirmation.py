@@ -8,7 +8,7 @@ from types import SimpleNamespace as NS
 import pytest
 from homeassistant.exceptions import HomeAssistantError
 
-from custom_components.audiconnect.lock import AudiLock
+from custom_components.ha_audi_connect.lock import AudiLock
 
 
 class Connection:

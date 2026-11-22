@@ -18,8 +18,8 @@ import json
 
 import pytest
 
-from custom_components.audiconnect import audi_services
-from custom_components.audiconnect.audi_services import AudiService
+from custom_components.ha_audi_connect import audi_services
+from custom_components.ha_audi_connect.audi_services import AudiService
 
 VIN = "WAUZZZ00000000000"
 REQ = "a769422d-cb80-45a0-94f7-a2c5ea2514a9"

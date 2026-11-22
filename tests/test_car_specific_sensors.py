@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.audiconnect import sensor
-from custom_components.audiconnect.sensor import (
+from custom_components.ha_audi_connect import sensor
+from custom_components.ha_audi_connect.sensor import (
     SENSOR_DESCRIPTIONS,
     is_sensor_available_for,
 )

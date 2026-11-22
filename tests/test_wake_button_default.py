@@ -1,6 +1,6 @@
 """The wake button is off by default while Audi's wake-up service fails."""
 
-from custom_components.audiconnect.button import BUTTON_DESCRIPTIONS
+from custom_components.ha_audi_connect.button import BUTTON_DESCRIPTIONS
 
 
 def _description(key):

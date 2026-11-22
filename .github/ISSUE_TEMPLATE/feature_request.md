@@ -19,7 +19,7 @@ A clear and concise description of any alternative solutions or features you've 
 Add any other context or screenshots about the feature request here.
 
 **Logfile**
-How to enable audiconnect debugging?
+How to enable ha_audi_connect debugging?
 Settings > Integrations > Audi Connect > Enable Debug Logging
 Run service refresh_cloud_data
 Disable Debug Logging

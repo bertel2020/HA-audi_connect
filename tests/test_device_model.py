@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.audiconnect.audi_entity import AudiEntity
+from custom_components.ha_audi_connect.audi_entity import AudiEntity
 
 
 def model_of(car_type, model="Audi", model_year=None):

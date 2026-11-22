@@ -17,7 +17,7 @@ import copy
 
 import pytest
 
-from custom_components.audiconnect.audi_services import build_profile_update
+from custom_components.ha_audi_connect.audi_services import build_profile_update
 
 from tests.fixture_q8_etron import PAYLOAD
 

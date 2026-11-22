@@ -12,13 +12,13 @@ from homeassistant.exceptions import (
     ServiceValidationError,
 )
 
-from custom_components.audiconnect.errors import (
+from custom_components.ha_audi_connect.errors import (
     command_error,
     request_error,
     sign_in_error,
 )
 
-ROOT = Path(__file__).resolve().parents[1] / "custom_components/audiconnect"
+ROOT = Path(__file__).resolve().parents[1] / "custom_components/ha_audi_connect"
 STRINGS = json.loads((ROOT / "strings.json").read_text())["exceptions"]
 HELPERS = re.compile(r'(?:command_error|request_error|sign_in_error)\(\s*"(\w+)"')
 SIGN_IN = re.compile(r'"(sign_in_(?:again|credentials))"')
@@ -78,7 +78,7 @@ def test_the_placeholders_of_each_text_are_the_ones_the_code_passes():
 def test_the_helpers_build_translated_errors():
     error = command_error("lock_failed", action="lock")
     assert isinstance(error, HomeAssistantError)
-    assert error.translation_domain == "audiconnect"
+    assert error.translation_domain == "ha_audi_connect"
     assert error.translation_key == "lock_failed"
     assert error.translation_placeholders == {"action": "lock"}
     assert isinstance(request_error("probe_path_invalid"), ServiceValidationError)

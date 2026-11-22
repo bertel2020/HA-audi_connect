@@ -1,6 +1,6 @@
 """The card editor offers the pictures in the www folder."""
 
-from custom_components.audiconnect.card import list_www_images
+from custom_components.ha_audi_connect.card import list_www_images
 
 
 def test_lists_pictures_as_local_paths(tmp_path):

@@ -7,7 +7,7 @@ import logging
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
-from custom_components.audiconnect import card
+from custom_components.ha_audi_connect import card
 
 
 def make_hass(with_http=True):
@@ -48,7 +48,7 @@ def test_the_card_is_served_and_loaded_with_a_cache_buster():
 def test_the_image_list_command_is_registered():
     _, ws = register(make_hass())
     ws.assert_called_once()
-    assert ws.call_args.args[1]._ws_command == "audiconnect/list_images"
+    assert ws.call_args.args[1]._ws_command == "ha_audi_connect/list_images"
 
 
 def test_registering_twice_does_nothing_the_second_time():

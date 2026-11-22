@@ -21,10 +21,10 @@ import copy
 from datetime import UTC, datetime
 
 
-from custom_components.audiconnect import audi_connect_vehicle
-from custom_components.audiconnect.audi_connect_vehicle import AudiConnectVehicle
-from custom_components.audiconnect.audi_models import VehicleDataResponse
-from custom_components.audiconnect.util import parse_datetime as real_parse_datetime
+from custom_components.ha_audi_connect import audi_connect_vehicle
+from custom_components.ha_audi_connect.audi_connect_vehicle import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_models import VehicleDataResponse
+from custom_components.ha_audi_connect.util import parse_datetime as real_parse_datetime
 
 from tests.fixture_q8_etron import PAYLOAD
 

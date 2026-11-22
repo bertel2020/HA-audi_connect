@@ -18,8 +18,8 @@ import json
 
 import pytest
 
-from custom_components.audiconnect import audi_services
-from custom_components.audiconnect.button import BUTTON_DESCRIPTIONS
+from custom_components.ha_audi_connect import audi_services
+from custom_components.ha_audi_connect.button import BUTTON_DESCRIPTIONS
 
 VIN = "WAUZZZ00000000001"
 LAT, LON = 51.5, -0.12
@@ -114,7 +114,9 @@ def test_the_mode_is_a_literal_in_the_code():
 
 
 def test_the_account_layer_names_no_mode_at_all():
-    from custom_components.audiconnect.audi_connect_account import AudiConnectAccount
+    from custom_components.ha_audi_connect.audi_connect_account import (
+        AudiConnectAccount,
+    )
 
     code = _code_without_docstring(AudiConnectAccount.flash_lights)
     assert "honk" not in code.lower()
@@ -166,7 +168,7 @@ class Connection:
     """Exercises AudiConnectAccount.flash_lights without the HTTP boundary."""
 
     def __init__(self, position):
-        from custom_components.audiconnect.audi_connect_account import (
+        from custom_components.ha_audi_connect.audi_connect_account import (
             AudiConnectAccount,
         )
 

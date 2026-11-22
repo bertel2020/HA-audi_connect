@@ -7,11 +7,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from custom_components.audiconnect.audi_models import (
+from custom_components.ha_audi_connect.audi_models import (
     VehicleDataResponse,
     _charge_target_limits,
 )
-from custom_components.audiconnect.number import AudiNumber, NUMBER_DESCRIPTIONS
+from custom_components.ha_audi_connect.number import AudiNumber, NUMBER_DESCRIPTIONS
 
 from tests.fixture_a6_etron import CAPABILITIES
 from tests.test_a6_etron import vehicle_with
@@ -104,20 +104,20 @@ def _profiles(*targets):
 def test_no_profile_slider_when_no_profile_has_a_target():
     """The A6 lists a profile whose target is null. The slider could never show
     a value, so it is not offered, registry entry or not."""
-    from custom_components.audiconnect.number import profile_slider_wanted
+    from custom_components.ha_audi_connect.number import profile_slider_wanted
 
     assert profile_slider_wanted(_profiles(None)) is False
     assert profile_slider_wanted(_profiles(None, None)) is False
 
 
 def test_the_profile_slider_stays_when_a_profile_has_a_target():
-    from custom_components.audiconnect.number import profile_slider_wanted
+    from custom_components.ha_audi_connect.number import profile_slider_wanted
 
     assert profile_slider_wanted(_profiles(None, 80)) is True
 
 
 def test_a_poll_without_profiles_does_not_decide():
-    from custom_components.audiconnect.number import profile_slider_wanted
+    from custom_components.ha_audi_connect.number import profile_slider_wanted
 
     assert profile_slider_wanted(SimpleNamespace()) is True
     assert profile_slider_wanted(_profiles()) is True

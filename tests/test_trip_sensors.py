@@ -8,9 +8,9 @@ from types import SimpleNamespace
 import pytest
 from aiohttp import ClientResponseError
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
-from custom_components.audiconnect.audi_services import AudiService
-from custom_components.audiconnect.sensor import SENSOR_DESCRIPTIONS
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_services import AudiService
+from custom_components.ha_audi_connect.sensor import SENSOR_DESCRIPTIONS
 from tests.test_a6_etron import vehicle_with
 
 VIN = "TESTVIN00000000001"
@@ -146,7 +146,7 @@ def test_the_long_term_totals_are_on_by_default_like_the_last_trip():
 def test_long_term_totals_are_total_increasing_and_last_trip_is_not():
     from homeassistant.components.sensor import SensorStateClass
 
-    from custom_components.audiconnect.sensor import SENSOR_DESCRIPTIONS
+    from custom_components.ha_audi_connect.sensor import SENSOR_DESCRIPTIONS
 
     by_key = {d.key: d for d in SENSOR_DESCRIPTIONS}
     for suffix in ("distance", "energy"):

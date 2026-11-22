@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from custom_components.audiconnect.audi_models import VehicleDataResponse
+from custom_components.ha_audi_connect.audi_models import VehicleDataResponse
 
 TS = "2026-11-15T17:36:17+00:00"
 
@@ -104,7 +104,7 @@ def test_the_own_job_wins_over_departure_timers():
 def test_the_a6_departure_timers_capability_covers_the_timer_sensors():
     """The A6 announces departureTimers, not climatisationTimers, so the sensors
     gated on the latter were never created."""
-    from custom_components.audiconnect.sensor import SENSOR_DESCRIPTIONS
+    from custom_components.ha_audi_connect.sensor import SENSOR_DESCRIPTIONS
     from tests.test_a6_etron import vehicle_with
 
     vehicle = vehicle_with({"userCapabilities": ["departureTimers", "charging"]})

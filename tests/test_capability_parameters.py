@@ -7,8 +7,8 @@ from types import SimpleNamespace
 
 from aiohttp import ClientResponseError
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
-from custom_components.audiconnect.audi_services import AudiService
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_services import AudiService
 
 VIN = "TESTVIN00000000001"
 

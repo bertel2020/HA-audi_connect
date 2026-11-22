@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock
 import pytest
 from homeassistant.exceptions import ServiceValidationError
 
-from custom_components import audiconnect as integration
-from custom_components.audiconnect.const import (
+from custom_components import ha_audi_connect as integration
+from custom_components.ha_audi_connect.const import (
     CONF_API_LEVEL,
     CONF_PASSWORD,
     CONF_REFRESH_TOKEN,

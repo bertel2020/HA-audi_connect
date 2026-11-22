@@ -18,12 +18,12 @@ import inspect
 import pytest
 from homeassistant.exceptions import HomeAssistantError
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectAccount
-from custom_components.audiconnect.button import (
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectAccount
+from custom_components.ha_audi_connect.button import (
     BUTTON_DESCRIPTIONS,
     _engine_controls_supported,
 )
-from custom_components.audiconnect.switch import SWITCH_DESCRIPTIONS
+from custom_components.ha_audi_connect.switch import SWITCH_DESCRIPTIONS
 
 VIN = "WAUZZZ00000000001"
 
@@ -226,7 +226,7 @@ class _Connection:
 
 
 def _switch(result):
-    from custom_components.audiconnect.switch import AudiSwitch
+    from custom_components.ha_audi_connect.switch import AudiSwitch
 
     description = next(d for d in SWITCH_DESCRIPTIONS if d.key == "preheater_active")
     vehicle = type("V", (), {"vin": VIN, "preheater_active": False})()

@@ -6,7 +6,7 @@ import asyncio
 
 from aiohttp import ClientResponseError
 
-from custom_components.audiconnect.api_probe import (
+from custom_components.ha_audi_connect.api_probe import (
     MAX_PROBES,
     MAX_EXTENDED_PROBES,
     EXTENDED_READ_ONLY_PROBES,

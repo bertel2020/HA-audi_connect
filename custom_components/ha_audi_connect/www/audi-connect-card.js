@@ -8,7 +8,7 @@
  * and however the entities were renamed.
  */
 const CARD_VERSION = "1.0.0";
-const DOMAIN = "audiconnect";
+const DOMAIN = "ha_audi_connect";
 
 // The rows of the vehicle details, each with the entity key that supplies it. The id is also the text key of its label.
 const STAT_ROWS = {

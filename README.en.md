@@ -28,7 +28,7 @@ Due to API changes, **currently not all functionality is available**. Please ope
 > [!CAUTION]
 > Excessive use of certain features in this integration may result in temporary or permanent suspension of your Audi Connect account. Please use responsibly. Use at your own risk.
 
-The `audiconnect` component provides an integration with the Audi Connect cloud service. It adds presence detection, sensors such as range, mileage, and fuel level, and provides car actions such as locking/unlocking and setting the pre-heater.
+The `ha_audi_connect` component provides an integration with the Audi Connect cloud service. It adds presence detection, sensors such as range, mileage, and fuel level, and provides car actions such as locking/unlocking and setting the pre-heater.
 
 This is a fork of [audiconnect/audi_connect_ha](https://github.com/audiconnect/audi_connect_ha). **Note:** Certain functions require special permissions from Audi, such as position update via GPS.
 
@@ -39,7 +39,7 @@ Credit for initial API discovery goes to the people at the ioBroker VW-Connect f
 ### Via HACS (recommended)
 
 [![Open the HACS repository in My Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=bertel2020&repository=HA-audi_connect&category=integration)
-[![Add Audi Connect to My Home Assistant](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=audiconnect)
+[![Add Audi Connect to My Home Assistant](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=ha_audi_connect)
 
 1. Use the first button to open the Audi Connect repository in HACS.
 2. Download **Audi Connect** and restart Home Assistant.
@@ -49,7 +49,17 @@ If the first button does not work, add `https://github.com/bertel2020/HA-audi_co
 
 ### Manual
 
-Copy the directory `custom_components/audiconnect` to `/config/custom_components/audiconnect` and restart Home Assistant. Then add the integration (see **Configuration**).
+Copy the directory `custom_components/ha_audi_connect` to `/config/custom_components/ha_audi_connect` and restart Home Assistant. Then add the integration (see **Configuration**).
+
+### Moving from the `audiconnect` domain
+
+The integration is now called `ha_audi_connect` in Home Assistant (directory `custom_components/ha_audi_connect`), so it no longer overlaps with the upstream integration `audiconnect`. Home Assistant treats this as a new integration. To keep history and entity IDs:
+
+1. Remove the existing integration under **Settings → Devices & services**. Its entities and the device leave the registry; the history in the recorder stays.
+2. Delete the old directory `custom_components/audiconnect` (with HACS, remove the old installation) and install the new version.
+3. Restart Home Assistant and set up **Audi Connect** again. The entities are created with the same IDs as before as long as the vehicle title stays the same, and continue history and statistics.
+
+Sign-in, S-PIN and options have to be entered again, and customisations of entities (names, areas, visibility) are lost. Automations and scripts that use `audiconnect.*` services must be changed to `ha_audi_connect.*`.
 
 ## Configuration
 

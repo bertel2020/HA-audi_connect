@@ -9,7 +9,7 @@ import { JSDOM } from "jsdom";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CARD = readFileSync(
-  join(here, "../../custom_components/audiconnect/www/audi-connect-card.js"),
+  join(here, "../../custom_components/ha_audi_connect/www/audi-connect-card.js"),
   "utf8",
 );
 
@@ -48,7 +48,7 @@ function build(over = {}, { unit = "°C", admin = true, skip = [] } = {}) {
   const states = {};
   for (const [id, tk, state, attrs = {}] of DEFS) {
     if (skip.includes(id)) continue;
-    entities[id] = { entity_id: id, platform: "audiconnect", device_id: "dev1", translation_key: tk };
+    entities[id] = { entity_id: id, platform: "ha_audi_connect", device_id: "dev1", translation_key: tk };
     states[id] = {
       entity_id: id,
       state: over[id] ?? state,
@@ -553,7 +553,7 @@ function editor({ config = { device_id: "dev1" }, ws, language = "en" } = {}) {
 const settle = () => new Promise((r) => setImmediate(r));
 
 test("the editor offers the pictures the integration lists", async () => {
-  const el = editor({ ws: async (msg) => (msg.type === "audiconnect/list_images" ? [{ path: "/local/a.png", name: "a.png" }] : []) });
+  const el = editor({ ws: async (msg) => (msg.type === "ha_audi_connect/list_images" ? [{ path: "/local/a.png", name: "a.png" }] : []) });
   await settle();
   const field = el._form.schema.find((f) => f.name === "image_local");
   assert.deepEqual(field.selector.select.options.map((o) => o.value), ["", "/local/a.png"]);
@@ -738,7 +738,7 @@ test("the badges stay inside the drawing", () => {
 function withEntities(list, config) {
   const hass = build();
   for (const [id, tk, state, attrs = {}] of list) {
-    hass.entities[id] = { entity_id: id, platform: "audiconnect", device_id: "dev1", translation_key: tk };
+    hass.entities[id] = { entity_id: id, platform: "ha_audi_connect", device_id: "dev1", translation_key: tk };
     hass.states[id] = { entity_id: id, state, attributes: { friendly_name: tk, ...attrs }, last_updated: "2026-11-20T10:00:00+00:00" };
   }
   card.setConfig({ device_id: "dev1", ...config });
@@ -819,7 +819,7 @@ test("the editor saves the two trip options and drops show_trips", async () => {
 
 function withRows(entities, list) {
   const out = { ...entities };
-  for (const [id, tk] of list) out[id] = { entity_id: id, platform: "audiconnect", device_id: "dev1", translation_key: tk };
+  for (const [id, tk] of list) out[id] = { entity_id: id, platform: "ha_audi_connect", device_id: "dev1", translation_key: tk };
   return out;
 }
 

@@ -5,8 +5,8 @@ import asyncio
 from types import SimpleNamespace as NS
 import pytest
 from homeassistant.exceptions import HomeAssistantError
-from custom_components.audiconnect.audi_account import AudiAccount
-from custom_components.audiconnect.const import (
+from custom_components.ha_audi_connect.audi_account import AudiAccount
+from custom_components.ha_audi_connect.const import (
     CONF_ACTION,
     CONF_CHARGE_MODE,
     CONF_TARGET_SOC,

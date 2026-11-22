@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from homeassistant.components.sensor import SensorStateClass
 
-from custom_components.audiconnect.sensor import SENSOR_DESCRIPTIONS
+from custom_components.ha_audi_connect.sensor import SENSOR_DESCRIPTIONS
 
 BY_KEY = {d.key: d for d in SENSOR_DESCRIPTIONS}
 

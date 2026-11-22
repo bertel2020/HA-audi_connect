@@ -2,8 +2,8 @@
 
 import asyncio
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectAccount
-from custom_components.audiconnect.diagnostic_events import (
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectAccount
+from custom_components.ha_audi_connect.diagnostic_events import (
     classify_route,
     build_http_event,
 )

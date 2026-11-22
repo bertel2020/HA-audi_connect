@@ -8,8 +8,8 @@ from types import SimpleNamespace as NS
 import pytest
 from aiohttp import ClientResponseError
 
-from custom_components.audiconnect.audi_services import AudiService
-from custom_components.audiconnect.button import (
+from custom_components.ha_audi_connect.audi_services import AudiService
+from custom_components.ha_audi_connect.button import (
     BUTTON_DESCRIPTIONS,
     _modern_capable,
     _wakeup_capable,

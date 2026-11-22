@@ -10,7 +10,7 @@ from __future__ import annotations
 import pytest
 import voluptuous as vol
 
-from custom_components.audiconnect.audi_account import (
+from custom_components.ha_audi_connect.audi_account import (
     SERVICE_REFRESH_VEHICLE_DATA_SCHEMA,
     SERVICE_START_CLIMATE_CONTROL_SCHEMA,
     SERVICE_STOP_ENGINE_SCHEMA,

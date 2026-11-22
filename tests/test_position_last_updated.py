@@ -22,7 +22,7 @@ import datetime
 import pytest
 
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
 
 
 class _Stub:

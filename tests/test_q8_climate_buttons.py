@@ -1,9 +1,9 @@
 """Avoid duplicate climate buttons now that the native climate switch is available."""
 
-from custom_components.audiconnect.button import BUTTON_DESCRIPTIONS
+from custom_components.ha_audi_connect.button import BUTTON_DESCRIPTIONS
 from types import SimpleNamespace
 
-from custom_components.audiconnect.switch import AudiClimateQuickSwitch
+from custom_components.ha_audi_connect.switch import AudiClimateQuickSwitch
 
 
 def test_duplicate_climate_buttons_not_registered():

@@ -5,9 +5,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-from custom_components.audiconnect.switch import AudiClimateQuickSwitch
+from custom_components.ha_audi_connect.switch import AudiClimateQuickSwitch
 
-TRANSLATIONS = Path(__file__).parent.parent / "custom_components" / "audiconnect"
+TRANSLATIONS = Path(__file__).parent.parent / "custom_components" / "ha_audi_connect"
 
 
 def test_the_climate_switch_icon_is_a_real_one():
@@ -19,7 +19,7 @@ def test_the_climate_switch_icon_is_a_real_one():
 
 
 def test_every_charge_mode_the_select_can_offer_has_a_translated_name():
-    from custom_components.audiconnect.select import _FALLBACK_MODES
+    from custom_components.ha_audi_connect.select import _FALLBACK_MODES
 
     for name in ("translations/en.json", "translations/de.json", "strings.json"):
         data = json.loads((TRANSLATIONS / name).read_text(encoding="utf-8"))

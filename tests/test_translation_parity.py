@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1] / "custom_components/audiconnect"
+ROOT = Path(__file__).resolve().parents[1] / "custom_components/ha_audi_connect"
 LANGS = sorted(p.stem for p in (ROOT / "translations").glob("*.json"))
 PLACEHOLDER = re.compile(r"\{[^{}]+\}")
 

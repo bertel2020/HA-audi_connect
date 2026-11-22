@@ -10,10 +10,10 @@ from __future__ import annotations
 import asyncio
 from types import SimpleNamespace
 
-from custom_components.audiconnect.audi_connect_account import AudiConnectVehicle
-from custom_components.audiconnect.audi_services import AudiService
-from custom_components.audiconnect.button import _window_heating_capable
-from custom_components.audiconnect.switch import (
+from custom_components.ha_audi_connect.audi_connect_account import AudiConnectVehicle
+from custom_components.ha_audi_connect.audi_services import AudiService
+from custom_components.ha_audi_connect.button import _window_heating_capable
+from custom_components.ha_audi_connect.switch import (
     SWITCH_DESCRIPTIONS,
     car_says_unsupported,
 )

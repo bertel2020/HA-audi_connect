@@ -6,7 +6,7 @@ from types import SimpleNamespace as NS
 
 p = (
     Path(__file__).resolve().parents[1]
-    / "custom_components/audiconnect/capability_catalog.py"
+    / "custom_components/ha_audi_connect/capability_catalog.py"
 )
 spec = importlib.util.spec_from_file_location("audi_capability_catalog", p)
 m = importlib.util.module_from_spec(spec)

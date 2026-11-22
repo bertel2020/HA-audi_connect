@@ -647,7 +647,7 @@ class VehicleDataResponse:
         The profile matching the car's current position is what actually governs a
         charge; the global charging/settings targetSOC_pct does not. A car sitting
         at a location whose profile says 60% will stop there while the global
-        setting still reads 70% (upstream audiconnect#722, still open as of 2.3.1).
+        setting still reads 70% (upstream ha_audi_connect#722, still open as of 2.3.1).
         """
         value = self._getFromJson(
             data, ["chargingProfiles", "chargingProfilesStatus", "value"]
