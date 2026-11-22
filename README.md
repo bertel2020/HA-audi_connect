@@ -440,6 +440,10 @@ Die Karte gibt es auf Englisch und Deutsch, und sie folgt der Sprache von Home A
 
 Siehe [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Änderungsprotokoll
+
+Siehe [CHANGELOG.md](CHANGELOG.md).
+
 ## Haftungsausschluss
 
 Dies ist eine unabhängige, community-entwickelte Integration. Sie steht in keiner Verbindung zu Audi, dem Volkswagen-Konzern oder CARIAD und wird von diesen weder unterstützt noch empfohlen. Die API wurde per Reverse Engineering ermittelt und kann sich jederzeit ändern oder ausfallen. Die Integration kann Befehle an ein echtes Fahrzeug senden. Sie wird **„wie besehen“, ohne jegliche Gewährleistung** bereitgestellt (siehe [LICENSE](LICENSE)) – die Nutzung erfolgt auf eigenes Risiko.

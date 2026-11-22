@@ -42,6 +42,14 @@ jobs:
           github_token: ${{ github.token }}
           tags: true
 
+      - name: Build the release notes with the support footer
+        if: ${{steps.semantic_release_info.outputs.version != ''}}
+        env:
+          NOTES: ${{ steps.semantic_release_info.outputs.notes }}
+        run: |
+          printf '%s\n' "$NOTES" > "$RUNNER_TEMP/release-notes.md"
+          cat .github/release-footer.md >> "$RUNNER_TEMP/release-notes.md"
+
       - name: Create GitHub Release
         if: ${{steps.semantic_release_info.outputs.version != ''}}
         uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1
@@ -50,6 +58,6 @@ jobs:
         with:
           tag: ${{ steps.semantic_release_info.outputs.git_tag }}
           name: ${{ steps.semantic_release_info.outputs.git_tag }}
-          body: ${{ steps.semantic_release_info.outputs.notes }}
+          bodyFile: ${{ runner.temp }}/release-notes.md
           draft: false
           prerelease: false

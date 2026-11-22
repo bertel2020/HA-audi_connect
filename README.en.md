@@ -472,6 +472,10 @@ The card is available in English and German and follows your Home Assistant lang
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Changelog
+
+See [CHANGELOG.en.md](CHANGELOG.en.md).
+
 ## Disclaimer
 
 This is an independent, community-developed integration. It is not affiliated with, endorsed or supported by Audi, Volkswagen Group or CARIAD. The API was reverse-engineered and can change or stop working at any time. It can send commands to a real vehicle. It is provided **"as is", without warranty of any kind** (see [LICENSE](LICENSE)); use it at your own risk.
