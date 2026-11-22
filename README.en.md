@@ -1,4 +1,9 @@
-<h1 align="center">Audi Connect</h1>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="custom_components/ha_audi_connect/brand/dark_logo@2x.png">
+    <img src="custom_components/ha_audi_connect/brand/logo@2x.png" alt="Audi Connect" height="128">
+  </picture>
+</p>
 
 <p align="center">
   Home Assistant integration for Audi Connect (myAudi) – vehicle status, remote actions and climatisation, fully configurable from the UI.
