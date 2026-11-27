@@ -4,6 +4,16 @@
 
 `ha_audi_connect` starts at 1.0.0. The versions 2.x of the former integration `audiconnect` are on the [upstream releases page](https://github.com/audiconnect/audi_connect_ha/releases).
 
+## 1.1.0 – 2026-11-27
+
+**New**
+- **Card – warning messages:** Tapping the "Warning" chip or the row in the Vehicle section opens a dialog with the car's messages and their symbols. The warning sign with the count also shows in the header of the collapsed Vehicle section.
+- **The car's language:** The texts the car reports itself (the warning messages, for one) come in the language of your account's market, no longer in English.
+
+**Changed**
+- **Warning messages:** The sensor is called "Warning messages" and the binary sensor "Warning message active" (German: "Warnmeldungen", "Warnmeldung aktiv"). New installations get the entity IDs `…_warning_messages` and `…_warning_message_active` from them. Existing entities keep their IDs.
+- **Symbols of the messages:** They are no longer in the sensor's attributes. They are kept once and handed to the card on request, which keeps the database small. A symbol only appears once its message has been reported.
+
 ## 1.0.0 – 2026-11-22
 
 **New**
