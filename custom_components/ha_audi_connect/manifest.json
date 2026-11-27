@@ -10,5 +10,5 @@
   "issue_tracker": "https://github.com/bertel2020/HA-audi_connect/issues",
   "loggers": ["custom_components.ha_audi_connect"],
   "requirements": ["beautifulsoup4>=4.15.0"],
-  "version": "1.0.0"
+  "version": "1.1.0"
 }
