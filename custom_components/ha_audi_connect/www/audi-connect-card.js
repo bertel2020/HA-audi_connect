@@ -128,6 +128,8 @@ ha-card{overflow:hidden;position:relative;border-radius:24px}
 .icons{display:flex;padding:0 6px 10px}
 .ic{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;cursor:pointer;font-size:11px;color:var(--secondary-text-color);text-align:center;background:none;border:0;font-family:inherit}
 .ic:hover{background:var(--secondary-background-color)}
+.wbadge{position:relative;display:inline-flex}
+.wbadge b{position:absolute;top:-3px;right:-9px;min-width:16px;height:16px;padding:0 3px;box-sizing:border-box;border-radius:8px;background:var(--warning-color);color:#1c1c1e;font-size:11px;font-weight:500;line-height:16px;text-align:center}
 .ic ha-icon{--mdc-icon-size:30px}
 .ic.ok ha-icon{color:var(--success-color)}.ic.warn ha-icon{color:var(--warning-color)}.ic.bad ha-icon{color:var(--error-color)}
 .sep{border-top:1px solid var(--divider-color)}
@@ -719,7 +721,8 @@ class AudiConnectCard extends HTMLElement {
     }
     const warnCount = this._num("warning_light_count") || 0;
     if (this._on("warning_lights") || warnCount > 0) {
-      items.push(`<button class="ic warn" data-act="popup" data-tab="warnings"><ha-icon icon="mdi:alert-outline"></ha-icon>${esc(this._t("warning"))}${warnCount ? " · " + warnCount : ""}</button>`);
+      const warnLabel = warnCount === 1 ? this._t("warn_one") : warnCount ? this._t("warn_n", { n: warnCount }) : this._t("warning");
+      items.push(`<button class="ic warn" data-act="popup" data-tab="warnings" aria-label="${esc(warnLabel)}"><span class="wbadge"><ha-icon icon="mdi:alert-outline"></ha-icon>${warnCount ? `<b>${warnCount}</b>` : ""}</span>${esc(this._t("warning"))}</button>`);
     }
     return `<div class="icons">${items.join("")}</div>`;
   }
