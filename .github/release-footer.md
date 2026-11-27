@@ -1,7 +1,7 @@
 
 ---
 
-### 🚗 The battery is full. What about the integration?
+### 🚗 Enjoying the ride?
 
 Audi Connect is a hobby project and stays free. You can help in three ways:
 
@@ -9,7 +9,7 @@ Audi Connect is a hobby project and stays free. You can help in three ways:
 - 🐞 **Report a bug or an idea**: as an [issue](https://github.com/bertel2020/HA-audi_connect/issues/new/choose)
 - ☕ **Tip the pit crew**: [Buy Me a Coffee](https://buymeacoffee.com/bertel2020) · [Ko-fi](https://ko-fi.com/bertel2020) · [PayPal](https://paypal.me/RobertoMartins)
 
-### 🚗 Der Akku ist voll. Und die Integration?
+### 🚗 Gefällt dir die Fahrt?
 
 Audi Connect ist ein Hobbyprojekt und bleibt kostenlos. So kannst du helfen:
 
