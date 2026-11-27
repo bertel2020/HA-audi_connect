@@ -16,6 +16,7 @@ import voluptuous as vol
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
+from .warning_icons import async_register_icon_command
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,6 +72,7 @@ async def async_register_card(hass: HomeAssistant) -> None:
         )
         add_extra_js_url(hass, f"{CARD_URL}?v={mtime}")
         _register_image_list(hass)
+        async_register_icon_command(hass)
         hass.data[_REGISTERED] = True
     except Exception:  # noqa: BLE001 - the card is optional
         _LOGGER.warning(

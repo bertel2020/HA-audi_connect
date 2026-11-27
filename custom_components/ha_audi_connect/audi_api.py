@@ -101,6 +101,9 @@ class AudiAPI:
         self.__token: dict[str, Any] | None = None
         self.__xclientid: str | None = None
         self._session = session
+        # The account's market language, e.g. "de-DE". With it the car's texts
+        # (warning messages, for one) come back in that language, not English.
+        self.language: str | None = None
         self.vcf_remaining_calls: int | None = None
         self.vcf_remaining_calls_last_observed: datetime | None = None
         self.diagnostic_events = deque(maxlen=40)
@@ -384,6 +387,8 @@ class AudiAPI:
             "X-App-Name": "myAudi",
             "User-Agent": self.HDR_USER_AGENT,
         }
+        if self.language:
+            data["Accept-Language"] = self.language
         if self.__token is not None:
             data["Authorization"] = "Bearer " + self.__token.get("access_token")
         if self.__xclientid is not None:

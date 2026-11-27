@@ -647,7 +647,7 @@
         "name": "Einde onlinediensten"
       },
       "warning_light_count": {
-        "name": "Waarschuwingslampjes"
+        "name": "Waarschuwingsmeldingen"
       },
       "window_open_pct_front_left": {
         "name": "Raamopening linksvoor"
@@ -739,7 +739,7 @@
         "name": "In beweging"
       },
       "warning_lights": {
-        "name": "Waarschuwingslampje actief"
+        "name": "Waarschuwingsmelding actief"
       }
     },
     "button": {

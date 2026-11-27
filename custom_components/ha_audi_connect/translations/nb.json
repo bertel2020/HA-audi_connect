@@ -647,7 +647,7 @@
         "name": "Nettjenester utløper"
       },
       "warning_light_count": {
-        "name": "Varsellamper"
+        "name": "Varselmeldinger"
       },
       "window_open_pct_front_left": {
         "name": "Vindu foran venstre: åpning"
@@ -739,7 +739,7 @@
         "name": "I bevegelse"
       },
       "warning_lights": {
-        "name": "Varsellampe aktiv"
+        "name": "Varselmelding aktiv"
       }
     },
     "button": {

@@ -102,14 +102,22 @@ def sensor_descriptions_to_create(
 
 
 def _warning_light_attrs(vehicle: Any) -> dict[str, Any] | None:
-    """The lit warnings, reduced to plain values and capped."""
+    """The warning messages, reduced to plain values and capped.
+
+    The symbol is left out: it is kept once in the icon store, not written to the
+    database with every change.
+    """
     lights = getattr(vehicle, "warning_lights", None)
     if lights is None:
         return None
     keep = (str, int, float, bool)
     return {
         "warnings": [
-            {k: v for k, v in item.items() if isinstance(v, keep)}
+            {
+                k: v
+                for k, v in item.items()
+                if k != "icon" and isinstance(v, keep)
+            }
             for item in lights[:20]
         ]
     }

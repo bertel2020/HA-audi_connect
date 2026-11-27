@@ -12,6 +12,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .audi_account import AudiAccount
 from .const import CONF_SCAN_INTERVAL, DEFAULT_UPDATE_INTERVAL, DOMAIN
 from .repairs import async_update_service_issues
+from .warning_icons import async_get_icon_store
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,6 +47,7 @@ class AudiDataUpdateCoordinator(DataUpdateCoordinator[list[Any]]):
             result = await self.account.async_refresh_data()
             self.last_cloud_poll_success = datetime.now(UTC)
             self._update_repair_hints()
+            await self._learn_warning_icons()
             return result
         except (ConfigEntryAuthFailed, ConfigEntryNotReady):
             # Let Home Assistant handle reauth / retry-setup instead of masking
@@ -53,6 +55,17 @@ class AudiDataUpdateCoordinator(DataUpdateCoordinator[list[Any]]):
             raise
         except Exception as err:
             raise UpdateFailed(str(err)) from err
+
+    async def _learn_warning_icons(self) -> None:
+        """Keep the symbols of the warning messages; a failure never fails the poll."""
+        try:
+            store = await async_get_icon_store(self.hass)
+            for data in self.account.config_vehicles:
+                vehicle = getattr(data, "vehicle", None)
+                if vehicle is not None:
+                    store.learn(getattr(vehicle, "warning_lights", None))
+        except Exception:  # noqa: BLE001 - a symbol must never break the poll
+            _LOGGER.debug("Could not keep the warning symbols", exc_info=True)
 
     def _update_repair_hints(self) -> None:
         """Hints about ended online services; a failure here never fails the poll."""

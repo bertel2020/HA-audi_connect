@@ -403,6 +403,7 @@ class AudiAuthMixin:
         self._language = markets_json["countries"]["countrySpecifications"][
             self._country.upper()
         ]["defaultLanguage"]
+        self._api.language = f"{self._language}-{self._country.upper()}"
 
         # Dynamic configuration URLs
         marketcfg_url = f"https://content.app.my.audi.com/service/mobileapp/configurations/market/{self._country}/{self._language}?v=4.23.1"

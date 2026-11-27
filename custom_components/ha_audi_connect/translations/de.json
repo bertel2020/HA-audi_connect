@@ -647,7 +647,7 @@
         "name": "Online-Dienste laufen ab"
       },
       "warning_light_count": {
-        "name": "Warnleuchten"
+        "name": "Warnmeldungen"
       },
       "window_open_pct_front_left": {
         "name": "Fenster vorne links Öffnung"
@@ -739,7 +739,7 @@
         "name": "In Bewegung"
       },
       "warning_lights": {
-        "name": "Warnleuchte aktiv"
+        "name": "Warnmeldung aktiv"
       }
     },
     "button": {

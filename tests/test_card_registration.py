@@ -45,10 +45,13 @@ def test_the_card_is_served_and_loaded_with_a_cache_buster():
     assert hass.data[card._REGISTERED] is True
 
 
-def test_the_image_list_command_is_registered():
+def test_the_card_commands_are_registered():
     _, ws = register(make_hass())
-    ws.assert_called_once()
-    assert ws.call_args.args[1]._ws_command == "ha_audi_connect/list_images"
+    commands = {call.args[1]._ws_command for call in ws.call_args_list}
+    assert commands == {
+        "ha_audi_connect/list_images",
+        "ha_audi_connect/warning_icons",
+    }
 
 
 def test_registering_twice_does_nothing_the_second_time():

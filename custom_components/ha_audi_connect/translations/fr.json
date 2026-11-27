@@ -647,7 +647,7 @@
         "name": "Fin des services en ligne"
       },
       "warning_light_count": {
-        "name": "Voyants d'alerte"
+        "name": "Messages d'alerte"
       },
       "window_open_pct_front_left": {
         "name": "Ouverture de la vitre avant gauche"
@@ -739,7 +739,7 @@
         "name": "En mouvement"
       },
       "warning_lights": {
-        "name": "Voyant d'alerte actif"
+        "name": "Message d'alerte actif"
       }
     },
     "button": {

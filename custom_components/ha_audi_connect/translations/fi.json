@@ -647,7 +647,7 @@
         "name": "Verkkopalvelut päättyvät"
       },
       "warning_light_count": {
-        "name": "Varoitusvalot"
+        "name": "Varoitusilmoitukset"
       },
       "window_open_pct_front_left": {
         "name": "Vasemman etuikkunan aukeaminen"
@@ -739,7 +739,7 @@
         "name": "Liikkeessä"
       },
       "warning_lights": {
-        "name": "Varoitusvalo palaa"
+        "name": "Varoitusilmoitus aktiivinen"
       }
     },
     "button": {

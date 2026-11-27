@@ -19,12 +19,15 @@ const STAT_ROWS = {
   adblue: "service_adblue_distance", charge_type: "charging_type", max_current: "max_charge_current",
 };
 
+// Symbols of the warning messages by iconName, shared by every card on the page.
+const WARNING_ICONS = {};
+
 const TEXT = {
   en: {
     locked: "Locked", unlocked: "Unlocked", lock_unknown: "Lock state unknown", not_secured: "Not secured",
     doors_closed: "Doors closed", windows_closed: "Windows closed",
     n_open: "{n} open", plugged: "Plugged in", unplugged: "Not plugged in",
-    light_on: "Lights on", light_off: "Lights off", warning: "Warning",
+    light_on: "Lights on", light_off: "Lights off", warning: "Warning", warnings_title: "Warning messages", warnings_none: "No warning messages", warnings_note: "Texts as the car reports them",
     charge_target: "Charge target", range: "Range", charging_done: "done", power: "Power", charge_waiting: "Plugged in, waiting to start", charge_error: "Charging error", charge_reached: "Charge target reached", charge_conservation: "Conservation charging", rate: "Range per hour", in: "in {t}",
     last_trip: "Last trip", long_term: "Long term",
     distance: "Distance", speed: "Avg. speed", consumption: "Consumption", energy: "Energy",
@@ -54,12 +57,12 @@ const TEXT = {
     locked: "Verriegelt", unlocked: "Entriegelt", lock_unknown: "Schlosszustand unbekannt", not_secured: "Nicht gesichert",
     doors_closed: "Türen zu", windows_closed: "Fenster zu",
     n_open: "{n} offen", plugged: "Angesteckt", unplugged: "Nicht verbunden",
-    light_on: "Licht an", light_off: "Licht aus", warning: "Warnung",
+    light_on: "Licht an", light_off: "Licht aus", warning: "Warnmeldung", warnings_title: "Warnmeldungen", warnings_none: "Keine Warnmeldungen", warnings_note: "Texte, wie das Auto sie meldet",
     charge_target: "Ladeziel", range: "Reichweite", charging_done: "fertig", power: "Leistung", charge_waiting: "Angesteckt, wartet auf Freigabe", charge_error: "Ladefehler", charge_reached: "Ladeziel erreicht", charge_conservation: "Erhaltungsladen", rate: "Reichweite je Std.", in: "in {t}",
     last_trip: "Letzte Fahrt", long_term: "Langzeit",
     distance: "Strecke", speed: "Ø Tempo", consumption: "Verbrauch", energy: "Energie",
     electric_range: "Elektrische Reichweite", inspection: "Inspektion", inspection_days: "Inspektion in", inspection_distance: "Inspektion in (Strecke)", oil_change_days: "Ölwechsel in", oil_change_distance: "Ölwechsel in (Strecke)", parked: "Geparkt seit",
-    vehicle: "Fahrzeug", parking_brake: "Parkbremse", brake_on: "Angezogen", brake_off: "Gelöst", warning_lights: "Warnleuchten", warning_active: "Aktiv", warning_none: "Keine", security: "Sicherheitsstatus", secured: "Gesichert", unsecured: "Nicht gesichert", fuel_range: "Reichweite Kraftstoff", tank: "Tank", outdoor: "Außentemperatur", oil_change: "Ölwechsel", oil_level: "Ölstand", adblue: "AdBlue-Reichweite", charge_type: "Ladeart", max_current: "Max. Ladestrom",
+    vehicle: "Fahrzeug", parking_brake: "Parkbremse", brake_on: "Angezogen", brake_off: "Gelöst", warning_lights: "Warnmeldungen", warning_active: "Aktiv", warning_none: "Keine", security: "Sicherheitsstatus", secured: "Gesichert", unsecured: "Nicht gesichert", fuel_range: "Reichweite Kraftstoff", tank: "Tank", outdoor: "Außentemperatur", oil_change: "Ölwechsel", oil_level: "Ölstand", adblue: "AdBlue-Reichweite", charge_type: "Ladeart", max_current: "Max. Ladestrom",
     climate: "Klimatisierung", climate_on: "Läuft", climate_off: "Aus", mode: "Modus",
     heating: "Heizt", cooling: "Kühlt", ventilating: "Lüftet", running: "Läuft", remaining: "Restlaufzeit",
     start: "Starten", stop: "Stoppen",
@@ -207,6 +210,9 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 .dh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .dh b{font-size:15px;font-weight:500;display:block}.dh span{font-size:12px}
 .x{cursor:pointer;color:var(--secondary-text-color);background:none;border:0;padding:0}
+.wr{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--divider-color);font-size:14px;color:var(--primary-text-color)}
+.wi{width:56px;height:36px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex:none;color:var(--warning-color)}
+.wi img{width:46px;height:24px}.wt{flex:1;min-width:0}
 .tabs{display:flex;gap:4px;background:var(--secondary-background-color);border-radius:8px;padding:3px;margin-bottom:6px}
 .tab{flex:1;padding:7px 0;text-align:center;font-size:13px;border-radius:6px;cursor:pointer;color:var(--secondary-text-color);background:none;border:0;font-family:inherit}
 .tab.on{background:var(--card-background-color);color:var(--primary-text-color);font-weight:500;box-shadow:0 0 0 1px var(--divider-color)}
@@ -600,7 +606,7 @@ class AudiConnectCard extends HTMLElement {
     if (dlg) {
       dlg.setAttribute("role", "dialog");
       dlg.setAttribute("aria-modal", "true");
-      dlg.setAttribute("aria-label", this._t("doors") + " / " + this._t("windows"));
+      dlg.setAttribute("aria-label", this._ui.tab === "warnings" ? this._t("warnings_title") : this._t("doors") + " / " + this._t("windows"));
     }
   }
 
@@ -705,7 +711,7 @@ class AudiConnectCard extends HTMLElement {
     }
     const warnCount = this._num("warning_light_count") || 0;
     if (this._on("warning_lights") || warnCount > 0) {
-      items.push(`<button class="ic warn" data-more="${esc(this._id("warning_light_count") || this._id("warning_lights"))}"><ha-icon icon="mdi:alert-outline"></ha-icon>${esc(this._t("warning"))}${warnCount ? " · " + warnCount : ""}</button>`);
+      items.push(`<button class="ic warn" data-act="popup" data-tab="warnings"><ha-icon icon="mdi:alert-outline"></ha-icon>${esc(this._t("warning"))}${warnCount ? " · " + warnCount : ""}</button>`);
     }
     return `<div class="icons">${items.join("")}</div>`;
   }
@@ -1094,8 +1100,47 @@ class AudiConnectCard extends HTMLElement {
     return s + badges + "</svg>";
   }
 
+  _warnings() {
+    const list = this._s("warning_light_count")?.attributes?.warnings;
+    return Array.isArray(list) ? list : [];
+  }
+
+  // The symbols are kept by the integration, not in the sensor: fetched once, then reused.
+  _loadWarningIcons() {
+    const missing = this._warnings().some((w) => w.iconName && !WARNING_ICONS[w.iconName]);
+    if (!missing || this._iconsPending || !this._hass?.callWS) return;
+    this._iconsPending = true;
+    this._hass.callWS({ type: `${DOMAIN}/warning_icons` })
+      .then((icons) => {
+        Object.assign(WARNING_ICONS, icons || {});
+        this._sig = "";
+        this._update();
+      })
+      .catch(() => {})
+      .finally(() => { setTimeout(() => { this._iconsPending = false; }, 30000); });
+  }
+
+  _renderWarningsPopup() {
+    this._loadWarningIcons();
+    const warnings = this._warnings();
+    const rows = warnings.map((w) => {
+      const src = WARNING_ICONS[w.iconName];
+      const icon = src
+        ? `<span class="wi"><img src="${esc(src)}" alt=""></span>`
+        : `<span class="wi"><ha-icon icon="mdi:alert-outline"></ha-icon></span>`;
+      return `<div class="wr">${icon}<span class="wt">${esc(w.text || "")}</span></div>`;
+    }).join("");
+    const body = rows || `<div class="li c-mute">${esc(this._t("warnings_none"))}</div>`;
+    return `<div class="ov" data-act="close-bg"><div class="dlg">
+      <div class="dh"><div><b>${esc(this._t("warnings_title"))}</b><span class="c-mute">${esc(this._t("warnings_note"))}</span></div>
+      <button class="x" data-act="close" aria-label="${esc(this._t("close"))}"><ha-icon icon="mdi:close"></ha-icon></button></div>
+      ${body}
+    </div></div>`;
+  }
+
   _renderPopup() {
     const tab = this._ui.tab;
+    if (tab === "warnings") return this._renderWarningsPopup();
     const { doors, wins } = this._openLists();
     const lock = this._lockState();
     const n = doors.length + wins.length;

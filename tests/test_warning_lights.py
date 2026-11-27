@@ -52,3 +52,38 @@ def test_no_job_at_all_means_nothing_is_said():
 def test_the_entities_exist():
     assert any(d.key == "warning_light_count" for d in SENSOR_DESCRIPTIONS)
     assert any(d.key == "warning_lights" for d in BINARY_SENSOR_DESCRIPTIONS)
+
+
+def test_the_symbol_stays_out_of_the_sensor_attributes():
+    lights = [
+        {
+            "text": "Bitte Batterie laden",
+            "iconName": "E194_yellow.svg",
+            "icon": "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=",
+        }
+    ]
+    vehicle = vehicle_with({"warningLights": lights})
+    warning = _warning_light_attrs(vehicle)["warnings"][0]
+    assert "icon" not in warning
+    assert warning["iconName"] == "E194_yellow.svg"
+
+
+def test_a_symbol_is_learned_once_and_only_when_it_looks_like_one():
+    from unittest.mock import MagicMock, patch
+
+    from custom_components.ha_audi_connect import warning_icons
+
+    svg = "data:image/svg+xml;base64,PHN2Zz48L3N2Zz4="
+    with patch.object(warning_icons, "Store", MagicMock()):
+        store = warning_icons.WarningIconStore(MagicMock())
+    lights = [
+        {"iconName": "E1_yellow.svg", "icon": svg},
+        {"iconName": "../evil", "icon": svg},
+        {"iconName": "E2.svg", "icon": "data:text/html;base64,AAAA"},
+        {"iconName": "E3.svg"},
+        "not a dict",
+    ]
+    assert store.learn(lights) is True
+    assert store.icons == {"E1_yellow.svg": svg}
+    assert store.learn(lights) is False
+    assert store.learn(None) is False

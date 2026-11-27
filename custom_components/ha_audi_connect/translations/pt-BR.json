@@ -647,7 +647,7 @@
         "name": "Fim dos serviços online"
       },
       "warning_light_count": {
-        "name": "Luzes de advertência"
+        "name": "Mensagens de aviso"
       },
       "window_open_pct_front_left": {
         "name": "Abertura do vidro dianteiro esquerdo"
@@ -739,7 +739,7 @@
         "name": "Em movimento"
       },
       "warning_lights": {
-        "name": "Luz de advertência ativa"
+        "name": "Mensagem de aviso ativa"
       }
     },
     "button": {
