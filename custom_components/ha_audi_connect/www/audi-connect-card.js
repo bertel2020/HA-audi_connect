@@ -27,7 +27,7 @@ const TEXT = {
     locked: "Locked", unlocked: "Unlocked", lock_unknown: "Lock state unknown", not_secured: "Not secured",
     doors_closed: "Doors closed", windows_closed: "Windows closed",
     n_open: "{n} open", plugged: "Plugged in", unplugged: "Not plugged in",
-    light_on: "Lights on", light_off: "Lights off", warning: "Warning", warnings_title: "Warning messages", warnings_none: "No warning messages", warnings_note: "Texts as the car reports them",
+    light_on: "Lights on", light_off: "Lights off", warning: "Warning", warnings_title: "Warning messages", warnings_none: "No warning messages", warn_one: "1 warning message", warn_n: "{n} warning messages", n_active: "{n} active",
     charge_target: "Charge target", range: "Range", charging_done: "done", power: "Power", charge_waiting: "Plugged in, waiting to start", charge_error: "Charging error", charge_reached: "Charge target reached", charge_conservation: "Conservation charging", rate: "Range per hour", in: "in {t}",
     last_trip: "Last trip", long_term: "Long term",
     distance: "Distance", speed: "Avg. speed", consumption: "Consumption", energy: "Energy",
@@ -57,12 +57,12 @@ const TEXT = {
     locked: "Verriegelt", unlocked: "Entriegelt", lock_unknown: "Schlosszustand unbekannt", not_secured: "Nicht gesichert",
     doors_closed: "Türen zu", windows_closed: "Fenster zu",
     n_open: "{n} offen", plugged: "Angesteckt", unplugged: "Nicht verbunden",
-    light_on: "Licht an", light_off: "Licht aus", warning: "Warnmeldung", warnings_title: "Warnmeldungen", warnings_none: "Keine Warnmeldungen", warnings_note: "Texte, wie das Auto sie meldet",
+    light_on: "Licht an", light_off: "Licht aus", warning: "Warnung", warnings_title: "Warnungen", warnings_none: "Keine Warnungen", warn_one: "1 Warnung", warn_n: "{n} Warnungen", n_active: "{n} aktiv",
     charge_target: "Ladeziel", range: "Reichweite", charging_done: "fertig", power: "Leistung", charge_waiting: "Angesteckt, wartet auf Freigabe", charge_error: "Ladefehler", charge_reached: "Ladeziel erreicht", charge_conservation: "Erhaltungsladen", rate: "Reichweite je Std.", in: "in {t}",
     last_trip: "Letzte Fahrt", long_term: "Langzeit",
     distance: "Strecke", speed: "Ø Tempo", consumption: "Verbrauch", energy: "Energie",
     electric_range: "Elektrische Reichweite", inspection: "Inspektion", inspection_days: "Inspektion in", inspection_distance: "Inspektion in (Strecke)", oil_change_days: "Ölwechsel in", oil_change_distance: "Ölwechsel in (Strecke)", parked: "Geparkt seit",
-    vehicle: "Fahrzeug", parking_brake: "Parkbremse", brake_on: "Angezogen", brake_off: "Gelöst", warning_lights: "Warnmeldungen", warning_active: "Aktiv", warning_none: "Keine", security: "Sicherheitsstatus", secured: "Gesichert", unsecured: "Nicht gesichert", fuel_range: "Reichweite Kraftstoff", tank: "Tank", outdoor: "Außentemperatur", oil_change: "Ölwechsel", oil_level: "Ölstand", adblue: "AdBlue-Reichweite", charge_type: "Ladeart", max_current: "Max. Ladestrom",
+    vehicle: "Fahrzeug", parking_brake: "Parkbremse", brake_on: "Angezogen", brake_off: "Gelöst", warning_lights: "Warnungen", warning_active: "Aktiv", warning_none: "Keine", security: "Sicherheitsstatus", secured: "Gesichert", unsecured: "Nicht gesichert", fuel_range: "Reichweite Kraftstoff", tank: "Tank", outdoor: "Außentemperatur", oil_change: "Ölwechsel", oil_level: "Ölstand", adblue: "AdBlue-Reichweite", charge_type: "Ladeart", max_current: "Max. Ladestrom",
     climate: "Klimatisierung", climate_on: "Läuft", climate_off: "Aus", mode: "Modus",
     heating: "Heizt", cooling: "Kühlt", ventilating: "Lüftet", running: "Läuft", remaining: "Restlaufzeit",
     start: "Starten", stop: "Stoppen",
@@ -210,9 +210,15 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 .dh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .dh b{font-size:15px;font-weight:500;display:block}.dh span{font-size:12px}
 .x{cursor:pointer;color:var(--secondary-text-color);background:none;border:0;padding:0}
-.wr{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--divider-color);font-size:14px;color:var(--primary-text-color)}
-.wi{width:56px;height:36px;border-radius:8px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex:none;color:var(--warning-color)}
-.wi img{width:46px;height:24px}.wt{flex:1;min-width:0}
+.wl{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.wr{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;border-radius:12px;background:var(--secondary-background-color);color:var(--primary-text-color)}
+.wi{width:60px;height:38px;border-radius:9px;background:#1c1c1e;display:flex;align-items:center;justify-content:center;flex:none;color:var(--warning-color)}
+.wi img{width:50px;height:26px}
+.wt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;line-height:1.3}
+.wt b{font-size:14px;font-weight:500}.wt span{font-size:12px;color:var(--secondary-text-color)}
+.fv.fh{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.wmini{display:flex;gap:3px;align-items:center;justify-content:center;height:30px;padding:0 6px;border-radius:9px;background:#1c1c1e}
+.wmini img{height:18px;width:auto}
 .tabs{display:flex;gap:4px;background:var(--secondary-background-color);border-radius:8px;padding:3px;margin-bottom:6px}
 .tab{flex:1;padding:7px 0;text-align:center;font-size:13px;border-radius:6px;cursor:pointer;color:var(--secondary-text-color);background:none;border:0;font-family:inherit}
 .tab.on{background:var(--card-background-color);color:var(--primary-text-color);font-weight:500;box-shadow:0 0 0 1px var(--divider-color)}
@@ -878,8 +884,8 @@ class AudiConnectCard extends HTMLElement {
   _renderStats() {
     const rows = [];
     const shown = this._config.stats_rows;
-    const add = (id, icon, label, value, tk) => {
-      if (value && (!Array.isArray(shown) || shown.includes(id))) rows.push({ icon, label, value, id: this._id(tk) });
+    const add = (id, icon, label, value, tk, extra) => {
+      if (value && (!Array.isArray(shown) || shown.includes(id))) rows.push({ icon, label, value, id: this._id(tk), ...extra });
     };
     const known = (tk) => this._known(tk);
     const withDays = (tk) => {
@@ -893,8 +899,17 @@ class AudiConnectCard extends HTMLElement {
     if (known("park_time")) add("parked", "mdi:parking", this._t("parked"), this._since(this._s("park_time").state), "park_time");
     if (this._has("parking_brake") && this._known("parking_brake")) add("parking_brake", "mdi:car-brake-parking", this._t("parking_brake"), this._on("parking_brake") ? this._t("brake_on") : this._t("brake_off"), "parking_brake");
     if (this._has("warning_lights") && this._known("warning_lights")) {
-      const count = this._num("warning_light_count");
-      add("warning_lights", "mdi:car-light-alert", this._t("warning_lights"), this._on("warning_lights") ? this._t("warning_active") + (count ? ` · ${count}` : "") : this._t("warning_none"), "warning_lights");
+      const count = this._num("warning_light_count") || 0;
+      if (this._on("warning_lights") || count > 0) {
+        this._loadWarningIcons();
+        const minis = this._warnings().map((w) => WARNING_ICONS[w.iconName]).filter(Boolean).slice(0, 3)
+          .map((src) => `<img src="${esc(src)}" alt="">`).join("");
+        const txt = count ? this._t("n_active", { n: count }) : this._t("warning_active");
+        add("warning_lights", "mdi:alert-outline", this._t("warning_lights"), txt, "warning_lights",
+          { popup: "warnings", html: `${minis ? `<span class="wmini">${minis}</span>` : ""}<span class="c-warn">${esc(txt)}</span>` });
+      } else {
+        add("warning_lights", "mdi:check-circle-outline", this._t("warning_lights"), this._t("warning_none"), "warning_lights");
+      }
     }
     if (known("access_overall_status")) {
       const raw = this._fmt("access_overall_status");
@@ -919,7 +934,7 @@ class AudiConnectCard extends HTMLElement {
       : "";
     return `<details data-id="vehicle" ${this._ui.open.vehicle ? "open" : ""}>
       <summary><ha-icon icon="mdi:car-info"></ha-icon><span class="t">${esc(this._t("vehicle"))}</span><span class="sm">${esc(sum)}</span><ha-icon class="ch" icon="mdi:chevron-down"></ha-icon></summary>
-      <div class="facts">${rows.map((r) => `<div class="fact" ${r.id ? `data-more="${esc(r.id)}"` : ""}><ha-icon icon="${r.icon}"></ha-icon><span class="fl">${esc(r.label)}</span><span class="fv">${esc(r.value)}</span></div>`).join("")}</div>
+      <div class="facts">${rows.map((r) => `<div class="fact" ${r.popup ? `data-act="popup" data-tab="${r.popup}"` : r.id ? `data-more="${esc(r.id)}"` : ""}><ha-icon icon="${r.icon}"></ha-icon><span class="fl">${esc(r.label)}</span><span class="fv ${r.html ? "fh" : ""}">${r.html ?? esc(r.value)}</span></div>`).join("")}</div>
       ${refresh ? `<div class="facts">${refresh}</div>` : ""}
     </details>`;
   }
@@ -1125,16 +1140,20 @@ class AudiConnectCard extends HTMLElement {
     const warnings = this._warnings();
     const rows = warnings.map((w) => {
       const src = WARNING_ICONS[w.iconName];
-      const icon = src
-        ? `<span class="wi"><img src="${esc(src)}" alt=""></span>`
-        : `<span class="wi"><ha-icon icon="mdi:alert-outline"></ha-icon></span>`;
-      return `<div class="wr">${icon}<span class="wt">${esc(w.text || "")}</span></div>`;
+      const glyph = src ? `<img src="${esc(src)}" alt="">` : '<ha-icon icon="mdi:alert-outline"></ha-icon>';
+      // "Please charge the battery! (Range: see ...)": the bracket is a side note.
+      const m = String(w.text || "").match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+      const main = (m ? m[1] : String(w.text || "")).replace(/\s+/g, " ").trim();
+      const note = m ? m[2].trim() : "";
+      return `<div class="wr"><span class="wi">${glyph}</span><span class="wt"><b>${esc(main)}</b>${note ? `<span>${esc(note)}</span>` : ""}</span></div>`;
     }).join("");
-    const body = rows || `<div class="li c-mute">${esc(this._t("warnings_none"))}</div>`;
+    const n = warnings.length;
+    const sum = n === 0 ? this._t("warnings_none") : n === 1 ? this._t("warn_one") : this._t("warn_n", { n });
+    const body = rows || `<div class="wr"><span class="wt c-mute">${esc(this._t("warnings_none"))}</span></div>`;
     return `<div class="ov" data-act="close-bg"><div class="dlg">
-      <div class="dh"><div><b>${esc(this._t("warnings_title"))}</b><span class="c-mute">${esc(this._t("warnings_note"))}</span></div>
+      <div class="dh"><div><b>${esc(this._t("warnings_title"))}</b><span class="${n ? "c-warn" : "c-ok"}">${esc(sum)}</span></div>
       <button class="x" data-act="close" aria-label="${esc(this._t("close"))}"><ha-icon icon="mdi:close"></ha-icon></button></div>
-      ${body}
+      <div class="wl">${body}</div>
     </div></div>`;
   }
 
