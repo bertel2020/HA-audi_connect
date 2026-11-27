@@ -167,6 +167,8 @@ summary::-webkit-details-marker{display:none}
 summary:active{background:var(--secondary-background-color)}
 summary .t{font-weight:500;min-width:112px}
 summary .sm{flex:1;color:var(--secondary-text-color);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+summary .sw{display:flex;align-items:center;gap:3px;color:var(--warning-color);font-size:13px;font-weight:500}
+summary .sw ha-icon{--mdc-icon-size:18px;color:var(--warning-color)}
 summary ha-icon{--mdc-icon-size:20px;color:var(--secondary-text-color)}
 summary .ch{transition:transform .15s}
 details[open] summary .ch{transform:rotate(180deg)}
@@ -217,8 +219,8 @@ select{background:var(--secondary-background-color);color:var(--primary-text-col
 .wt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;line-height:1.3}
 .wt b{font-size:14px;font-weight:500}.wt span{font-size:12px;color:var(--secondary-text-color)}
 .fv.fh{display:flex;align-items:center;gap:8px;justify-content:flex-end}
-.wmini{display:flex;gap:3px;align-items:center;justify-content:center;height:30px;padding:0 6px;border-radius:9px;background:#1c1c1e}
-.wmini img{height:18px;width:auto}
+.wmini{display:flex;gap:2px;align-items:center;justify-content:center;height:26px;padding:0 5px;border-radius:8px;background:#1c1c1e}
+.wmini img{height:16px;width:auto}
 .tabs{display:flex;gap:4px;background:var(--secondary-background-color);border-radius:8px;padding:3px;margin-bottom:6px}
 .tab{flex:1;padding:7px 0;text-align:center;font-size:13px;border-radius:6px;cursor:pointer;color:var(--secondary-text-color);background:none;border:0;font-family:inherit}
 .tab.on{background:var(--card-background-color);color:var(--primary-text-color);font-weight:500;box-shadow:0 0 0 1px var(--divider-color)}
@@ -906,7 +908,7 @@ class AudiConnectCard extends HTMLElement {
           .map((src) => `<img src="${esc(src)}" alt="">`).join("");
         const txt = count ? this._t("n_active", { n: count }) : this._t("warning_active");
         add("warning_lights", "mdi:alert-outline", this._t("warning_lights"), txt, "warning_lights",
-          { popup: "warnings", html: `${minis ? `<span class="wmini">${minis}</span>` : ""}<span class="c-warn">${esc(txt)}</span>` });
+          { popup: "warnings", html: `${minis ? `<span class="wmini">${minis}</span>` : ""}<span>${esc(txt)}</span>` });
       } else {
         add("warning_lights", "mdi:check-circle-outline", this._t("warning_lights"), this._t("warning_none"), "warning_lights");
       }
@@ -932,8 +934,14 @@ class AudiConnectCard extends HTMLElement {
     const refresh = canRefresh
       ? `<button class="pill big${this._ui.refreshing ? " busy" : ""}" data-act="refresh"><ha-icon icon="mdi:refresh"></ha-icon>${esc(this._t("refresh_data"))}</button>`
       : "";
+    // A warning must not hide behind a closed section.
+    const warnN = this._num("warning_light_count") || 0;
+    const warnTitle = warnN === 1 ? this._t("warn_one") : this._t("warn_n", { n: warnN });
+    const warnBadge = warnN > 0
+      ? `<span class="sw" title="${esc(warnTitle)}" aria-label="${esc(warnTitle)}"><ha-icon icon="mdi:alert-outline"></ha-icon>${warnN}</span>`
+      : "";
     return `<details data-id="vehicle" ${this._ui.open.vehicle ? "open" : ""}>
-      <summary><ha-icon icon="mdi:car-info"></ha-icon><span class="t">${esc(this._t("vehicle"))}</span><span class="sm">${esc(sum)}</span><ha-icon class="ch" icon="mdi:chevron-down"></ha-icon></summary>
+      <summary><ha-icon icon="mdi:car-info"></ha-icon><span class="t">${esc(this._t("vehicle"))}</span><span class="sm">${esc(sum)}</span>${warnBadge}<ha-icon class="ch" icon="mdi:chevron-down"></ha-icon></summary>
       <div class="facts">${rows.map((r) => `<div class="fact" ${r.popup ? `data-act="popup" data-tab="${r.popup}"` : r.id ? `data-more="${esc(r.id)}"` : ""}><ha-icon icon="${r.icon}"></ha-icon><span class="fl">${esc(r.label)}</span><span class="fv ${r.html ? "fh" : ""}">${r.html ?? esc(r.value)}</span></div>`).join("")}</div>
       ${refresh ? `<div class="facts">${refresh}</div>` : ""}
     </details>`;
@@ -1151,7 +1159,7 @@ class AudiConnectCard extends HTMLElement {
     const sum = n === 0 ? this._t("warnings_none") : n === 1 ? this._t("warn_one") : this._t("warn_n", { n });
     const body = rows || `<div class="wr"><span class="wt c-mute">${esc(this._t("warnings_none"))}</span></div>`;
     return `<div class="ov" data-act="close-bg"><div class="dlg">
-      <div class="dh"><div><b>${esc(this._t("warnings_title"))}</b><span class="${n ? "c-warn" : "c-ok"}">${esc(sum)}</span></div>
+      <div class="dh"><div><b>${esc(this._t("warnings_title"))}</b><span class="c-mute">${esc(sum)}</span></div>
       <button class="x" data-act="close" aria-label="${esc(this._t("close"))}"><ha-icon icon="mdi:close"></ha-icon></button></div>
       <div class="wl">${body}</div>
     </div></div>`;
