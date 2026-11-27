@@ -32,7 +32,7 @@ const TEXT = {
     last_trip: "Last trip", long_term: "Long term",
     distance: "Distance", speed: "Avg. speed", consumption: "Consumption", energy: "Energy",
     electric_range: "Electric range", inspection: "Inspection", inspection_days: "Inspection in", inspection_distance: "Inspection in (distance)", oil_change_days: "Oil change in", oil_change_distance: "Oil change in (distance)", parked: "Parked for",
-    vehicle: "Vehicle", parking_brake: "Parking brake", brake_on: "Engaged", brake_off: "Released", warning_lights: "Warning lights", warning_active: "Active", warning_none: "None", security: "Security status", secured: "Secure", unsecured: "Not secure", fuel_range: "Fuel range", tank: "Tank", outdoor: "Outside temperature", oil_change: "Oil change", oil_level: "Oil level", adblue: "AdBlue range", charge_type: "Charging type", max_current: "Max. charging current",
+    vehicle: "Vehicle", parking_brake: "Parking brake", brake_on: "Engaged", brake_off: "Released", warning_lights: "Warning messages", warning_active: "Active", warning_none: "None", security: "Security status", secured: "Secure", unsecured: "Not secure", fuel_range: "Fuel range", tank: "Tank", outdoor: "Outside temperature", oil_change: "Oil change", oil_level: "Oil level", adblue: "AdBlue range", charge_type: "Charging type", max_current: "Max. charging current",
     climate: "Climate", climate_on: "Running", climate_off: "Off", mode: "Mode",
     heating: "Heating", cooling: "Cooling", ventilating: "Ventilating", running: "Running", remaining: "Time left",
     start: "Start", stop: "Stop",

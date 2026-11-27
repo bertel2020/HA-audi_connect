@@ -647,7 +647,7 @@
         "name": "Online services end"
       },
       "warning_light_count": {
-        "name": "Warning lights"
+        "name": "Warning messages"
       },
       "window_open_pct_front_left": {
         "name": "Front left window opening"
@@ -739,7 +739,7 @@
         "name": "Is moving"
       },
       "warning_lights": {
-        "name": "Warning light active"
+        "name": "Warning message active"
       }
     },
     "button": {
